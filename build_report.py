@@ -226,9 +226,45 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
   margin-top: 1rem; color: var(--dim);
   font-size: .76rem; line-height: 1.8; max-width: 900px;
 }}
+
+/* ── Site nav (hidden when embedded in iframe) ── */
+.site-nav {{
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(28, 25, 23, 0.85);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 0 2rem; margin: -1.5rem -2rem 1.5rem -2rem;
+  display: flex; align-items: center; height: 48px; gap: 1.5rem;
+}}
+.site-nav a {{
+  color: #a8a29e; text-decoration: none; font-size: 13px;
+  padding: 4px 10px; border-radius: 6px;
+  transition: color .15s, background .15s;
+}}
+.site-nav a:hover {{ color: #fff; background: rgba(255,255,255,0.08); }}
+.site-nav .active {{ color: #fff; background: rgba(255,255,255,0.08); }}
+.site-nav .back {{
+  display: flex; align-items: center; gap: 4px;
+  margin-right: auto; font-size: 12px;
+}}
+.site-nav .back svg {{ width: 14px; height: 14px; stroke: currentColor; fill: none; }}
+body.in-iframe .site-nav {{ display: none; }}
+body.in-iframe {{ padding-top: .5rem; }}
 </style>
 </head>
 <body>
+<script>if (window !== window.top) document.body.classList.add('in-iframe');</script>
+
+<nav class="site-nav">
+  <a href="/projects/llm-benchmark-harness/" class="back">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Back to project
+  </a>
+  <a href="/blog">Blog</a>
+  <a href="/projects" class="active">Projects</a>
+  <a href="/about">About</a>
+</nav>
+
 <h1>llm-bench results</h1>
 <p class="meta">Apple M3 Max · 64 GB &nbsp;·&nbsp; {now} &nbsp;·&nbsp; {len(json_rows)} configs (median of 3 runs) &nbsp;·&nbsp; {total_raw} total measurements</p>
 
