@@ -142,6 +142,22 @@ def generate_html(json_rows, total_raw):
   --border: #2d3148; --text: #e2e4f0; --dim: #7b7f9e;
   --green: #4ade80; --red: #f87171; --accent: #6366f1;
   --yellow: #fbbf24; --sort-arrow: #6366f1;
+  --th-bg: #22253a; --row-hover: #232640; --bar-track: #2a2e48;
+  --nav-bg: rgba(28,25,23,0.85); --nav-text: #a8a29e;
+  --nav-hover: rgba(255,255,255,0.08); --nav-active: #fff;
+  --shadow: #0008;
+}}
+@media (prefers-color-scheme: light) {{
+  :root {{
+    --bg: #f5f5f4; --card: #ffffff; --card2: #fafaf9;
+    --border: #d6d3d1; --text: #1c1917; --dim: #78716c;
+    --green: #16a34a; --red: #dc2626; --accent: #4f46e5;
+    --yellow: #d97706; --sort-arrow: #4f46e5;
+    --th-bg: #f5f5f4; --row-hover: #fafaf9; --bar-track: #e7e5e4;
+    --nav-bg: rgba(245,245,244,0.85); --nav-text: #57534e;
+    --nav-hover: rgba(0,0,0,0.05); --nav-active: #1c1917;
+    --shadow: #0002;
+  }}
 }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
@@ -178,14 +194,14 @@ h1 {{ font-size: 1.3rem; color: var(--accent); margin-bottom: .2rem; }}
 .count {{ color: var(--dim); font-size: 11px; margin-left: auto; }}
 
 /* ── Table ── */
-.table-wrap {{ overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 16px #0008; }}
+.table-wrap {{ overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 16px var(--shadow); }}
 table {{
   width: 100%; border-collapse: collapse;
   background: var(--card); white-space: nowrap;
 }}
 thead {{ position: sticky; top: 0; z-index: 2; }}
 th {{
-  background: #22253a; color: var(--dim);
+  background: var(--th-bg); color: var(--dim);
   font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
   padding: .55rem .75rem; text-align: left; cursor: pointer;
   user-select: none; border-bottom: 1px solid var(--border);
@@ -200,7 +216,7 @@ td {{
   vertical-align: middle;
 }}
 tr:last-child td {{ border-bottom: none; }}
-tbody tr:hover td {{ background: #232640; }}
+tbody tr:hover td {{ background: var(--row-hover); }}
 tbody tr.hidden {{ display: none; }}
 code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--accent); }}
 
@@ -211,7 +227,7 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
 }}
 .bar-track {{
   width: 80px; flex-shrink: 0;
-  height: 8px; background: #2a2e48; border-radius: 4px; overflow: hidden;
+  height: 8px; background: var(--bar-track); border-radius: 4px; overflow: hidden;
 }}
 .bar-fill {{ height: 100%; border-radius: 4px; }}
 .bar-val {{ color: var(--text); }}
@@ -230,19 +246,19 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
 /* ── Site nav (hidden when embedded in iframe) ── */
 .site-nav {{
   position: sticky; top: 0; z-index: 100;
-  background: rgba(28, 25, 23, 0.85);
+  background: var(--nav-bg);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid var(--border);
   padding: 0 2rem; margin: -1.5rem -2rem 1.5rem -2rem;
   display: flex; align-items: center; height: 48px; gap: 1.5rem;
 }}
 .site-nav a {{
-  color: #a8a29e; text-decoration: none; font-size: 13px;
+  color: var(--nav-text); text-decoration: none; font-size: 13px;
   padding: 4px 10px; border-radius: 6px;
   transition: color .15s, background .15s;
 }}
-.site-nav a:hover {{ color: #fff; background: rgba(255,255,255,0.08); }}
-.site-nav .active {{ color: #fff; background: rgba(255,255,255,0.08); }}
+.site-nav a:hover {{ color: var(--nav-active); background: var(--nav-hover); }}
+.site-nav .active {{ color: var(--nav-active); background: var(--nav-hover); }}
 .site-nav .back {{
   display: flex; align-items: center; gap: 4px;
   margin-right: auto; font-size: 12px;
