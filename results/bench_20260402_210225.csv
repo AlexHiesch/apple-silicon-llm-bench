@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+B_CTX_1,Coder 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,1,191.3,54.3,170662.4,510,32645,9.56,12.2,0,269,37505.5,7722.2,0.0,,
+B_CTX_1,Coder 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,2,161.7,54.5,201851.7,510,32645,9.51,12.2,0,269,37505.5,7728.7,0.0,,
+B_CTX_1,Coder 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,3,162.4,54.3,201043.7,510,32645,9.53,12.2,0,269,37505.5,7731.5,0.0,,
+B_CTX_1,Coder 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,1,5115.5,43.5,12834.3,505,65654,16.7,12.2,0,261,92453.8,7625.4,0.0,,
+B_CTX_1,Coder 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,2,358.6,45.5,183097.3,505,65654,11.44,12.2,0,261,92453.8,7625.4,0.0,,
+B_CTX_1,Coder 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,3,292.5,44.7,224470.7,505,65654,11.57,12.2,0,261,92453.8,7632.8,0.0,,

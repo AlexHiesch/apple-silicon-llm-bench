@@ -1,0 +1,992 @@
+
+[01:19:04] Phase 1: Groups A + B (cached models — starting immediately)
+
+[01:19:04] Running benchmark — group: A — Qwen3.5-35B-A3B (MoE)
+
+════════════════════════════════════════════════════════════════════════════════
+  [1mllm-bench[0m
+  [2mApple M3 Max 64GB  ·  2026-04-02 01:19[0m
+  Tests: 12  ·  Prompts: 2  ·  Runs: 3+1w  ·  Max tokens: 512  ·  no-think
+════════════════════════════════════════════════════════════════════════════════
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[1/12] A_Q4_1: Qwen3.5 4bit mlx-lm[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3.5-35B-A3B-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 10.5s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=176ms  dec=93.2t/s  pre=131t/s  tok=275  total=3.1s  RSS=2946MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=163ms  dec=94.1t/s  pre=141t/s  tok=275  total=3.1s  RSS=2948MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=170ms  dec=93.9t/s  pre=135t/s  tok=275  total=3.1s  RSS=2950MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=760ms  dec=96.7t/s  pre=989t/s  tok=505  total=6.0s  RSS=2792MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=196ms  dec=95.4t/s  pre=3836t/s  tok=505  total=5.5s  RSS=2793MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=170ms  dec=94.8t/s  pre=4409t/s  tok=505  total=5.5s  RSS=2796MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[2/12] A_Q4_2: Qwen3.5 4bit mlx-vlm[0m
+  Backend: mlx-vlm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-vlm: mlx_vlm.server --model mlx-community/Qwen3.5-35B-A3B-4bit --port 8090 --host 127.0.0.1 --max-kv-size 32768
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 16.3s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=118ms  dec=55.6t/s  pre=195t/s  tok=183  total=3.4s  RSS=1539MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=119ms  dec=55.2t/s  pre=193t/s  tok=183  total=3.4s  RSS=1539MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=118ms  dec=55.4t/s  pre=195t/s  tok=183  total=3.4s  RSS=1539MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=629ms  dec=46.6t/s  pre=1194t/s  tok=283  total=6.7s  RSS=1540MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=629ms  dec=46.4t/s  pre=1193t/s  tok=283  total=6.7s  RSS=1540MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=627ms  dec=45.7t/s  pre=1197t/s  tok=283  total=6.8s  RSS=1540MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[3/12] A_Q4_3: Qwen3.5 4bit mlx-vlm kv4[0m
+  Backend: mlx-vlm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: kv4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-vlm: mlx_vlm.server --model mlx-community/Qwen3.5-35B-A3B-4bit --port 8090 --host 127.0.0.1 --max-kv-size 32768 --kv-bits 4
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 14.2s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=117ms  dec=55.7t/s  pre=196t/s  tok=183  total=3.4s  RSS=8476MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=118ms  dec=55.5t/s  pre=196t/s  tok=183  total=3.4s  RSS=8477MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=122ms  dec=55.2t/s  pre=189t/s  tok=183  total=3.4s  RSS=8477MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=629ms  dec=46.5t/s  pre=1193t/s  tok=283  total=6.7s  RSS=8477MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=2463ms  dec=46.7t/s  pre=305t/s  tok=283  total=8.5s  RSS=8477MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=642ms  dec=45.6t/s  pre=1169t/s  tok=283  total=6.8s  RSS=8477MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[4/12] A_Q4_4: Qwen3.5 4bit mlx-vlm kv2[0m
+  Backend: mlx-vlm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: kv2
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-vlm: mlx_vlm.server --model mlx-community/Qwen3.5-35B-A3B-4bit --port 8090 --host 127.0.0.1 --max-kv-size 32768 --kv-bits 2
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 14.2s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=119ms  dec=55.4t/s  pre=194t/s  tok=183  total=3.4s  RSS=4662MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=117ms  dec=55.4t/s  pre=197t/s  tok=183  total=3.4s  RSS=4662MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=118ms  dec=55.3t/s  pre=196t/s  tok=183  total=3.4s  RSS=4662MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=630ms  dec=46.1t/s  pre=1193t/s  tok=283  total=6.7s  RSS=4663MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=2695ms  dec=46.4t/s  pre=279t/s  tok=283  total=8.8s  RSS=4663MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=632ms  dec=46.4t/s  pre=1189t/s  tok=283  total=6.7s  RSS=4663MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[5/12] A_Q4_5: Qwen3.5 Q4_K_M Ollama[0m
+  Backend: ollama  ·  Fmt: GGUF  ·  Quant: Q4_K_M  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Ollama — preloading qwen3.5:35b-a3b-q4_K_M
+  [32m✔[0m Ready  (load: 11.5s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=380ms  dec=36.8t/s  pre=191t/s  tok=387  total=11.3s  RSS=29611MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=308ms  dec=36.4t/s  pre=207t/s  tok=387  total=12.5s  RSS=29611MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=294ms  dec=35.3t/s  pre=187t/s  tok=387  total=11.4s  RSS=29611MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=596ms  dec=33.3t/s  pre=1545t/s  tok=512  total=16.2s  RSS=27657MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=718ms  dec=33.4t/s  pre=1240t/s  tok=512  total=16.2s  RSS=27660MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=776ms  dec=33.2t/s  pre=1126t/s  tok=512  total=18.2s  RSS=27661MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[6/12] A_Q4_6: Qwen3.5 NVFP4 Ollama[0m
+  Backend: ollama  ·  Fmt: NVFP4  ·  Quant: nvfp4  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Ollama — preloading qwen3.5:35b-a3b-nvfp4
+  [32m✔[0m Ready  (load: 9.0s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=86ms  dec=70.1t/s  pre=709t/s  tok=271  total=4.0s  RSS=3761MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=62ms  dec=69.7t/s  pre=1306t/s  tok=271  total=4.0s  RSS=3763MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=64ms  dec=71.0t/s  pre=1292t/s  tok=271  total=3.9s  RSS=3763MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=89ms  dec=71.2t/s  pre=16696t/s  tok=512  total=7.3s  RSS=3767MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=88ms  dec=73.1t/s  pre=27667t/s  tok=512  total=7.1s  RSS=3767MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=65ms  dec=73.8t/s  pre=29403t/s  tok=512  total=7.0s  RSS=3767MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[7/12] A_Q4_7: Qwen3.5 INT4 Ollama[0m
+  Backend: ollama  ·  Fmt: INT4  ·  Quant: int4  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Ollama — preloading qwen3.5:35b-a3b-int4
+  [32m✔[0m Ready  (load: 13.5s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=74ms  dec=91.9t/s  pre=862t/s  tok=255  total=2.9s  RSS=175MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=61ms  dec=90.7t/s  pre=1390t/s  tok=255  total=2.9s  RSS=176MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=56ms  dec=94.5t/s  pre=1591t/s  tok=255  total=2.8s  RSS=177MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=78ms  dec=92.8t/s  pre=18269t/s  tok=512  total=5.6s  RSS=178MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=56ms  dec=92.7t/s  pre=34231t/s  tok=512  total=5.6s  RSS=179MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=60ms  dec=93.3t/s  pre=32047t/s  tok=512  total=5.5s  RSS=180MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[8/12] A_Q4_9: Qwen3.5 Q4_K_M Docker MR[0m
+  Backend: docker-model-runner  ·  Fmt: GGUF  ·  Quant: Q4_K_M  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Docker Model Runner — checking proxy
+  [32m✔[0m Ready  (load: 7.2s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=166ms  dec=52.7t/s  pre=139t/s  tok=381  total=7.4s
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=183ms  dec=53.5t/s  pre=126t/s  tok=381  total=7.3s
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=157ms  dec=51.6t/s  pre=146t/s  tok=381  total=7.5s
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=52ms  dec=53.8t/s  pre=14576t/s  tok=512  total=9.5s
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=49ms  dec=54.4t/s  pre=15319t/s  tok=512  total=9.4s
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=61ms  dec=53.9t/s  pre=12300t/s  tok=512  total=9.6s
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[9/12] A_Q8_1: Qwen3.5 8bit mlx-lm[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 8bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3.5-35B-A3B-8bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 16.0s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m No tokens received
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[10/12] A_Q8_2: Qwen3.5 8bit mlx-vlm[0m
+  Backend: mlx-vlm  ·  Fmt: MLX  ·  Quant: 8bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-vlm: mlx_vlm.server --model mlx-community/Qwen3.5-35B-A3B-8bit --port 8090 --host 127.0.0.1 --max-kv-size 32768
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 23.8s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=576ms  dec=41.9t/s  pre=40t/s  tok=188  total=5.0s  RSS=344MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=147ms  dec=42.2t/s  pre=156t/s  tok=188  total=4.6s  RSS=344MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=218ms  dec=42.1t/s  pre=105t/s  tok=188  total=4.7s  RSS=344MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=1008ms  dec=31.4t/s  pre=745t/s  tok=252  total=9.0s  RSS=356MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=659ms  dec=31.4t/s  pre=1140t/s  tok=252  total=8.7s  RSS=357MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=642ms  dec=31.2t/s  pre=1170t/s  tok=252  total=8.7s  RSS=357MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[11/12] A_CTX_1: Qwen3.5 4bit mlx-lm ctx[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3.5-35B-A3B-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 9.5s)
+
+  [36m── Prompt: context-32k  (~32645 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=318ms  dec=73.5t/s  pre=102519t/s  tok=506  total=7.2s  RSS=4378MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=286ms  dec=74.1t/s  pre=114059t/s  tok=506  total=7.1s  RSS=4385MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=286ms  dec=74.2t/s  pre=114301t/s  tok=506  total=7.1s  RSS=4385MB
+
+  [36m── Prompt: context-64k  (~65654 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=403ms  dec=59.7t/s  pre=162959t/s  tok=506  total=8.9s  RSS=4305MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=386ms  dec=59.9t/s  pre=169968t/s  tok=506  total=8.8s  RSS=4313MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=400ms  dec=59.6t/s  pre=164334t/s  tok=506  total=8.9s  RSS=4316MB
+
+  [36m── Prompt: context-128k  (~131176 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=704ms  dec=41.8t/s  pre=186442t/s  tok=510  total=12.9s  RSS=4231MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=567ms  dec=44.2t/s  pre=231287t/s  tok=510  total=12.1s  RSS=4234MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=567ms  dec=41.3t/s  pre=231256t/s  tok=510  total=12.9s  RSS=4247MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[12/12] A_CTX_2: Qwen3.5 4bit mlx-vlm kv4 ctx[0m
+  Backend: mlx-vlm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: kv4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-vlm: mlx_vlm.server --model mlx-community/Qwen3.5-35B-A3B-4bit --port 8090 --host 127.0.0.1 --max-kv-size 131072 --kv-bits 4
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 10.8s)
+
+  [36m── Prompt: context-32k  (~32645 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=27855ms  dec=37.9t/s  pre=1172t/s  tok=321  total=36.3s  RSS=16790MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=27840ms  dec=38.2t/s  pre=1173t/s  tok=321  total=36.2s  RSS=16790MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=27935ms  dec=38.5t/s  pre=1169t/s  tok=321  total=36.2s  RSS=16800MB
+
+  [36m── Prompt: context-64k  (~65654 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=75878ms  dec=26.6t/s  pre=865t/s  tok=278  total=86.3s  RSS=16833MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=75639ms  dec=26.8t/s  pre=868t/s  tok=278  total=86.0s  RSS=16833MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=75532ms  dec=26.8t/s  pre=869t/s  tok=278  total=85.9s  RSS=16833MB
+
+  [36m── Prompt: context-128k  (~131176 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=236707ms  dec=18.3t/s  pre=554t/s  tok=278  total=251.8s  RSS=16918MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=238274ms  dec=18.3t/s  pre=550t/s  tok=278  total=253.4s  RSS=16918MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=239741ms  dec=18.2t/s  pre=547t/s  tok=278  total=254.9s  RSS=16918MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [1mBENCHMARK RESULTS[0m  ·  [2mApple M3 Max 64GB  ·  2026-04-02 02:06[0m
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  [1mPrompt: code[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  A_Q4_1       Qwen3.5 4bit mlx-lm          MLX    4bit     default         196ms (c:698)     95.4t/s     3836 t/s    505t   5.5s     2796MB
+  A_Q4_2       Qwen3.5 4bit mlx-vlm         MLX    4bit     default         629ms             46.4t/s     1194 t/s    283t   6.7s     1540MB
+  A_Q4_3       Qwen3.5 4bit mlx-vlm kv4     MLX    4bit     kv4             642ms             46.5t/s     1169 t/s    283t   6.8s     8477MB
+  A_Q4_4       Qwen3.5 4bit mlx-vlm kv2     MLX    4bit     kv2             632ms             46.4t/s     1189 t/s    283t   6.7s     4663MB
+  A_Q4_5       Qwen3.5 Q4_K_M Ollama        GGUF   Q4_K_M   default         718ms (c:1502)     33.3t/s     1240 t/s    512t  16.2s    27661MB
+  A_Q4_6       Qwen3.5 NVFP4 Ollama         NVFP4  nvfp4    default          88ms (c:857)     73.1t/s    27667 t/s    512t   7.1s     3767MB
+  A_Q4_7       Qwen3.5 INT4 Ollama          INT4   int4     default          60ms (c:2306)     92.8t/s    32047 t/s    512t   5.6s      180MB
+  A_Q4_9       Qwen3.5 Q4_K_M Docker MR     GGUF   Q4_K_M   default          52ms (c:901)     53.9t/s    14576 t/s    512t   9.5s        0MB
+  A_Q8_2       Qwen3.5 8bit mlx-vlm         MLX    8bit     default         659ms             31.4t/s     1140 t/s    252t   8.7s      357MB
+
+  [1mPrompt: context-128k[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  A_CTX_1      Qwen3.5 4bit mlx-lm ctx      MLX    4bit     default         567ms (c:242760)     41.8t/s   231256 t/s    510t  12.9s     4247MB
+  A_CTX_2      Qwen3.5 4bit mlx-vlm kv4 ct  MLX    4bit     kv4          238274ms             18.3t/s      550 t/s    278t 253.4s    16918MB
+
+  [1mPrompt: context-32k[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  A_CTX_1      Qwen3.5 4bit mlx-lm ctx      MLX    4bit     default         286ms (c:30704)     74.1t/s   114059 t/s    506t   7.1s     4385MB
+  A_CTX_2      Qwen3.5 4bit mlx-vlm kv4 ct  MLX    4bit     kv4           27855ms             38.2t/s     1172 t/s    321t  36.2s    16800MB
+
+  [1mPrompt: context-64k[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  A_CTX_1      Qwen3.5 4bit mlx-lm ctx      MLX    4bit     default         400ms (c:75008)     59.7t/s   164334 t/s    506t   8.9s     4316MB
+  A_CTX_2      Qwen3.5 4bit mlx-vlm kv4 ct  MLX    4bit     kv4           75639ms             26.8t/s      868 t/s    278t  86.0s    16833MB
+
+  [1mPrompt: short[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  A_Q4_1       Qwen3.5 4bit mlx-lm          MLX    4bit     default         170ms (c:2220)     93.9t/s      135 t/s    275t   3.1s     2950MB
+  A_Q4_2       Qwen3.5 4bit mlx-vlm         MLX    4bit     default         118ms (c:2300)     55.4t/s      195 t/s    183t   3.4s     1539MB
+  A_Q4_3       Qwen3.5 4bit mlx-vlm kv4     MLX    4bit     kv4             118ms (c:1608)     55.5t/s      196 t/s    183t   3.4s     8477MB
+  A_Q4_4       Qwen3.5 4bit mlx-vlm kv2     MLX    4bit     kv2             118ms (c:1966)     55.4t/s      196 t/s    183t   3.4s     4662MB
+  A_Q4_5       Qwen3.5 Q4_K_M Ollama        GGUF   Q4_K_M   default         308ms             36.4t/s      191 t/s    387t  11.4s    29611MB
+  A_Q4_6       Qwen3.5 NVFP4 Ollama         NVFP4  nvfp4    default          64ms (c:154)     70.1t/s     1292 t/s    271t   4.0s     3763MB
+  A_Q4_7       Qwen3.5 INT4 Ollama          INT4   int4     default          61ms (c:171)     91.9t/s     1390 t/s    255t   2.9s      177MB
+  A_Q4_9       Qwen3.5 Q4_K_M Docker MR     GGUF   Q4_K_M   default         166ms             52.7t/s      139 t/s    381t   7.4s        0MB
+  A_Q8_2       Qwen3.5 8bit mlx-vlm         MLX    8bit     default         218ms (c:73242)     42.1t/s      105 t/s    188t   4.7s      344MB
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [2mMetrics: median of runs · TTFT=time to first token · Decode=gen tok/s · Prefill=prompt eval tok/s · c:=cold TTFT[0m
+  [2mPeakRSS: process tree RSS. mmap backends (Ollama, llama-server) may underreport; MLX backends reflect Metal buffer usage.[0m
+
+  [32m✔[0m CSV saved → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_020645.csv
+  [32m✔[0m HTML report → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_020645.html
+
+[02:06:45] Running benchmark — group: B — Qwen3-Coder-Next (Dense)
+
+════════════════════════════════════════════════════════════════════════════════
+  [1mllm-bench[0m
+  [2mApple M3 Max 64GB  ·  2026-04-02 02:06[0m
+  Tests: 5  ·  Prompts: 2  ·  Runs: 3+1w  ·  Max tokens: 512  ·  no-think
+════════════════════════════════════════════════════════════════════════════════
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[1/5] B_Q4_1: Coder 4bit mlx-lm[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3-Coder-Next-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 15.5s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=475ms  dec=61.1t/s  pre=48t/s  tok=259  total=4.7s  RSS=1585MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=112ms  dec=61.8t/s  pre=205t/s  tok=259  total=4.3s  RSS=1586MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=108ms  dec=58.7t/s  pre=212t/s  tok=259  total=4.5s  RSS=1586MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=124ms  dec=66.0t/s  pre=6050t/s  tok=510  total=7.8s  RSS=1602MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=138ms  dec=62.1t/s  pre=5438t/s  tok=510  total=8.3s  RSS=1602MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=119ms  dec=65.4t/s  pre=6310t/s  tok=510  total=7.9s  RSS=1602MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[2/5] B_Q4_2: Coder 4bit mlx-lm cache32k[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: cache32k
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3-Coder-Next-4bit --port 8090 --host 127.0.0.1 --prompt-cache-bytes 33554432
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 14.4s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=139ms  dec=60.2t/s  pre=166t/s  tok=259  total=4.4s  RSS=3382MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=111ms  dec=63.4t/s  pre=207t/s  tok=259  total=4.2s  RSS=3382MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=114ms  dec=64.4t/s  pre=202t/s  tok=259  total=4.1s  RSS=3382MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=110ms  dec=63.3t/s  pre=6844t/s  tok=510  total=8.2s  RSS=3390MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=126ms  dec=64.9t/s  pre=5939t/s  tok=510  total=8.0s  RSS=3390MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=119ms  dec=67.8t/s  pre=6317t/s  tok=510  total=7.6s  RSS=3390MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[3/5] B_Q4_4: Coder Q4_K_M llama-server[0m
+  Backend: llama-server  ·  Fmt: GGUF  ·  Quant: Q4_K_M  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting llama-server: llama-server -m /Users/HIESCHA/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf --port 8090 --host 127.0.0.1 -ngl 99
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 45.6s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=229ms  dec=38.6t/s  pre=100t/s  tok=242  total=6.5s  RSS=12012MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=146ms  dec=39.2t/s  pre=158t/s  tok=242  total=6.3s  RSS=12012MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=146ms  dec=38.2t/s  pre=158t/s  tok=242  total=6.5s  RSS=12012MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=1126ms  dec=38.8t/s  pre=667t/s  tok=506  total=14.2s  RSS=12049MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=1231ms  dec=39.7t/s  pre=610t/s  tok=506  total=13.9s  RSS=12049MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=1291ms  dec=38.7t/s  pre=582t/s  tok=506  total=14.3s  RSS=12049MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[4/5] B_Q4_5: Coder Q4 kv-q8 llama-server[0m
+  Backend: llama-server  ·  Fmt: GGUF  ·  Quant: Q4_K_M  ·  KV: kv-q8
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting llama-server: llama-server -m /Users/HIESCHA/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf --port 8090 --host 127.0.0.1 -ngl 99 -ctk q8_0 -ctv q8_0
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 26.7s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=162ms  dec=37.7t/s  pre=142t/s  tok=242  total=6.5s  RSS=16928MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=151ms  dec=38.3t/s  pre=152t/s  tok=242  total=6.5s  RSS=16928MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=152ms  dec=39.8t/s  pre=151t/s  tok=242  total=6.2s  RSS=16928MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=1627ms  dec=38.5t/s  pre=462t/s  tok=506  total=14.8s  RSS=16965MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=822ms  dec=37.9t/s  pre=913t/s  tok=506  total=14.2s  RSS=16965MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=1249ms  dec=37.8t/s  pre=601t/s  tok=506  total=14.6s  RSS=16965MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[5/5] B_CTX_1: Coder 4bit mlx-lm ctx[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3-Coder-Next-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 15.3s)
+
+  [36m── Prompt: context-32k  (~32645 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=386ms  dec=51.7t/s  pre=84466t/s  tok=510  total=10.2s  RSS=3870MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=202ms  dec=51.5t/s  pre=161609t/s  tok=510  total=10.1s  RSS=3870MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=464ms  dec=52.5t/s  pre=70391t/s  tok=510  total=10.2s  RSS=3870MB
+
+  [36m── Prompt: context-64k  (~65654 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=437ms  dec=43.1t/s  pre=150233t/s  tok=505  total=12.1s  RSS=3902MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=840ms  dec=43.7t/s  pre=78207t/s  tok=505  total=12.4s  RSS=3902MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=548ms  dec=40.9t/s  pre=119808t/s  tok=505  total=12.9s  RSS=3902MB
+
+  [36m── Prompt: context-128k  (~131176 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m No tokens received
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [1mBENCHMARK RESULTS[0m  ·  [2mApple M3 Max 64GB  ·  2026-04-02 02:18[0m
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  [1mPrompt: code[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  B_Q4_1       Coder 4bit mlx-lm            MLX    4bit     default         124ms (c:872)     65.4t/s     6050 t/s    510t   7.9s     1602MB
+  B_Q4_2       Coder 4bit mlx-lm cache32k   MLX    4bit     cache32k        119ms (c:912)     64.9t/s     6317 t/s    510t   8.0s     3390MB
+  B_Q4_4       Coder Q4_K_M llama-server    GGUF   Q4_K_M   default        1231ms             38.8t/s      610 t/s    506t  14.2s    12049MB
+  B_Q4_5       Coder Q4 kv-q8 llama-server  GGUF   Q4_K_M   kv-q8          1249ms             37.9t/s      601 t/s    506t  14.6s    16965MB
+
+  [1mPrompt: context-32k[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  B_CTX_1      Coder 4bit mlx-lm ctx        MLX    4bit     default         386ms (c:43866)     51.7t/s    84466 t/s    510t  10.2s     3870MB
+
+  [1mPrompt: context-64k[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  B_CTX_1      Coder 4bit mlx-lm ctx        MLX    4bit     default         548ms (c:108329)     43.1t/s   119808 t/s    505t  12.4s     3902MB
+
+  [1mPrompt: short[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  B_Q4_1       Coder 4bit mlx-lm            MLX    4bit     default         112ms (c:12439)     61.1t/s      205 t/s    259t   4.5s     1586MB
+  B_Q4_2       Coder 4bit mlx-lm cache32k   MLX    4bit     cache32k        114ms (c:7414)     63.4t/s      202 t/s    259t   4.2s     3382MB
+  B_Q4_4       Coder Q4_K_M llama-server    GGUF   Q4_K_M   default         146ms             38.6t/s      158 t/s    242t   6.5s    12012MB
+  B_Q4_5       Coder Q4 kv-q8 llama-server  GGUF   Q4_K_M   kv-q8           152ms             38.3t/s      151 t/s    242t   6.5s    16928MB
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [2mMetrics: median of runs · TTFT=time to first token · Decode=gen tok/s · Prefill=prompt eval tok/s · c:=cold TTFT[0m
+  [2mPeakRSS: process tree RSS. mmap backends (Ollama, llama-server) may underreport; MLX backends reflect Metal buffer usage.[0m
+
+  [32m✔[0m CSV saved → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_021826.csv
+  [32m✔[0m HTML report → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_021826.html
+
+[02:18:26] Phase 2: C — Gemma 3 27B-IT
+
+[02:18:26] Downloading mlx-community/gemma-3-27b-it-4bit
+Fetching 17 files:   0%|          | 0/17 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 17 files:   6%|▌         | 1/17 [00:00<00:06,  2.53it/s]Fetching 17 files:  41%|████      | 7/17 [10:14<15:16, 91.65s/it]Fetching 17 files:  47%|████▋     | 8/17 [13:58<17:14, 114.98s/it]Fetching 17 files: 100%|██████████| 17/17 [13:58<00:00, 49.33s/it]
+  Downloaded in 14.0 min
+
+[02:32:26] Running benchmark — group: C — Gemma 3 27B-IT
+
+════════════════════════════════════════════════════════════════════════════════
+  [1mllm-bench[0m
+  [2mApple M3 Max 64GB  ·  2026-04-02 02:32[0m
+  Tests: 2  ·  Prompts: 2  ·  Runs: 3+1w  ·  Max tokens: 512  ·  no-think
+════════════════════════════════════════════════════════════════════════════════
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[1/2] C_Q4_1: Gemma3-27B 4bit mlx-lm[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/gemma-3-27b-it-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 7.3s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=289ms  dec=22.2t/s  pre=80t/s  tok=137  total=6.4s  RSS=4010MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=250ms  dec=20.7t/s  pre=92t/s  tok=137  total=6.8s  RSS=4017MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=251ms  dec=22.2t/s  pre=92t/s  tok=137  total=6.4s  RSS=4017MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=298ms  dec=21.5t/s  pre=2522t/s  tok=512  total=24.1s  RSS=4012MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=282ms  dec=21.5t/s  pre=2664t/s  tok=512  total=24.0s  RSS=4013MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=273ms  dec=21.6t/s  pre=2751t/s  tok=512  total=23.9s  RSS=4013MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[2/2] C_CTX_1: Gemma3-27B 4bit mlx-lm ctx[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/gemma-3-27b-it-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 7.3s)
+
+  [36m── Prompt: context-32k  (~32645 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 3 failed
+
+  [36m── Prompt: context-64k  (~65654 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m Request failed: timed out
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 3 failed
+
+  [36m── Prompt: context-128k  (~131176 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m Request failed: timed out
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: timed out
+  [31m✘[0m Run 3 failed
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [1mBENCHMARK RESULTS[0m  ·  [2mApple M3 Max 64GB  ·  2026-04-02 04:28[0m
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  [1mPrompt: code[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C_Q4_1       Gemma3-27B 4bit mlx-lm       MLX    4bit     default         282ms (c:4374)     21.5t/s     2664 t/s    512t  24.0s     4013MB
+
+  [1mPrompt: short[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  C_Q4_1       Gemma3-27B 4bit mlx-lm       MLX    4bit     default         251ms (c:2552)     22.2t/s       92 t/s    137t   6.4s     4017MB
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [2mMetrics: median of runs · TTFT=time to first token · Decode=gen tok/s · Prefill=prompt eval tok/s · c:=cold TTFT[0m
+  [2mPeakRSS: process tree RSS. mmap backends (Ollama, llama-server) may underreport; MLX backends reflect Metal buffer usage.[0m
+
+  [32m✔[0m CSV saved → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_042831.csv
+  [32m✔[0m HTML report → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_042831.html
+
+[04:28:31] Phase 2: D — Qwen3-32B (Dense)
+
+[04:28:31] Downloading mlx-community/Qwen3-32B-4bit
+Fetching 14 files:   0%|          | 0/14 [00:00<?, ?it/s]Fetching 14 files:   7%|▋         | 1/14 [00:00<00:01,  7.11it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 14 files:  43%|████▎     | 6/14 [09:57<13:57, 104.75s/it]Fetching 14 files:  50%|█████     | 7/14 [14:49<16:35, 142.27s/it]Fetching 14 files: 100%|██████████| 14/14 [14:49<00:00, 63.51s/it]
+  Downloaded in 14.8 min
+
+[04:43:21] Running benchmark — group: D — Qwen3-32B (Dense)
+
+════════════════════════════════════════════════════════════════════════════════
+  [1mllm-bench[0m
+  [2mApple M3 Max 64GB  ·  2026-04-02 04:43[0m
+  Tests: 2  ·  Prompts: 2  ·  Runs: 3+1w  ·  Max tokens: 512  ·  no-think
+════════════════════════════════════════════════════════════════════════════════
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[1/2] D_Q4_1: Qwen3-32B 4bit mlx-lm[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3-32B-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 7.4s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=311ms  dec=18.2t/s  pre=74t/s  tok=255  total=14.3s  RSS=1652MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=245ms  dec=18.6t/s  pre=94t/s  tok=255  total=13.9s  RSS=1652MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=237ms  dec=18.5t/s  pre=97t/s  tok=255  total=14.0s  RSS=1652MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=261ms  dec=18.5t/s  pre=2873t/s  tok=510  total=27.7s  RSS=1507MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=250ms  dec=18.6t/s  pre=3001t/s  tok=510  total=27.7s  RSS=1507MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=248ms  dec=18.7t/s  pre=3026t/s  tok=510  total=27.5s  RSS=1508MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[2/2] D_CTX_1: Qwen3-32B 4bit mlx-lm ctx[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Qwen3-32B-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 7.4s)
+
+  [36m── Prompt: context-32k  (~32645 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=1461ms  dec=10.4t/s  pre=22342t/s  tok=510  total=50.4s  RSS=17560MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=838ms  dec=10.4t/s  pre=38955t/s  tok=510  total=49.8s  RSS=17571MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=797ms  dec=10.5t/s  pre=40969t/s  tok=510  total=49.4s  RSS=17571MB
+
+  [36m── Prompt: context-64k  (~65654 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m No tokens received
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+
+  [36m── Prompt: context-128k  (~131176 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [1mBENCHMARK RESULTS[0m  ·  [2mApple M3 Max 64GB  ·  2026-04-02 04:54[0m
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  [1mPrompt: code[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  D_Q4_1       Qwen3-32B 4bit mlx-lm        MLX    4bit     default         250ms (c:5512)     18.6t/s     3001 t/s    510t  27.7s     1508MB
+
+  [1mPrompt: context-32k[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  D_CTX_1      Qwen3-32B 4bit mlx-lm ctx    MLX    4bit     default         838ms (c:265389)     10.4t/s    38955 t/s    510t  49.8s    17571MB
+
+  [1mPrompt: short[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  D_Q4_1       Qwen3-32B 4bit mlx-lm        MLX    4bit     default         245ms (c:3378)     18.5t/s       94 t/s    255t  14.0s     1652MB
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [2mMetrics: median of runs · TTFT=time to first token · Decode=gen tok/s · Prefill=prompt eval tok/s · c:=cold TTFT[0m
+  [2mPeakRSS: process tree RSS. mmap backends (Ollama, llama-server) may underreport; MLX backends reflect Metal buffer usage.[0m
+
+  [32m✔[0m CSV saved → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_045440.csv
+  [32m✔[0m HTML report → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_045440.html
+
+[04:54:40] Phase 2: E — Llama 3.3 70B
+
+[04:54:40] Downloading mlx-community/Llama-3.3-70B-Instruct-4bit
+Fetching 15 files:   0%|          | 0/15 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 15 files:   7%|▋         | 1/15 [00:00<00:01,  7.23it/s]Fetching 15 files:  13%|█▎        | 2/15 [00:00<00:01,  8.63it/s]Fetching 15 files:  27%|██▋       | 4/15 [29:05<1:40:18, 547.17s/it]Fetching 15 files:  33%|███▎      | 5/15 [32:20<1:13:02, 438.24s/it]Fetching 15 files: 100%|██████████| 15/15 [32:20<00:00, 129.37s/it] 
+  Downloaded in 32.4 min
+
+[05:27:02] Running benchmark — group: E — Llama 3.3 70B
+
+════════════════════════════════════════════════════════════════════════════════
+  [1mllm-bench[0m
+  [2mApple M3 Max 64GB  ·  2026-04-02 05:27[0m
+  Tests: 2  ·  Prompts: 2  ·  Runs: 3+1w  ·  Max tokens: 512  ·  no-think
+════════════════════════════════════════════════════════════════════════════════
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[1/2] E_Q4_1: Llama3.3-70B 4bit mlx-lm[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Llama-3.3-70B-Instruct-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 13.5s)
+
+  [36m── Prompt: short  (~23 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=596ms  dec=8.6t/s  pre=39t/s  tok=257  total=30.5s  RSS=1548MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=842ms  dec=8.5t/s  pre=27t/s  tok=257  total=30.9s  RSS=1548MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=310ms  dec=8.5t/s  pre=74t/s  tok=257  total=30.4s  RSS=1548MB
+
+  [36m── Prompt: code  (~751 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [36m▸[0m Run 1/3...
+  [32m✔[0m TTFT=409ms  dec=8.9t/s  pre=1838t/s  tok=510  total=57.7s  RSS=1538MB
+  [36m▸[0m Run 2/3...
+  [32m✔[0m TTFT=372ms  dec=8.8t/s  pre=2019t/s  tok=510  total=58.0s  RSS=1538MB
+  [36m▸[0m Run 3/3...
+  [32m✔[0m TTFT=400ms  dec=8.8t/s  pre=1878t/s  tok=510  total=58.2s  RSS=1538MB
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+  [36m▸[0m Cooldown 8s...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [1m[2/2] E_CTX_1: Llama3.3-70B 4bit mlx-lm ctx[0m
+  Backend: mlx-lm  ·  Fmt: MLX  ·  Quant: 4bit  ·  KV: default
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [36m▸[0m Starting mlx-lm: mlx_lm.server --model mlx-community/Llama-3.3-70B-Instruct-4bit --port 8090 --host 127.0.0.1
+  [36m▸[0m Waiting for server...
+  [32m✔[0m Ready  (load: 14.7s)
+
+  [36m── Prompt: context-32k  (~32645 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m No tokens received
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+
+  [36m── Prompt: context-64k  (~65654 tokens) ──[0m
+  [36m▸[0m Warmup 1/1...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [36m▸[0m Run 1/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 1 failed
+  [36m▸[0m Run 2/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 2 failed
+  [36m▸[0m Run 3/3...
+  [31m✘[0m Request failed: <urlopen error [Errno 61] Connection refused>
+  [31m✘[0m Run 3 failed
+  [36m▸[0m Stopping server...
+  [32m✔[0m Done
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [1mBENCHMARK RESULTS[0m  ·  [2mApple M3 Max 64GB  ·  2026-04-02 05:42[0m
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  [1mPrompt: code[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  E_Q4_1       Llama3.3-70B 4bit mlx-lm     MLX    4bit     default         400ms (c:8412)      8.8t/s     1878 t/s    510t  58.0s     1538MB
+
+  [1mPrompt: short[0m
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  ID           Name                         Fmt    Quant    KV               TTFT     Decode    Prefill  Tokens   Total    PeakRSS
+  ────────────────────────────────────────────────────────────────────────────────────────────────────────
+  E_Q4_1       Llama3.3-70B 4bit mlx-lm     MLX    4bit     default         596ms (c:7898)      8.5t/s       39 t/s    257t  30.5s     1548MB
+
+════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  [2mMetrics: median of runs · TTFT=time to first token · Decode=gen tok/s · Prefill=prompt eval tok/s · c:=cold TTFT[0m
+  [2mPeakRSS: process tree RSS. mmap backends (Ollama, llama-server) may underreport; MLX backends reflect Metal buffer usage.[0m
+
+  [32m✔[0m CSV saved → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_054209.csv
+  [32m✔[0m HTML report → /Users/HIESCHA/Projects/Work/llm-bench/results/bench_20260402_054209.html
+
+[05:42:10] Building combined HTML report
+  [32m✔[0m HTML report → /Users/HIESCHA/Projects/Work/llm-bench/results/complete_results.html
+  Combined report: /Users/HIESCHA/Projects/Work/llm-bench/results/complete_results.html
+
+[05:42:10] All done.

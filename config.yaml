@@ -1,0 +1,1065 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# llm-bench — configuration file
+#
+# Edit this file to define which models, backends and quantizations to test.
+# The benchmark reads this file at startup; no code changes required.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Human-readable description of the machine running the benchmark.
+hardware:
+  name: "Apple M3 Max"
+  memory_gb: 64
+  platform: "darwin-arm64"
+
+# ── Global settings ───────────────────────────────────────────────────────────
+settings:
+  runs: 3           # benchmark iterations per test (excluding warmup)
+  warmup: 1         # warmup iterations before timed runs (captures cold TTFT)
+  max_tokens: 512   # maximum tokens to generate per request
+  temperature: 0.0  # deterministic output
+  server_timeout: 600   # seconds to wait for server to become ready
+  cooldown: 8           # seconds between tests (let DRAM settle)
+  bench_port: 8090      # port used for backends we start ourselves
+
+# ── Prompts to run ────────────────────────────────────────────────────────────
+# Built-in names: short, long, code, context-4k, context-8k, context-16k, context-32k
+# Use "all" to run short + long + code.  Use "context" for all context tiers.
+prompts:
+  - short
+  - code
+
+# ── Optional: define your own prompts ─────────────────────────────────────────
+# custom_prompts:
+#   haiku:
+#     messages:
+#       - role: user
+#         content: "Write a haiku about neural networks."
+#   sys-user:
+#     messages:
+#       - role: system
+#         content: "You are a helpful assistant."
+#       - role: user
+#         content: "Explain backpropagation in two sentences."
+
+# ── Test matrix ───────────────────────────────────────────────────────────────
+# Each test is one (model × backend × quant × kv_cache) combination.
+#
+# Required fields:
+#   id         – unique slug used in CLI (--test), CSV output and reports
+#   name       – human-readable label shown in results table
+#   backend    – one of: ollama | mlx-lm | mlx-vlm | llama-server |
+#                        vllm-mlx | omlx | lm-studio | docker-model-runner
+#   model_id   – Ollama tag / HF repo ID / GGUF file path depending on backend
+#   fmt        – weight format label shown in report  (e.g. MLX, GGUF, NVFP4, INT4)
+#   quant      – quantization label  (e.g. 4bit, 8bit, Q4_K_M, nvfp4, int4)
+#   kv_cache   – KV cache variant label  (default | kv8 | kv4 | kv2 | none | ...)
+#
+# Optional fields:
+#   group      – grouping label for the report table (default: "default")
+#   enabled    – set false to skip without deleting the entry  (default: true)
+#   extra_args – list of extra CLI arguments passed to the backend server
+#   prereq     – manual override for the readiness check string shown in --list
+#                (leave empty "" to rely on auto-detection)
+#   no_think   – override the global --no-think flag for this specific test
+#
+# Backend-specific notes:
+#   ollama          – model_id is an Ollama tag; server is managed by Ollama itself
+#   mlx-lm          – model_id is an HF repo ID (mlx-community/…); uses mlx_lm.server
+#   mlx-vlm         – same as mlx-lm but uses mlx_vlm.server (better KV control)
+#   llama-server    – model_id is an absolute path to a GGUF file
+#   vllm-mlx        – model_id is an HF repo ID; needs vllm-mlx venv installed
+#   omlx            – model_id is the short model name as stored in ~/.omlx/models/
+#   lm-studio       – model_id is the model key as shown in LM Studio; server must
+#                     be started separately (or the benchmark starts it via lms CLI)
+#   docker-model-runner – model_id is the full Docker image tag (docker.io/ai/…)
+# ─────────────────────────────────────────────────────────────────────────────
+
+tests:
+
+  # ── Group A: Qwen3.5-35B-A3B (MoE) — apples-to-apples across backends ─────
+
+  # ── A / Q4 — ~4-bit weight quantization ─────────────────────────────────────
+  - id: A_Q4_1
+    name: "Qwen3.5 4bit mlx-lm"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: A_Q4_2
+    name: "Qwen3.5 4bit mlx-vlm"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: A_Q4_3
+    name: "Qwen3.5 4bit mlx-vlm kv4"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: A_Q4_4
+    name: "Qwen3.5 4bit mlx-vlm kv2"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv2
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "2"]
+
+  - id: A_Q4_5
+    name: "Qwen3.5 Q4_K_M Ollama"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.5:35b-a3b-q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: A_Q4_6
+    name: "Qwen3.5 NVFP4 Ollama"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.5:35b-a3b-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+
+  - id: A_Q4_7
+    name: "Qwen3.5 INT4 Ollama"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.5:35b-a3b-int4"
+    fmt: INT4
+    quant: int4
+    kv_cache: default
+
+  - id: A_Q4_8
+    name: "Qwen3.5 Q4_K_M llama-server"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: llama-server
+    # KNOWN ISSUE: Ollama stores Qwen3.5-MoE in a GGUF dialect that llama-server
+    # rejects with: "key qwen35moe.rope.dimension_sections has wrong array length;
+    # expected 4, got 3". The blob is a valid GGUF file but uses a newer spec that
+    # the current llama.cpp parser doesn't accept for this MoE architecture.
+    # FIX: Download the GGUF directly from HuggingFace instead of using the Ollama blob:
+    #   huggingface-cli download bartowski/Qwen3.5-35B-A3B-GGUF \
+    #     --include "Qwen3.5-35B-A3B-Q4_K_M.gguf" --local-dir ~/.cache/llmfit/models/
+    # Then set model_id to the absolute path below.
+    model_id: "ollama:qwen3.5:35b-a3b-q4_K_M"  # auto-resolve from Ollama blob (blocked, see above)
+    # model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-Q4_K_M.gguf"  # use this after download
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # blocked: Ollama GGUF dialect incompatible with current llama-server
+
+  - id: A_Q4_9
+    name: "Qwen3.5 Q4_K_M Docker MR"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: docker-model-runner
+    model_id: "docker.io/ai/qwen3.5:35B-A3B-Q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  # ── A / Q8 — 8-bit weight quantization ──────────────────────────────────────
+  - id: A_Q8_1
+    name: "Qwen3.5 8bit mlx-lm"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: A_Q8_2
+    name: "Qwen3.5 8bit mlx-vlm"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: A_Q8_3
+    name: "Qwen3.5 Q8_0 llama-server"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: llama-server
+    # Same GGUF dialect incompatibility as A_Q4_8 (same model family, same Ollama storage format).
+    # Download directly from HuggingFace and point to the local file to use this test.
+    model_id: "ollama:qwen3.5:35b-a3b-q8_0"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+    enabled: false  # blocked: Ollama GGUF dialect incompatible + q8_0 not pulled yet
+
+  # ── Group B: Qwen3-Coder-Next (Dense, GQA) ───────────────────────────────────
+  - id: B_Q4_1
+    name: "Coder 4bit mlx-lm"
+    group: "B — Qwen3-Coder-Next (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: B_Q4_2
+    name: "Coder 4bit mlx-lm cache32k"
+    group: "B — Qwen3-Coder-Next (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: cache32k
+    extra_args: ["--prompt-cache-bytes", "33554432"]
+
+  - id: B_Q4_3
+    name: "Coder 4bit mlx-vlm"
+    group: "B — Qwen3-Coder-Next (Dense)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    # KNOWN ISSUE: mlx-vlm doesn't support the qwen3_next architecture yet.
+    # Error: "Model type qwen3_next not supported. No module named 'mlx_vlm.models.qwen3_next'"
+    # Re-enable once mlx-vlm adds qwen3_next support (track: https://github.com/Blaizzy/mlx-vlm)
+    enabled: false
+
+  - id: B_Q4_4
+    name: "Coder Q4_K_M llama-server"
+    group: "B — Qwen3-Coder-Next (Dense)"
+    backend: llama-server
+    # Provide absolute path to your GGUF file:
+    model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: B_Q4_5
+    name: "Coder Q4 kv-q8 llama-server"
+    group: "B — Qwen3-Coder-Next (Dense)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: kv-q8
+    extra_args: ["-ctk", "q8_0", "-ctv", "q8_0"]
+
+  # ── Context scaling: Group A — Qwen3.5-35B-A3B ───────────────────────────────
+  # Memory budget: ~22GB weights + KV
+  #   MoE architecture has very few GQA KV heads → KV ≈ 190 KB/token
+  #   128k KV ≈ 24 GB  →  total ~46 GB  →  fits on 64 GB without KV quant
+  #   256k would need KV-q4 (4-bit KV via mlx-vlm --kv-bits 4)
+
+  - id: A_CTX_1
+    name: "Qwen3.5 4bit mlx-lm ctx"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: A_CTX_2
+    name: "Qwen3.5 4bit mlx-vlm kv4 ctx"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    # KV-q4 reduces KV memory 4× — useful only if you need >128k on 64 GB.
+    # BENCHMARKED RESULT (2026-04-02): KV quantization via mlx-vlm is
+    # counterproductive for performance: prefill drops from 231k t/s (mlx-lm)
+    # to 550 t/s, TTFT at 128k = 238 seconds vs 567 ms for mlx-lm default.
+    # mlx-vlm does not have optimized Metal shaders for quantized KV prefill.
+    # Recommendation: use mlx-lm (A_CTX_1) instead — it fits 128k natively.
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ── Context scaling: Group B — Qwen3-Coder-Next ──────────────────────────────
+  # Memory budget: ~15 GB weights
+  #   Dense GQA model with ~8 KV heads → KV ≈ 300–400 KB/token
+  #   128k KV ≈ 38 GB  →  total ~53 GB  →  theoretically fits, but OOM in practice
+  # BENCHMARKED (2026-04-02): context-128k crashes with connection refused — mlx-lm
+  # exhausts unified memory before completing the prefill.  Capped at 64k.
+
+  - id: B_CTX_1
+    name: "Coder 4bit mlx-lm ctx"
+    group: "B — Qwen3-Coder-Next (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    prompts: [context-32k, context-64k]
+
+  # ── Group C: Gemma 3 27B-IT ───────────────────────────────────────────────────
+  # Why: sliding window attention (SWA) makes KV cache nearly constant across
+  # context lengths — global attention only every 6th layer.  At 128k tokens the
+  # effective KV footprint is ~6 GB vs ~24 GB for a full-attention model of equal
+  # size.  This is the architectural answer to the KV memory problem.
+  # Model: mlx-community/gemma-3-27b-it-4bit  (~14 GB download)
+  # Native context: 131072 tokens
+  # Intelligence: matches GPT-4o on most coding / instruction-following benchmarks
+
+  - id: C_Q4_1
+    name: "Gemma3-27B 4bit mlx-lm"
+    group: "C — Gemma 3 27B-IT"
+    backend: mlx-lm
+    model_id: "mlx-community/gemma-3-27b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: C_CTX_1
+    name: "Gemma3-27B 4bit mlx-lm ctx"
+    group: "C — Gemma 3 27B-IT"
+    backend: mlx-lm
+    model_id: "mlx-community/gemma-3-27b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    # KNOWN ISSUE (2026-04-02): all context tiers timed out (>600s per request).
+    # Short/code baseline (C_Q4_1) works fine.  Likely cause: mlx-lm's Gemma 3
+    # implementation falls back to a slow sequential path for long prompts due to
+    # the mixed SWA/global attention architecture.  Track mlx-lm updates.
+    enabled: false
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ── Group D: Qwen3-32B (Dense, non-MoE) ──────────────────────────────────────
+  # Why: direct comparison — same Qwen3 family but dense 32B vs MoE 35B-A3B.
+  # Dense models are typically slower (more active params per token) but may have
+  # better recall / coherence at long context vs sparse MoE activation.
+  # Model: mlx-community/Qwen3-32B-4bit  (~16 GB download)
+  # Native context: 131072 tokens
+
+  - id: D_Q4_1
+    name: "Qwen3-32B 4bit mlx-lm"
+    group: "D — Qwen3-32B (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3-32B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: D_CTX_1
+    name: "Qwen3-32B 4bit mlx-lm ctx"
+    group: "D — Qwen3-32B (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3-32B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    # BENCHMARKED RESULT (2026-04-02):
+    #   context-32k: dec=10.4 t/s  pre=38955 t/s  TTFT=838ms  (all runs OK)
+    #   context-64k+: OOM crash (connection refused) — KV exceeds available RAM
+    # Dense 32B decode is 7× slower than MoE 35B-A3B at same context (10 vs 74 t/s)
+    # because all 32B params are activated per token.  Practical context ceiling: 32k.
+    # 64k/128k capped: would require ~38 GB (64k) / ~76 GB (128k) KV on top of ~16 GB weights.
+    prompts: [context-32k]
+
+  # ── Group E: Llama 3.3 70B ────────────────────────────────────────────────────
+  # BENCHMARKED (2026-04-02):
+  #   Baseline decode: 8.5–8.9 t/s (short+code) — memory-bandwidth limited.
+  #   At 4bit × 70B params: each token reads ~35 GB weights from DRAM.
+  #   M3 Max ~400 GB/s bandwidth → theoretical max ~11 t/s → measured 8.5 t/s.
+  #   Context tests: OOM crash at 32k (37 GB model + KV exceeds 64 GB).
+  # Verdict: not viable for Claude Code replacement on 64 GB.  The model is
+  # intelligent but too large to run at practical context + decode speed.
+  # Use case: single-shot quality evaluation only (short prompts, no long ctx).
+  # Model: mlx-community/Llama-3.3-70B-Instruct-4bit  (downloaded 2026-04-02)
+  # Native context: 131072 tokens
+
+  - id: E_Q4_1
+    name: "Llama3.3-70B 4bit mlx-lm"
+    group: "E — Llama 3.3 70B"
+    backend: mlx-lm
+    model_id: "mlx-community/Llama-3.3-70B-Instruct-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: E_CTX_1
+    name: "Llama3.3-70B 4bit mlx-lm ctx"
+    group: "E — Llama 3.3 70B"
+    backend: mlx-lm
+    model_id: "mlx-community/Llama-3.3-70B-Instruct-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    # KNOWN ISSUE (2026-04-02): OOM crash at context-32k — model weights alone consume
+    # ~37 GB; at 32k context, FP16 KV ≈ 6–7 GB additional → exceeds 64 GB budget.
+    # Verdict: Llama 3.3 70B cannot run at any context depth on 64 GB unified memory.
+    # Use E_Q4_1 (baseline short/code) for quality comparison only.
+    enabled: false
+    prompts: [context-32k, context-64k]
+
+  - id: E_CTX_2
+    name: "Llama3.3-70B 4bit mlx-vlm kv4 ctx128k"
+    group: "E — Llama 3.3 70B"
+    backend: mlx-vlm
+    model_id: "mlx-community/Llama-3.3-70B-Instruct-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    # KV-q4 cuts KV footprint 4×: 128k KV ≈ 10.7 GB → total ~48 GB → fits
+    # KNOWN ISSUE: verify mlx-vlm supports llama3 architecture before enabling
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-128k]
+    enabled: false  # enable once mlx-vlm llama3 architecture support confirmed
+
+  # ── Group F: TurboQuant KV cache compression ──────────────────────────────────
+  # TurboQuant (Google, ICLR 2026): PolarQuant-based KV compression via random
+  # QR rotation + Lloyd-Max scalar quantizer. Data-oblivious, training-free.
+  # V2 implementation uses mx.quantized_matmul (Metal-accelerated) → -2% speed.
+  # 4-bit: 4.6x compression; 3-bit: 5.5x compression; 3.5-bit: 4.6x, <0.3% ppl loss.
+  # Install: git clone https://github.com/sharpner/turboquant-mlx /tmp/turboquant-mlx
+  #          /opt/homebrew/Cellar/mlx-lm/0.31.1/libexec/bin/pip install -e /tmp/turboquant-mlx
+  # Or use run_turboquant_omlx.py which handles the install automatically.
+
+  - id: F_TQ4_1
+    name: "Qwen3.5 TurboQuant 4bit"
+    group: "F — TurboQuant"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq4bit
+    extra_args: ["--tq-bits", "4"]
+
+  - id: F_TQ35_1
+    name: "Qwen3.5 TurboQuant 3.5bit"
+    group: "F — TurboQuant"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq3.5bit
+    extra_args: ["--tq-bits", "3.5"]
+
+  - id: F_CTX_1
+    name: "Qwen3.5 TurboQuant 4bit ctx"
+    group: "F — TurboQuant"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq4bit
+    extra_args: ["--tq-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: F_CTX_2
+    name: "Qwen3.5 TurboQuant 3bit ctx"
+    group: "F — TurboQuant"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq3bit
+    extra_args: ["--tq-bits", "3"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ── Group G: oMLX — SSD-tiered paged KV cache ─────────────────────────────────
+  # oMLX (v0.3.0) persists KV cache in two tiers: hot blocks in RAM (~8GB),
+  # cold blocks on NVMe SSD. Across requests, unchanged prefix blocks are reused
+  # without re-prefill. Claims 10x faster effective prefill at 8K context vs
+  # cold-start baselines, and "virtually unlimited context" via SSD spill.
+  # Models: already in ~/.omlx/models/ (Qwen3.5-35B-A3B-4bit, Qwen3-Coder-Next-4bit)
+  # cold_ttft_ms (warmup run) vs steady TTFT reveals cache warmup benefit.
+
+  - id: G_1
+    name: "Qwen3.5 oMLX 4bit"
+    group: "G — oMLX (SSD KV Cache)"
+    backend: omlx
+    model_id: "Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+
+  - id: G_CTX_1
+    name: "Qwen3.5 oMLX 4bit ctx"
+    group: "G — oMLX (SSD KV Cache)"
+    backend: omlx
+    model_id: "Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+    # BENCHMARKED (2026-04-02): oMLX hard-caps at 32768 tokens per request.
+    # HTTP 400: "Prompt too long: N tokens exceeds max context window of 32768 tokens"
+    # The SSD tier provides cross-request KV reuse (prefix cache), NOT extended per-request context.
+    # 64k/128k are structurally impossible in current oMLX release.
+    prompts: [context-32k]
+
+  - id: G_2
+    name: "Coder oMLX 4bit"
+    group: "G — oMLX (SSD KV Cache)"
+    backend: omlx
+    model_id: "Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+
+  - id: G_CTX_2
+    name: "Coder oMLX 4bit ctx"
+    group: "G — oMLX (SSD KV Cache)"
+    backend: omlx
+    model_id: "Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+    # Same 32768-token hard cap as G_CTX_1 — see note above.
+    prompts: [context-32k]
+
+  # ── Group H: llama-server cache-reuse (KV prefix sharing for agentic patterns) ─
+  # --cache-reuse 256: enables KV shifting — when the server detects a shared
+  # prefix (≥256 tokens), it reuses existing KV entries instead of recomputing.
+  # Directly models Claude Code's pattern: same system prompt prepended every turn.
+  # Compare with B_Q4_5 (kv-q8 without cache reuse) to isolate the reuse benefit.
+  # -c 131072 allocates full 128k context window upfront.
+
+  - id: H_CR_1
+    name: "Coder Q4 kv-q8 cache-reuse"
+    group: "H — llama cache-reuse"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: kv-q8+reuse
+    extra_args: ["-ctk", "q8_0", "-ctv", "q8_0", "--cache-reuse", "256",
+                 "-c", "131072"]
+
+  - id: H_CTX_1
+    name: "Coder Q4 cache-reuse ctx"
+    group: "H — llama cache-reuse"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: kv-q8+reuse
+    extra_args: ["-ctk", "q8_0", "-ctv", "q8_0", "--cache-reuse", "256",
+                 "-c", "131072"]
+    prompts: [context-32k, context-64k]
+
+  # ── Ollama 0.19 context tests (prefix cache warmup) ────────────────────────────
+  # Ollama 0.19 added cross-conversation prefix caching (MLX-based).
+  # cold_ttft_ms (warmup run) vs steady TTFT reveals cache warmup benefit.
+  # Using NVFP4 (fastest TTFT in prior benchmarks: 63ms).
+
+  - id: A_OLL_CTX
+    name: "Qwen3.5 Ollama 0.19 NVFP4 ctx"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.5:35b-a3b-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    # cold_ttft_ms vs run TTFT shows Ollama 0.19 prefix cache warmup benefit.
+    prompts: [context-32k, context-64k]
+
+  # ── Ollama 0.19 INT4 context (fastest format in document: 134 t/s decode) ─────
+  # INT4 is the highest-throughput format in Ollama 0.19. Compare directly with
+  # A_OLL_CTX (NVFP4) to measure format quality/speed tradeoff at long context.
+
+  - id: A_OLL_CTX_INT4
+    name: "Qwen3.5 Ollama 0.19 INT4 ctx"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.5:35b-a3b-int4"
+    fmt: INT4
+    quant: int4
+    kv_cache: default
+    prompts: [context-32k, context-64k]
+
+  # ── Group I: vllm-mlx ─────────────────────────────────────────────────────────
+  # vllm-mlx: pure-MLX vLLM port — continuous batching, content-based prefix
+  # caching. Document claims 21–87% higher throughput than llama.cpp, 4.3x
+  # aggregate at 16 concurrent requests (not measured here — single-request mode).
+  # Install: see VLLM_MLX_VENV in benchmark.py
+  # model_id: HF repo ID (same as mlx-lm)
+
+  - id: I_Q4_1
+    name: "Qwen3.5 vllm-mlx 4bit"
+    group: "I — vllm-mlx"
+    backend: vllm-mlx
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: I_Q4_2
+    name: "Coder vllm-mlx 4bit"
+    group: "I — vllm-mlx"
+    backend: vllm-mlx
+    model_id: "mlx-community/Qwen3-Coder-Next-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: I_CTX_1
+    name: "Qwen3.5 vllm-mlx 4bit ctx"
+    group: "I — vllm-mlx"
+    backend: vllm-mlx
+    model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ── Group J: LM Studio ────────────────────────────────────────────────────────
+  # LM Studio: GUI wrapper around llama.cpp (GGUF) or mlx-lm backends.
+  # Document: Ollama 0.18 was ~37% slower than LM Studio with same GGUF model.
+  # Using models already loaded in LM Studio (see: lms ls).
+  # The model IDs must match exactly what `lms ls` shows.
+  # Note: LM Studio loads models on request; first run captures cold load time.
+
+  - id: J_Q4_1
+    name: "Qwen3.5 LM Studio"
+    group: "J — LM Studio"
+    backend: lm-studio
+    model_id: "qwen3.5-35b-a3b"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: J_Q4_2
+    name: "Coder LM Studio"
+    group: "J — LM Studio"
+    backend: lm-studio
+    model_id: "qwen3-coder-next"
+    # KNOWN ISSUE: LM Studio's modelLoadingGuardrails (mode: "high") blocks this model
+    # (44.86 GB) even when 54+ GB free — guardrail includes safety margin + KV estimate.
+    # Workaround: set modelLoadingGuardrails.mode="off" in ~/.lmstudio/settings.json,
+    # restart lms server, run test, restore settings. Model loads in ~12s once allowed.
+    # prereq override so --list shows the guardrail note instead of generic "start LM Studio"
+    prereq: ""
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group K — Gemma 4 26B A4B (MoE) — Google 2026-04-03
+  # Architecture: Gemma4ForConditionalGeneration (MoE, 4B active / 26B total)
+  # KV: 8 heads × head_dim=256 × 30 layers ≈ 240 KB/token (FP16)
+  # Memory budget: ~13 GB weights (4bit) + KV
+  #   ctx-32k:  ~8 GB KV → ~21 GB total  ✓
+  #   ctx-64k:  ~15 GB KV → ~28 GB total ✓
+  #   ctx-128k: ~30 GB KV → ~43 GB total ✓
+  #   ctx-256k: ~61 GB KV → ~74 GB total ✗ OOM
+  # NOTE: Gemma 4 is a VLM (Gemma4ForConditionalGeneration) — use mlx-vlm backend.
+  #   mlx-lm 0.31.1 has no gemma4 module; mlx-vlm 0.4.3+ supports gemma4.
+  #   TurboQuant (K_TQ*) disabled — patches mlx_lm.models.cache, incompatible with VLM.
+  # Ollama tags available: gemma4:26b (Q4_K_M ~18 GB)
+  # mlx-community models: gemma-4-26b-a4b-it-4bit, -mxfp4, -nvfp4
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: K_Q4_1
+    name: "Gemma4-26B-A4B mlx-vlm 4bit"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: K_Q4_2
+    name: "Gemma4-26B-A4B mlx-vlm kv4"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: K_Q4_3
+    name: "Gemma4-26B-A4B mlx-vlm kv2"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv2
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "2"]
+    enabled: false  # verify gemma4 kv2 path in mlx-vlm before enabling
+
+  - id: K_Q4_4
+    name: "Gemma4-26B-A4B Ollama Q4_K_M"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: ollama
+    model_id: "gemma4:26b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    # Enabled 2026-04-03: Ollama 0.20.0 supports gemma4 once service actually
+    # runs 0.20.0 binary (required updating /opt/homebrew/opt/ollama symlink).
+
+  - id: K_MXFP4_1
+    name: "Gemma4-26B-A4B mlx-vlm mxfp4"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-mxfp4"
+    fmt: MXFP4
+    quant: mxfp4
+    kv_cache: default
+    # mxfp4 = MX Microscaling FP4 — new MLX-native quantization (2026). Same weight
+    # size as 4bit but uses block-floating-point encoding for higher fidelity.
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: K_NVFP4_1
+    name: "Gemma4-26B-A4B mlx-vlm nvfp4"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: K_CTX_1
+    name: "Gemma4-26B-A4B mlx-vlm ctx"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    # ctx-256k capped: ~61 GB KV + ~13 GB weights = ~74 GB > 64 GB unified memory
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: K_CTX_2
+    name: "Gemma4-26B-A4B mlx-vlm kv4 ctx"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    # kv4 halves KV: ctx-128k ≈ 15 GB KV + 13 GB weights = ~28 GB — good margin.
+    # Expect very high TTFT (same slow mlx-vlm quantized-KV prefill path as A_CTX_2).
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: K_OLL_CTX_1
+    name: "Gemma4-26B-A4B Ollama ctx"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: ollama
+    model_id: "gemma4:26b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    # cold_ttft_ms (warmup) vs steady TTFT reveals Ollama prefix cache benefit.
+    # Enabled 2026-04-03: Ollama 0.20.0 supports gemma4 (see K_Q4_4).
+    prompts: [context-32k, context-64k, context-128k]
+
+  # TurboQuant — disabled: mlx-lm 0.31.1 has no gemma4 module.
+  # TurboQuant patches mlx_lm.models.cache — only applicable to mlx-lm architectures.
+  # Re-enable once mlx-lm ships gemma4 support.
+  - id: K_TQ4_1
+    name: "Gemma4-26B-A4B TurboQuant 4bit"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq4bit
+    extra_args: ["--tq-bits", "4"]
+    enabled: false  # mlx-lm lacks gemma4 support
+
+  - id: K_TQ35_1
+    name: "Gemma4-26B-A4B TurboQuant 3.5bit"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq3.5bit
+    extra_args: ["--tq-bits", "3.5"]
+    enabled: false
+
+  - id: K_TQ3_1
+    name: "Gemma4-26B-A4B TurboQuant 3bit"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq3bit
+    extra_args: ["--tq-bits", "3"]
+    enabled: false
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group L — Gemma 4 31B Dense
+  # Architecture: Dense Gemma4 (full attention, not MoE)
+  # Memory budget: ~17 GB weights (4bit) + KV
+  # NOTE: VLM architecture — use mlx-vlm backend; mlx-lm not supported.
+  # Model: mlx-community/gemma-4-31b-it-4bit
+  # Ollama tags available: gemma4:31b (Q4_K_M ~20 GB)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: L_Q4_1
+    name: "Gemma4-31B mlx-vlm 4bit"
+    group: "L — Gemma4 31B Dense"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: L_Q4_2
+    name: "Gemma4-31B mlx-vlm kv4"
+    group: "L — Gemma4 31B Dense"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: L_Q4_3
+    name: "Gemma4-31B Ollama Q4_K_M"
+    group: "L — Gemma4 31B Dense"
+    backend: ollama
+    model_id: "gemma4:31b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    # Enabled 2026-04-03: Ollama 0.20.0 supports gemma4 (see K_Q4_4).
+
+  - id: L_MXFP4_1
+    name: "Gemma4-31B mlx-vlm mxfp4"
+    group: "L — Gemma4 31B Dense"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31b-it-mxfp4"
+    fmt: MXFP4
+    quant: mxfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    server_timeout: 1200  # 31B mxfp4 needs >600s to load on M3 Max
+
+  - id: L_NVFP4_1
+    name: "Gemma4-31B mlx-vlm nvfp4"
+    group: "L — Gemma4 31B Dense"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31b-it-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: L_CTX_1
+    name: "Gemma4-31B mlx-vlm ctx"
+    group: "L — Gemma4 31B Dense"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: L_CTX_2
+    name: "Gemma4-31B mlx-vlm kv4 ctx"
+    group: "L — Gemma4 31B Dense"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: L_OLL_CTX_1
+    name: "Gemma4-31B Ollama ctx"
+    group: "L — Gemma4 31B Dense"
+    backend: ollama
+    model_id: "gemma4:31b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    # Enabled 2026-04-03: Ollama 0.20.0 supports gemma4 (see K_Q4_4).
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group M — Gemma 4 E4B (Efficient 4B) — Google 2026-04
+  # Small, fast model from the Gemma 4 family. ~2 GB weights at 4bit.
+  # mlx-community models: gemma-4-e4b-it-4bit, -mxfp4, -nvfp4
+  # Ollama tag: gemma4:4b (check availability)
+  # ctx-256k fits easily: even 256k KV << 64 GB unified memory for 4B model
+  # VLM architecture (Gemma4ForConditionalGeneration) — use mlx-vlm backend
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: M_Q4_1
+    name: "Gemma4-E4B mlx-vlm 4bit"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: M_Q4_2
+    name: "Gemma4-E4B mlx-vlm kv4"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: M_MXFP4_1
+    name: "Gemma4-E4B mlx-vlm mxfp4"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e4b-it-mxfp4"
+    fmt: MXFP4
+    quant: mxfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: M_NVFP4_1
+    name: "Gemma4-E4B mlx-vlm nvfp4"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e4b-it-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: M_Q4_3
+    name: "Gemma4-E4B Ollama Q4_K_M"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: ollama
+    model_id: "gemma4:4b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # 2026-04-04: gemma4:4b tag does not exist in Ollama registry yet
+
+  - id: M_CTX_1
+    name: "Gemma4-E4B mlx-vlm ctx"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e4b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: true  # mlx-vlm 0.4.4 fixes per_layer_projection bug — re-enabled and benchmarked 2026-04-05
+                    # with sequences >2048 tokens. All E4B context runs crash the server.
+                    # Root: project_per_layer_inputs in gemma4/language.py line 449.
+
+  - id: M_OLL_CTX_1
+    name: "Gemma4-E4B Ollama ctx"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: ollama
+    model_id: "gemma4:4b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: false  # 2026-04-04: gemma4:4b tag does not exist in Ollama registry yet
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group N — Gemma 4 E2B (Efficient 2B) — Google 2026-04
+  # Smallest Gemma 4 model. ~1 GB weights at 4bit.
+  # mlx-community models: gemma-4-e2b-it-4bit, -nvfp4 (no mxfp4 available)
+  # Ollama tag: gemma4:2b (check availability)
+  # VLM architecture (Gemma4ForConditionalGeneration) — use mlx-vlm backend
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: N_Q4_1
+    name: "Gemma4-E2B mlx-vlm 4bit"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e2b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: N_Q4_2
+    name: "Gemma4-E2B mlx-vlm kv4"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e2b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: N_NVFP4_1
+    name: "Gemma4-E2B mlx-vlm nvfp4"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e2b-it-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # 2026-04-04: mlx-community/gemma-4-e2b-it-nvfp4 has no weight files (1 metadata file only)
+
+  - id: N_Q4_3
+    name: "Gemma4-E2B Ollama Q4_K_M"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: ollama
+    model_id: "gemma4:2b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
+
+  - id: N_CTX_1
+    name: "Gemma4-E2B mlx-vlm ctx"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-e2b-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: true  # mlx-vlm 0.4.4 fixes per_layer_projection bug — re-enabled and benchmarked 2026-04-05
+
+  - id: N_OLL_CTX_1
+    name: "Gemma4-E2B Ollama ctx"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: ollama
+    model_id: "gemma4:2b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
+
+  # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
+  # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
+  # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled
+  # baselines so contamination is unlikely. Re-running to confirm cleanly on AC.
+  # These duplicate IDs will produce a second CSV entry; HTML report uses median
+  # across all runs so duplicates are handled correctly.
+  #
+  # To re-run only these two tests:
+  #   python3 benchmark.py --test F_TQ4_1 F_TQ35_1 --skip-unavailable --no-think --report-html

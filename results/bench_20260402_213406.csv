@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+J_Q4_1,Qwen3.5 LM Studio,lm-studio,MLX,4bit,default,short,1,3260.6,67.8,7.1,355,23,8.48,13.8,0,219,2590.4,0,0,,
+J_Q4_1,Qwen3.5 LM Studio,lm-studio,MLX,4bit,default,short,2,3153.5,67.8,7.3,355,23,8.38,13.8,0,219,2590.4,0,0,,
+J_Q4_1,Qwen3.5 LM Studio,lm-studio,MLX,4bit,default,short,3,3204.8,67.8,7.2,355,23,8.42,13.8,0,219,2590.4,0,0,,
+J_Q4_1,Qwen3.5 LM Studio,lm-studio,MLX,4bit,default,code,1,3802.3,68.2,197.5,502,751,11.15,13.8,0,271,3985.6,0,0,,
+J_Q4_1,Qwen3.5 LM Studio,lm-studio,MLX,4bit,default,code,2,3790.6,68.2,198.1,502,751,11.14,13.8,0,271,3985.6,0,0,,
+J_Q4_1,Qwen3.5 LM Studio,lm-studio,MLX,4bit,default,code,3,3816.3,68.1,196.8,502,751,11.18,13.8,0,271,3985.6,0,0,,

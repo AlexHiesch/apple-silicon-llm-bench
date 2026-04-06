@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+N_Q4_1,Gemma4-E2B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,1,50.0,76.9,459.6,275,23,3.61,5.2,0,286,217.8,4405.7,0.0,,
+N_Q4_1,Gemma4-E2B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,2,46.5,76.6,494.7,275,23,3.62,5.2,0,286,217.8,4405.8,0.0,,
+N_Q4_1,Gemma4-E2B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,3,47.9,76.8,479.9,275,23,3.61,5.2,0,286,217.8,4405.8,0.0,,
+N_Q4_1,Gemma4-E2B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,1,456.4,74.7,1645.5,278,751,4.17,5.2,0,292,474.2,4405.8,0.0,,
+N_Q4_1,Gemma4-E2B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,2,469.3,74.7,1600.2,278,751,4.18,5.2,0,292,474.2,4405.8,0.0,,
+N_Q4_1,Gemma4-E2B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,3,464.8,74.7,1615.8,278,751,4.17,5.2,0,292,474.2,4405.8,0.0,,

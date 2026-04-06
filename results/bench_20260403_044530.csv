@@ -1,0 +1,10 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-32k,1,36023.1,17.4,906.2,138,32645,43.91,8.2,0,137,36170.4,15623.4,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-32k,2,35037.4,17.4,931.7,138,32645,42.92,8.2,0,137,36170.4,15623.5,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-32k,3,34880.1,17.4,935.9,138,32645,42.76,8.2,0,137,36170.4,15623.5,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-64k,1,88134.1,13.5,744.9,137,65654,98.24,8.2,0,139,87918.7,15635.8,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-64k,2,87901.3,13.4,746.9,137,65654,98.02,8.2,0,139,87918.7,15635.8,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-64k,3,87858.7,13.1,747.3,137,65654,98.22,8.2,0,139,87918.7,15635.8,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-128k,1,249170.2,0.9,526.5,14,131176,263.75,8.2,0,17,251868.0,15384.5,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-128k,2,248309.4,0.9,528.3,14,131176,262.84,8.2,0,17,251868.0,15391.6,0.0,,
+K_CTX_1,Gemma4-26B-A4B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-128k,3,247909.0,0.9,529.1,14,131176,262.46,8.2,0,17,251868.0,15391.8,0.0,,

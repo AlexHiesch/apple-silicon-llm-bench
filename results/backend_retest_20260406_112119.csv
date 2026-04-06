@@ -1,0 +1,10 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-32k,1,290.9,63.8,109432.8,512,31834,8.3,0,0,512,38945.1,2371.4,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-32k,2,244.0,64.6,130467.2,512,31834,8.1,0,0,512,38945.1,2372.5,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-32k,3,251.1,65.0,126778.2,512,31834,8.1,0,0,512,38945.1,2373.5,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-64k,1,391.2,48.0,163182.5,512,63837,11.0,0,0,512,94535.7,2359.4,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-64k,2,334.5,48.4,190843.0,512,63837,10.9,0,0,512,94535.7,2365.4,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-64k,3,325.3,49.1,196240.4,512,63837,10.7,0,0,512,94535.7,2366.4,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-128k,1,569.6,33.3,224441.7,512,127842,15.9,0,0,512,269493.5,2004.3,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-128k,2,494.5,33.5,258527.8,512,127842,15.8,0,0,512,269493.5,2051.5,0,,
+MLXLM_gemma4-26b-4bit,Gemma4-26B-A4B 4bit mlx-lm,mlx-lm-0.31.2,MLX,4bit,default,context-128k,3,500.3,34.1,255530.7,512,127842,15.5,0,0,512,269493.5,2180.4,0,,

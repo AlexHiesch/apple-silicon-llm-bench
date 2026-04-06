@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+A_Q4_9,Qwen3.5 Q4_K_M Docker MR,docker-model-runner,GGUF,Q4_K_M,default,short,1,145.8,60.3,157.8,381,23,6.45,10.4,0,193,139.9,0,0,,
+A_Q4_9,Qwen3.5 Q4_K_M Docker MR,docker-model-runner,GGUF,Q4_K_M,default,short,2,133.8,58.4,171.9,381,23,6.64,10.4,0,193,139.9,0,0,,
+A_Q4_9,Qwen3.5 Q4_K_M Docker MR,docker-model-runner,GGUF,Q4_K_M,default,short,3,140.6,59.8,163.6,381,23,6.5,10.4,0,193,139.9,0,0,,
+A_Q4_9,Qwen3.5 Q4_K_M Docker MR,docker-model-runner,GGUF,Q4_K_M,default,code,1,61.2,59.9,12274.4,512,751,8.59,10.4,0,269,753.7,0,0,,
+A_Q4_9,Qwen3.5 Q4_K_M Docker MR,docker-model-runner,GGUF,Q4_K_M,default,code,2,48.8,60.2,15375.2,512,751,8.54,10.4,0,269,753.7,0,0,,
+A_Q4_9,Qwen3.5 Q4_K_M Docker MR,docker-model-runner,GGUF,Q4_K_M,default,code,3,52.1,56.8,14410.0,512,751,9.05,10.4,0,269,753.7,0,0,,

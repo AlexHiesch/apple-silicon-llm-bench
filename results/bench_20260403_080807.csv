@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+L_CTX_1,Gemma4-31B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-32k,1,238840.7,6.0,136.7,205,32645,272.99,8.2,0,204,242309.0,14787.7,0.0,,
+L_CTX_1,Gemma4-31B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-32k,2,238567.1,6.0,136.8,205,32645,272.6,8.2,0,204,242309.0,14795.1,0.0,,
+L_CTX_1,Gemma4-31B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-32k,3,238514.6,6.0,136.9,205,32645,272.55,8.2,0,204,242309.0,14796.6,0.0,,
+L_CTX_1,Gemma4-31B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-64k,1,558033.4,1.4,117.7,57,65654,598.95,8.2,0,58,558718.4,14426.0,0.0,,
+L_CTX_1,Gemma4-31B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-64k,2,558553.5,1.4,117.5,57,65654,599.49,8.2,0,58,558718.4,14438.9,0.0,,
+L_CTX_1,Gemma4-31B mlx-vlm ctx,mlx-vlm,MLX,4bit,default,context-64k,3,558233.3,1.4,117.6,57,65654,599.23,8.2,0,58,558718.4,14440.0,0.0,,

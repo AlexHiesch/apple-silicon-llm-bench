@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+L_NVFP4_1,Gemma4-31B mlx-vlm nvfp4,mlx-vlm,NVFP4,nvfp4,default,short,1,522.0,9.8,44.1,263,23,27.38,11.3,0,265,2174.7,7011.4,0.0,,
+L_NVFP4_1,Gemma4-31B mlx-vlm nvfp4,mlx-vlm,NVFP4,nvfp4,default,short,2,526.5,9.7,43.7,263,23,27.43,11.3,0,265,2174.7,7011.4,0.0,,
+L_NVFP4_1,Gemma4-31B mlx-vlm nvfp4,mlx-vlm,NVFP4,nvfp4,default,short,3,537.5,9.7,42.8,263,23,27.68,11.3,0,265,2174.7,7011.5,0.0,,
+L_NVFP4_1,Gemma4-31B mlx-vlm nvfp4,mlx-vlm,NVFP4,nvfp4,default,code,1,5839.1,5.7,128.6,158,751,33.51,11.3,0,174,6175.8,7012.1,0.0,,
+L_NVFP4_1,Gemma4-31B mlx-vlm nvfp4,mlx-vlm,NVFP4,nvfp4,default,code,2,5815.9,5.7,129.1,158,751,33.42,11.3,0,174,6175.8,7012.1,0.0,,
+L_NVFP4_1,Gemma4-31B mlx-vlm nvfp4,mlx-vlm,NVFP4,nvfp4,default,code,3,5808.4,5.7,129.3,158,751,33.39,11.3,0,174,6175.8,7012.1,0.0,,

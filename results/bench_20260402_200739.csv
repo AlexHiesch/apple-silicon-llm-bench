@@ -1,0 +1,13 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+F_TQ4_1,Qwen3.5 TurboQuant 4bit,mlx-lm-turboquant,MLX,4bit,tq4bit,short,1,174.6,93.6,131.7,275,23,3.1,7.2,0,151,387.1,19122.5,0.0,,
+F_TQ4_1,Qwen3.5 TurboQuant 4bit,mlx-lm-turboquant,MLX,4bit,tq4bit,short,2,173.5,94.4,132.6,275,23,3.08,7.2,0,151,387.1,19122.8,0.0,,
+F_TQ4_1,Qwen3.5 TurboQuant 4bit,mlx-lm-turboquant,MLX,4bit,tq4bit,short,3,170.4,94.2,135.0,275,23,3.08,7.2,0,151,387.1,19122.9,0.0,,
+F_TQ4_1,Qwen3.5 TurboQuant 4bit,mlx-lm-turboquant,MLX,4bit,tq4bit,code,1,186.7,97.6,4021.8,505,751,5.35,7.2,0,263,686.3,19123.7,0.0,,
+F_TQ4_1,Qwen3.5 TurboQuant 4bit,mlx-lm-turboquant,MLX,4bit,tq4bit,code,2,165.8,97.3,4528.3,505,751,5.35,7.2,0,263,686.3,19124.0,0.0,,
+F_TQ4_1,Qwen3.5 TurboQuant 4bit,mlx-lm-turboquant,MLX,4bit,tq4bit,code,3,174.9,97.9,4292.9,505,751,5.32,7.2,0,263,686.3,19124.0,0.0,,
+F_TQ35_1,Qwen3.5 TurboQuant 3.5bit,mlx-lm-turboquant,MLX,4bit,tq3.5bit,short,1,167.7,94.2,137.2,275,23,3.08,4.2,0,151,381.2,19125.6,0.0,,
+F_TQ35_1,Qwen3.5 TurboQuant 3.5bit,mlx-lm-turboquant,MLX,4bit,tq3.5bit,short,2,169.0,94.8,136.1,275,23,3.06,4.2,0,151,381.2,19125.7,0.0,,
+F_TQ35_1,Qwen3.5 TurboQuant 3.5bit,mlx-lm-turboquant,MLX,4bit,tq3.5bit,short,3,168.3,94.5,136.6,275,23,3.07,4.2,0,151,381.2,19126.4,0.0,,
+F_TQ35_1,Qwen3.5 TurboQuant 3.5bit,mlx-lm-turboquant,MLX,4bit,tq3.5bit,code,1,169.0,97.4,4443.4,505,751,5.35,4.2,0,263,703.2,19127.2,0.0,,
+F_TQ35_1,Qwen3.5 TurboQuant 3.5bit,mlx-lm-turboquant,MLX,4bit,tq3.5bit,code,2,173.1,97.8,4337.8,505,751,5.33,4.2,0,263,703.2,19127.2,0.0,,
+F_TQ35_1,Qwen3.5 TurboQuant 3.5bit,mlx-lm-turboquant,MLX,4bit,tq3.5bit,code,3,169.4,97.4,4433.7,505,751,5.34,4.2,0,263,703.2,19127.3,0.0,,

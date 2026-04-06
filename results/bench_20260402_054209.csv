@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+E_Q4_1,Llama3.3-70B 4bit mlx-lm,mlx-lm,MLX,4bit,default,short,1,596.2,8.6,38.6,257,23,30.53,13.5,0,151,7898.0,1548.2,0.0,,
+E_Q4_1,Llama3.3-70B 4bit mlx-lm,mlx-lm,MLX,4bit,default,short,2,842.3,8.5,27.3,257,23,30.88,13.5,0,151,7898.0,1548.2,0.0,,
+E_Q4_1,Llama3.3-70B 4bit mlx-lm,mlx-lm,MLX,4bit,default,short,3,310.3,8.5,74.1,257,23,30.35,13.5,0,151,7898.0,1548.2,0.0,,
+E_Q4_1,Llama3.3-70B 4bit mlx-lm,mlx-lm,MLX,4bit,default,code,1,408.6,8.9,1837.9,510,751,57.66,13.5,0,232,8411.6,1538.3,0.0,,
+E_Q4_1,Llama3.3-70B 4bit mlx-lm,mlx-lm,MLX,4bit,default,code,2,372.0,8.8,2018.8,510,751,58.03,13.5,0,232,8411.6,1538.3,0.0,,
+E_Q4_1,Llama3.3-70B 4bit mlx-lm,mlx-lm,MLX,4bit,default,code,3,399.9,8.8,1877.9,510,751,58.25,13.5,0,232,8411.6,1538.3,0.0,,

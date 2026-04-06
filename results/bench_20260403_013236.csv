@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+K_Q4_1,Gemma4-26B-A4B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,1,123.7,49.7,186.0,268,23,5.49,9.3,0,276,1079.3,12201.8,0.0,,
+K_Q4_1,Gemma4-26B-A4B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,2,120.4,49.5,191.1,268,23,5.51,9.3,0,276,1079.3,12201.8,0.0,,
+K_Q4_1,Gemma4-26B-A4B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,3,123.3,49.6,186.5,268,23,5.5,9.3,0,276,1079.3,12201.8,0.0,,
+K_Q4_1,Gemma4-26B-A4B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,1,858.0,37.1,875.3,214,751,6.59,9.3,0,226,861.0,12202.1,0.0,,
+K_Q4_1,Gemma4-26B-A4B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,2,863.8,37.0,869.5,214,751,6.62,9.3,0,226,861.0,12202.2,0.0,,
+K_Q4_1,Gemma4-26B-A4B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,3,869.0,37.1,864.3,214,751,6.6,9.3,0,226,861.0,12202.2,0.0,,

@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+K_MXFP4_1,Gemma4-26B-A4B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,1,126.3,50.8,182.0,272,23,5.46,7.3,0,277,537.1,14851.7,0.0,,
+K_MXFP4_1,Gemma4-26B-A4B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,2,128.0,50.8,179.7,272,23,5.46,7.3,0,277,537.1,14851.7,0.0,,
+K_MXFP4_1,Gemma4-26B-A4B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,3,124.7,50.9,184.5,272,23,5.45,7.3,0,277,537.1,14851.7,0.0,,
+K_MXFP4_1,Gemma4-26B-A4B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,1,872.4,34.0,860.8,194,751,6.54,7.3,0,208,890.2,14852.2,0.0,,
+K_MXFP4_1,Gemma4-26B-A4B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,2,874.3,33.9,859.0,194,751,6.56,7.3,0,208,890.2,14852.3,0.0,,
+K_MXFP4_1,Gemma4-26B-A4B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,3,872.0,34.0,861.2,194,751,6.56,7.3,0,208,890.2,14852.5,0.0,,
