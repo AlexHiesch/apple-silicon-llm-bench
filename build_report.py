@@ -146,6 +146,7 @@ def generate_html(json_rows, total_raw):
   --nav-bg: rgba(28,25,23,0.85); --nav-text: #a8a29e;
   --nav-hover: rgba(255,255,255,0.08); --nav-active: #fff;
   --shadow: #0008;
+  --bar-l: 45%;
 }}
 @media (prefers-color-scheme: light) {{
   :root {{
@@ -157,6 +158,7 @@ def generate_html(json_rows, total_raw):
     --nav-bg: rgba(245,245,244,0.85); --nav-text: #57534e;
     --nav-hover: rgba(0,0,0,0.05); --nav-active: #1c1917;
     --shadow: #0002;
+    --bar-l: 40%;
   }}
 }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -346,7 +348,7 @@ function barHtml(decode, prompt) {{
   const span = range.max - range.min || 1;
   const pct = Math.max(4, Math.round(100 * (decode - range.min) / span));
   const hue = Math.round(pct);
-  const color = `hsl(${{hue}},65%,45%)`;
+  const color = `hsl(${{hue}},65%,var(--bar-l))`;
   return `<div class="bar-cell">
     <div class="bar-track"><div class="bar-fill" style="width:${{pct}}%;background:${{color}}"></div></div>
     <span class="bar-val">${{decode.toFixed(1)}} t/s</span>
