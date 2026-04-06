@@ -14,6 +14,28 @@ NUMERIC = {"ttft_ms", "decode_tps", "prefill_tps", "completion_tokens", "prompt_
            "total_time_s", "model_load_s", "thinking_tokens", "visible_tokens",
            "cold_ttft_ms", "peak_mem_mb", "peak_cpu_pct"}
 
+# Map from test_name prefix → clean model name
+MODEL_MAP = {
+    "Qwen3.5":          "Qwen3.5-35B-A3B",
+    "Coder":            "Qwen3-Coder-Next",
+    "Qwen3-Coder-Next": "Qwen3-Coder-Next",
+    "Qwen3-Coder":      "Qwen3-Coder-Next",
+    "Qwen3-32B":        "Qwen3-32B",
+    "Gemma3-27B":       "Gemma3-27B",
+    "Gemma4-26B":       "Gemma4-26B-A4B",
+    "Gemma4-31B":       "Gemma4-31B",
+    "Gemma4-E4B":       "Gemma4-E4B",
+    "Gemma4-E2B":       "Gemma4-E2B",
+    "Llama3.3-70B":     "Llama3.3-70B",
+}
+
+def extract_model(test_name):
+    """Extract clean model name from test_name."""
+    for prefix, model in sorted(MODEL_MAP.items(), key=lambda x: -len(x[0])):
+        if test_name.startswith(prefix):
+            return model
+    return test_name.split()[0] if test_name else "unknown"
+
 def load_all_csvs():
     """Load all CSVs, keeping only rows with valid data."""
     rows = []
@@ -83,6 +105,7 @@ def build_json_rows(rows):
         json_rows.append({
             "id": r.get("test_id", ""),
             "name": r.get("test_name", ""),
+            "model": extract_model(r.get("test_name", "")),
             "backend": r.get("backend", ""),
             "fmt": r.get("fmt", ""),
             "quant": r.get("quant", ""),
@@ -99,8 +122,8 @@ def build_json_rows(rows):
             "quality": r.get("quality_pass", ""),
         })
 
-    # Sort: by backend, then id, then prompt
-    json_rows.sort(key=lambda r: (r["backend"], r["id"], r["prompt"]))
+    # Sort: by model, then backend, then id, then prompt
+    json_rows.sort(key=lambda r: (r["model"], r["backend"], r["id"], r["prompt"]))
     return json_rows
 
 def generate_html(json_rows, total_raw):
@@ -213,6 +236,7 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
   <input type="search" id="q" placeholder="Search ID or name…">
   <select id="f-prompt"><option value="">All prompts</option></select>
   <select id="f-backend"><option value="">All backends</option></select>
+  <select id="f-model"><option value="">All models</option></select>
   <select id="f-fmt"><option value="">All formats</option></select>
   <select id="f-quant"><option value="">All quants</option></select>
   <select id="f-kv"><option value="">All KV</option></select>
@@ -226,6 +250,7 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
 <tr>
   <th data-col="id"      data-type="str"><span class="arrow">ID</span></th>
   <th data-col="name"    data-type="str"><span class="arrow">Name</span></th>
+  <th data-col="model"   data-type="str"><span class="arrow">Model</span></th>
   <th data-col="prompt"  data-type="str"><span class="arrow">Prompt</span></th>
   <th data-col="backend" data-type="str"><span class="arrow">Backend</span></th>
   <th data-col="fmt"     data-type="str"><span class="arrow">Fmt</span></th>
@@ -292,9 +317,10 @@ function renderRows(data) {{
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = data.map(r => `
 <tr data-id="${{r.id}}" data-name="${{r.name}}" data-prompt="${{r.prompt}}"
-    data-backend="${{r.backend}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
+    data-model="${{r.model}}" data-backend="${{r.backend}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
   <td><code>${{r.id}}</code></td>
   <td>${{r.name}}</td>
+  <td>${{r.model}}</td>
   <td>${{r.prompt}}</td>
   <td>${{r.backend}}</td>
   <td>${{r.fmt}}</td>
@@ -315,6 +341,7 @@ function populateSelect(id, key) {{
   const vals = [...new Set(RAW.map(r => r[key]))].sort();
   vals.forEach(v => {{ const o = document.createElement('option'); o.value = o.text = v; sel.appendChild(o); }});
 }}
+populateSelect('f-model',   'model');
 populateSelect('f-prompt',  'prompt');
 populateSelect('f-backend', 'backend');
 populateSelect('f-fmt',     'fmt');
@@ -325,6 +352,7 @@ let sortCol = null, sortDir = 1;
 
 function getFiltered() {{
   const q       = document.getElementById('q').value.toLowerCase();
+  const model   = document.getElementById('f-model').value;
   const prompt  = document.getElementById('f-prompt').value;
   const backend = document.getElementById('f-backend').value;
   const fmt     = document.getElementById('f-fmt').value;
@@ -333,6 +361,7 @@ function getFiltered() {{
 
   return RAW.filter(r =>
     (!q       || r.id.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)) &&
+    (!model   || r.model   === model)  &&
     (!prompt  || r.prompt  === prompt)  &&
     (!backend || r.backend === backend) &&
     (!fmt     || r.fmt     === fmt)     &&
@@ -365,12 +394,12 @@ document.querySelectorAll('th[data-col]').forEach(th => {{
   }});
 }});
 
-['q','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
+['q','f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
   document.getElementById(id).addEventListener('input', update));
 
 function reset() {{
   document.getElementById('q').value = '';
-  ['f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
+  ['f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
     document.getElementById(id).value = '');
   sortCol = null; sortDir = 1;
   document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
