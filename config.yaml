@@ -1054,6 +1054,245 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
     enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
 
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group O — Qwen3.6-35B-A3B (MoE, Gated Delta Networks)  — Qwen 2026-04-16
+  # Architecture: same MoE 35B-A3B shell as Qwen3.5 (3B active / 35B total)
+  #   but with Gated Delta Networks — improved agentic coding, repo-level
+  #   reasoning, thinking preservation across conversation history.
+  # Native context: 262144 tokens
+  # Memory budget: identical to Group A (~22 GB weights 4bit + KV)
+  # HuggingFace: Qwen/Qwen3.6-35B-A3B
+  # NOTE: released 2026-04-16 — mlx-community quantizations and Ollama tags
+  #   may not be available yet. Check before running:
+  #     huggingface-cli search mlx-community/Qwen3.6
+  #     ollama list | grep qwen3.6
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: O_Q4_1
+    name: "Qwen3.6 4bit mlx-lm"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.6-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: O_Q4_2
+    name: "Qwen3.6 Q4_K_M Ollama"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.6:35b-a3b-q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: O_Q4_3
+    name: "Qwen3.6 NVFP4 Ollama"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.6:35b-a3b-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+
+  - id: O_Q4_4
+    name: "Qwen3.6 INT4 Ollama"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.6:35b-a3b-int4"
+    fmt: INT4
+    quant: int4
+    kv_cache: default
+
+  - id: O_Q8_1
+    name: "Qwen3.6 8bit mlx-lm"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.6-35B-A3B-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: O_CTX_1
+    name: "Qwen3.6 4bit mlx-lm ctx"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.6-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: O_OLL_CTX
+    name: "Qwen3.6 Ollama NVFP4 ctx"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: ollama
+    model_id: "qwen3.6:35b-a3b-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    prompts: [context-32k, context-64k]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group P — Qwen3.6-27B (Dense, VLM, Gated DeltaNet) — Qwen 2026-04-22
+  # Architecture: Qwen3_5ForConditionalGeneration (Dense 27B, VLM)
+  #   Hybrid attention: 16× (3× Gated DeltaNet + 1× Gated Attention per block)
+  #   64 layers total; only 16 full-attention layers need per-token KV cache.
+  #   DeltaNet layers use fixed-size state → KV cost is ~¼ of a standard 27B model.
+  # Native context: 262,144 tokens (extensible to ~1M with YaRN)
+  # Memory budget: ~16 GB weights (4bit)
+  #   KV: ~64 KB/token (16 full-attn layers × 4 KV heads × 256 head_dim)
+  #   ctx-32k:  ~2 GB KV → ~18 GB total  ✓
+  #   ctx-64k:  ~4 GB KV → ~20 GB total  ✓
+  #   ctx-128k: ~8 GB KV → ~24 GB total  ✓
+  #   ctx-256k: ~16 GB KV → ~32 GB total ✓
+  # NOTE: VLM architecture (Qwen3_5ForConditionalGeneration) — use mlx-vlm backend.
+  #   mlx-lm likely has no qwen3_5 module; mlx-vlm supports it.
+  #   TurboQuant patches mlx_lm.models.cache — incompatible with VLM.
+  # HuggingFace: Qwen/Qwen3.6-27B
+  # mlx-community models: Qwen3.6-27B-4bit, -8bit, -mxfp4, -nvfp4
+  # Ollama tags: qwen3.6:27b (Q4_K_M), :27b-nvfp4, :27b-q8_0
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: P_Q4_1
+    name: "Qwen3.6-27B mlx-vlm 4bit"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: P_Q4_2
+    name: "Qwen3.6-27B mlx-vlm kv4"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: P_Q4_3
+    name: "Qwen3.6-27B mlx-vlm kv2"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv2
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "2"]
+    enabled: false  # verify kv2 path in mlx-vlm for qwen3_5 before enabling
+
+  - id: P_Q4_4
+    name: "Qwen3.6-27B Ollama Q4_K_M"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: ollama
+    model_id: "qwen3.6:27b-q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: P_Q4_5
+    name: "Qwen3.6-27B Ollama NVFP4"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: ollama
+    model_id: "qwen3.6:27b-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+
+  - id: P_Q8_1
+    name: "Qwen3.6-27B mlx-vlm 8bit"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    # ~30 GB weights; feasible on 64 GB for short context but tight for long ctx
+
+  - id: P_MXFP4_1
+    name: "Qwen3.6-27B mlx-vlm mxfp4"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-mxfp4"
+    fmt: MXFP4
+    quant: mxfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: P_NVFP4_1
+    name: "Qwen3.6-27B mlx-vlm nvfp4"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: P_CTX_1
+    name: "Qwen3.6-27B mlx-vlm ctx"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    # Hybrid DeltaNet/attention → very low KV cost. 128k should fit easily.
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: P_CTX_2
+    name: "Qwen3.6-27B mlx-vlm kv4 ctx"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-vlm
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    # kv4 halves KV: ctx-256k ≈ 8 GB KV + 16 GB weights = ~24 GB — good margin.
+    # Expect high TTFT (slow mlx-vlm quantized-KV prefill path, see A_CTX_2).
+    extra_args: ["--max-kv-size", "262144", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: P_OLL_CTX
+    name: "Qwen3.6-27B Ollama Q4_K_M ctx"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: ollama
+    model_id: "qwen3.6:27b-q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+
+  # TurboQuant — disabled: VLM architecture (Qwen3_5ForConditionalGeneration).
+  # TurboQuant patches mlx_lm.models.cache — only applicable to mlx-lm architectures.
+  - id: P_TQ4_1
+    name: "Qwen3.6-27B TurboQuant 4bit"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq4bit
+    extra_args: ["--tq-bits", "4"]
+    enabled: false  # VLM arch — mlx-lm incompatible
+
+  - id: P_TQ35_1
+    name: "Qwen3.6-27B TurboQuant 3.5bit"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq3.5bit
+    extra_args: ["--tq-bits", "3.5"]
+    enabled: false
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled
