@@ -54,7 +54,7 @@ RESULTS_DIR = Path(__file__).parent / "results"
 HF_CACHE = Path.home() / ".cache" / "huggingface" / "hub"
 GGUF_CACHE = Path.home() / ".cache" / "llmfit" / "models"
 VLLM_MLX_VENV = Path.home() / ".local" / "share" / "vllm-mlx-bench" / ".venv"
-HF_PY = "/opt/homebrew/Cellar/mlx-lm/0.31.1/libexec/bin/python"
+HF_PY = "/Users/HIESCHA/.local/share/uv/tools/mlx-lm/bin/python"
 
 # Port constants (overridable in config)
 OLLAMA_PORT = 11434

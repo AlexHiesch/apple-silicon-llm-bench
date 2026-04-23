@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+P_Q8_0,Qwen3.6-27B 8bit mlx-lm,mlx-lm,MLX,8bit,default,short,1,278.1,11.2,82.7,161,23,14.51,2.2,0,90,13106.9,5095.2,0.0,,
+P_Q8_0,Qwen3.6-27B 8bit mlx-lm,mlx-lm,MLX,8bit,default,short,2,290.2,11.1,79.3,161,23,14.69,2.2,0,90,13106.9,5095.5,0.0,,
+P_Q8_0,Qwen3.6-27B 8bit mlx-lm,mlx-lm,MLX,8bit,default,short,3,288.7,11.2,79.7,161,23,14.57,2.2,0,90,13106.9,5095.7,0.0,,
+P_Q8_0,Qwen3.6-27B 8bit mlx-lm,mlx-lm,MLX,8bit,default,code,1,278.5,11.8,2696.3,510,751,43.5,2.2,0,206,3929.0,5139.4,0.0,,
+P_Q8_0,Qwen3.6-27B 8bit mlx-lm,mlx-lm,MLX,8bit,default,code,2,292.2,12.0,2570.5,510,751,42.79,2.2,0,206,3929.0,5139.4,0.0,,
+P_Q8_0,Qwen3.6-27B 8bit mlx-lm,mlx-lm,MLX,8bit,default,code,3,277.0,12.0,2711.7,510,751,42.76,2.2,0,206,3929.0,5139.4,0.0,,

@@ -1,0 +1,13 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+P_Q4_0,Qwen3.6-27B 4bit mlx-lm,mlx-lm,MLX,4bit,default,short,1,247.9,19.8,92.8,161,23,8.35,3.3,0,90,5337.1,11966.0,0.0,,
+P_Q4_0,Qwen3.6-27B 4bit mlx-lm,mlx-lm,MLX,4bit,default,short,2,249.4,19.6,92.2,161,23,8.42,3.3,0,90,5337.1,11966.0,0.0,,
+P_Q4_0,Qwen3.6-27B 4bit mlx-lm,mlx-lm,MLX,4bit,default,short,3,214.9,19.7,107.1,161,23,8.34,3.3,0,90,5337.1,11966.0,0.0,,
+P_Q4_0,Qwen3.6-27B 4bit mlx-lm,mlx-lm,MLX,4bit,default,code,1,260.7,20.2,2880.4,509,751,25.39,3.3,0,201,3868.9,11964.4,0.0,,
+P_Q4_0,Qwen3.6-27B 4bit mlx-lm,mlx-lm,MLX,4bit,default,code,2,249.4,20.3,3011.5,509,751,25.3,3.3,0,201,3868.9,11964.4,0.0,,
+P_Q4_0,Qwen3.6-27B 4bit mlx-lm,mlx-lm,MLX,4bit,default,code,3,219.1,20.4,3427.7,509,751,25.11,3.3,0,201,3868.9,11964.4,0.0,,
+P_VLLM_1,Qwen3.6-27B vllm-mlx 4bit,vllm-mlx,MLX,4bit,default,short,1,382.0,22.8,78.5,512,30,22.84,13.3,0,280,785.2,13001.2,0.0,,
+P_VLLM_1,Qwen3.6-27B vllm-mlx 4bit,vllm-mlx,MLX,4bit,default,short,2,377.3,23.0,79.5,512,30,22.62,13.3,0,280,785.2,13001.2,0.0,,
+P_VLLM_1,Qwen3.6-27B vllm-mlx 4bit,vllm-mlx,MLX,4bit,default,short,3,402.7,23.1,74.5,512,30,22.49,13.3,0,280,785.2,13001.2,0.0,,
+P_VLLM_1,Qwen3.6-27B vllm-mlx 4bit,vllm-mlx,MLX,4bit,default,code,1,3654.8,22.8,206.8,512,756,26.02,13.3,0,291,3664.9,13001.9,0.0,,
+P_VLLM_1,Qwen3.6-27B vllm-mlx 4bit,vllm-mlx,MLX,4bit,default,code,2,3828.9,22.6,197.4,512,756,26.49,13.3,0,291,3664.9,13002.0,0.0,,
+P_VLLM_1,Qwen3.6-27B vllm-mlx 4bit,vllm-mlx,MLX,4bit,default,code,3,3756.7,21.9,201.2,512,756,27.09,13.3,0,291,3664.9,13002.0,0.0,,
