@@ -867,7 +867,7 @@ tests:
     name: "Gemma4-26B-A4B llama.cpp Q4_K_M"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-26b-a4b-it-Q4_K_M.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
@@ -876,7 +876,7 @@ tests:
     name: "Gemma4-26B-A4B llama.cpp UD-Q4_K_XL"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-26b-a4b-it-UD-Q4_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q4_K_XL
     kv_cache: default
@@ -885,7 +885,7 @@ tests:
     name: "Gemma4-26B-A4B llama.cpp UD-Q2_K_XL"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-26b-a4b-it-UD-Q2_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q2_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q2_K_XL
     kv_cache: default
@@ -988,7 +988,7 @@ tests:
     name: "Gemma4-31B llama.cpp Q4_K_M"
     group: "L — Gemma4 31B Dense"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-31b-it-Q4_K_M.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-31B-it-Q4_K_M.gguf"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
@@ -997,7 +997,7 @@ tests:
     name: "Gemma4-31B llama.cpp UD-Q4_K_XL"
     group: "L — Gemma4 31B Dense"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-31b-it-UD-Q4_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-31B-it-UD-Q4_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q4_K_XL
     kv_cache: default
@@ -1006,7 +1006,7 @@ tests:
     name: "Gemma4-31B llama.cpp UD-Q2_K_XL"
     group: "L — Gemma4 31B Dense"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-31b-it-UD-Q2_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-31B-it-UD-Q2_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q2_K_XL
     kv_cache: default
@@ -1100,7 +1100,7 @@ tests:
     name: "Gemma4-E4B llama.cpp Q4_K_M"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-Q4_K_M.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-Q4_K_M.gguf"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
@@ -1109,7 +1109,7 @@ tests:
     name: "Gemma4-E4B llama.cpp UD-Q4_K_XL"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-UD-Q4_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-UD-Q4_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q4_K_XL
     kv_cache: default
@@ -1118,7 +1118,7 @@ tests:
     name: "Gemma4-E4B llama.cpp UD-Q2_K_XL"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-UD-Q2_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-UD-Q2_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q2_K_XL
     kv_cache: default
@@ -1127,7 +1127,7 @@ tests:
     name: "Gemma4-E4B llama.cpp UD-Q6_K_XL"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-UD-Q6_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-UD-Q6_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q6_K_XL
     kv_cache: default
@@ -1209,7 +1209,7 @@ tests:
     name: "Gemma4-E2B llama.cpp Q4_K_M"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-Q4_K_M.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
@@ -1218,7 +1218,7 @@ tests:
     name: "Gemma4-E2B llama.cpp UD-Q4_K_XL"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-UD-Q4_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-UD-Q4_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q4_K_XL
     kv_cache: default
@@ -1227,7 +1227,7 @@ tests:
     name: "Gemma4-E2B llama.cpp UD-Q2_K_XL"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-UD-Q2_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-UD-Q2_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q2_K_XL
     kv_cache: default
@@ -1236,7 +1236,7 @@ tests:
     name: "Gemma4-E2B llama.cpp UD-Q6_K_XL"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-UD-Q6_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-UD-Q6_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q6_K_XL
     kv_cache: default

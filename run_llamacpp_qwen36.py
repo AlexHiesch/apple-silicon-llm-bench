@@ -38,28 +38,13 @@ def log(msg):
 
 def download(hf_filename, local_path):
     """Download a single GGUF file from HuggingFace."""
+    from huggingface_hub import hf_hub_download
     log(f"Downloading {hf_filename} ({HF_REPO})")
-    subprocess.run([
-        sys.executable, "-m", "huggingface_hub", "download",
-        HF_REPO, hf_filename,
-        "--local-dir", str(CACHE),
-    ], check=True)
-    # huggingface_hub download puts files relative to repo root;
-    # the file ends up at CACHE/<hf_filename>
-    dest = CACHE / hf_filename
-    if not dest.exists():
-        # Try without subdirectory — some versions flatten
-        print(f"  ⚠ Expected {dest}, scanning for file...", flush=True)
-        candidates = list(CACHE.rglob(hf_filename))
-        if candidates:
-            dest = candidates[0]
-            print(f"  Found at {dest}", flush=True)
-        else:
-            raise FileNotFoundError(f"Could not find {hf_filename} after download")
-    # Ensure it's at the expected local_path
+    cached = hf_hub_download(repo_id=HF_REPO, filename=hf_filename)
+    # Symlink to expected location
     expected = CACHE / local_path
-    if dest != expected and not expected.exists():
-        dest.rename(expected)
+    if not expected.exists():
+        expected.symlink_to(cached)
     log(f"Downloaded: {expected} ({expected.stat().st_size / 1e9:.1f} GB)")
     return expected
 
@@ -76,11 +61,18 @@ def bench(test_id):
 
 
 def purge(local_path):
-    """Delete GGUF file to free disk space."""
+    """Delete GGUF file (and HF cache blob) to free disk space."""
     p = CACHE / local_path
-    if p.exists():
-        size_gb = p.stat().st_size / 1e9
-        p.unlink()
+    if p.exists() or p.is_symlink():
+        if p.is_symlink():
+            target = p.resolve()
+            size_gb = target.stat().st_size / 1e9 if target.exists() else 0
+            p.unlink()
+            if target.exists():
+                target.unlink()
+        else:
+            size_gb = p.stat().st_size / 1e9
+            p.unlink()
         log(f"Purged {p.name} ({size_gb:.1f} GB freed)")
     else:
         log(f"Nothing to purge: {p}")

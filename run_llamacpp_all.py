@@ -44,40 +44,40 @@ CACHE = Path.home() / ".cache" / "llmfit" / "models"
 GROUPS = {
     "N": {
         "label": "Gemma4-E2B (2B Efficient)",
-        "hf_repo": "unsloth/gemma-4-e2b-it-GGUF",
+        "hf_repo": "unsloth/gemma-4-E2B-it-GGUF",
         "tests": [
-            ("N_LC_Q4KM", "gemma-4-e2b-it-Q4_K_M.gguf"),
-            ("N_LC_UDQ4", "gemma-4-e2b-it-UD-Q4_K_XL.gguf"),
-            ("N_LC_UDQ2", "gemma-4-e2b-it-UD-Q2_K_XL.gguf"),
-            ("N_LC_UDQ6", "gemma-4-e2b-it-UD-Q6_K_XL.gguf"),
+            ("N_LC_Q4KM", "gemma-4-E2B-it-Q4_K_M.gguf"),
+            ("N_LC_UDQ4", "gemma-4-E2B-it-UD-Q4_K_XL.gguf"),
+            ("N_LC_UDQ2", "gemma-4-E2B-it-UD-Q2_K_XL.gguf"),
+            ("N_LC_UDQ6", "gemma-4-E2B-it-UD-Q6_K_XL.gguf"),
         ],
     },
     "M": {
         "label": "Gemma4-E4B (4B Efficient)",
-        "hf_repo": "unsloth/gemma-4-e4b-it-GGUF",
+        "hf_repo": "unsloth/gemma-4-E4B-it-GGUF",
         "tests": [
-            ("M_LC_Q4KM", "gemma-4-e4b-it-Q4_K_M.gguf"),
-            ("M_LC_UDQ4", "gemma-4-e4b-it-UD-Q4_K_XL.gguf"),
-            ("M_LC_UDQ2", "gemma-4-e4b-it-UD-Q2_K_XL.gguf"),
-            ("M_LC_UDQ6", "gemma-4-e4b-it-UD-Q6_K_XL.gguf"),
+            ("M_LC_Q4KM", "gemma-4-E4B-it-Q4_K_M.gguf"),
+            ("M_LC_UDQ4", "gemma-4-E4B-it-UD-Q4_K_XL.gguf"),
+            ("M_LC_UDQ2", "gemma-4-E4B-it-UD-Q2_K_XL.gguf"),
+            ("M_LC_UDQ6", "gemma-4-E4B-it-UD-Q6_K_XL.gguf"),
         ],
     },
     "K": {
         "label": "Gemma4-26B-A4B (MoE)",
-        "hf_repo": "unsloth/gemma-4-26b-a4b-it-GGUF",
+        "hf_repo": "unsloth/gemma-4-26B-A4B-it-GGUF",
         "tests": [
-            ("K_LC_Q4KM", "gemma-4-26b-a4b-it-Q4_K_M.gguf"),
-            ("K_LC_UDQ4", "gemma-4-26b-a4b-it-UD-Q4_K_XL.gguf"),
-            ("K_LC_UDQ2", "gemma-4-26b-a4b-it-UD-Q2_K_XL.gguf"),
+            ("K_LC_Q4KM", "gemma-4-26B-A4B-it-UD-Q4_K_M.gguf"),
+            ("K_LC_UDQ4", "gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf"),
+            ("K_LC_UDQ2", "gemma-4-26B-A4B-it-UD-Q2_K_XL.gguf"),
         ],
     },
     "L": {
         "label": "Gemma4-31B Dense",
-        "hf_repo": "unsloth/gemma-4-31b-it-GGUF",
+        "hf_repo": "unsloth/gemma-4-31B-it-GGUF",
         "tests": [
-            ("L_LC_Q4KM", "gemma-4-31b-it-Q4_K_M.gguf"),
-            ("L_LC_UDQ4", "gemma-4-31b-it-UD-Q4_K_XL.gguf"),
-            ("L_LC_UDQ2", "gemma-4-31b-it-UD-Q2_K_XL.gguf"),
+            ("L_LC_Q4KM", "gemma-4-31B-it-Q4_K_M.gguf"),
+            ("L_LC_UDQ4", "gemma-4-31B-it-UD-Q4_K_XL.gguf"),
+            ("L_LC_UDQ2", "gemma-4-31B-it-UD-Q2_K_XL.gguf"),
         ],
     },
     "D": {
@@ -129,19 +129,13 @@ def log(msg):
 
 def download(hf_repo, hf_filename):
     """Download a single GGUF file from HuggingFace. Returns local path."""
+    from huggingface_hub import hf_hub_download
     log(f"Downloading {hf_filename} from {hf_repo}")
-    subprocess.run([
-        sys.executable, "-m", "huggingface_hub", "download",
-        hf_repo, hf_filename,
-        "--local-dir", str(CACHE),
-    ], check=True)
+    cached = hf_hub_download(repo_id=hf_repo, filename=hf_filename)
+    # Symlink or copy to expected location
     dest = CACHE / hf_filename
     if not dest.exists():
-        candidates = list(CACHE.rglob(hf_filename))
-        if candidates:
-            dest = candidates[0]
-        else:
-            raise FileNotFoundError(f"Could not find {hf_filename} after download")
+        dest.symlink_to(cached)
     log(f"Downloaded: {dest.name} ({dest.stat().st_size / 1e9:.1f} GB)")
     return dest
 
@@ -158,12 +152,20 @@ def bench(test_id):
 
 
 def purge(filename):
-    """Delete GGUF file to free disk space."""
+    """Delete GGUF file (and HF cache blob) to free disk space."""
     p = CACHE / filename
-    if p.exists():
-        size_gb = p.stat().st_size / 1e9
-        p.unlink()
-        log(f"Purged {p.name} ({size_gb:.1f} GB freed)")
+    if p.exists() or p.is_symlink():
+        # Resolve the actual cached file before removing the symlink
+        if p.is_symlink():
+            target = p.resolve()
+            size_gb = target.stat().st_size / 1e9 if target.exists() else 0
+            p.unlink()  # remove symlink
+            if target.exists():
+                target.unlink()  # remove cached blob
+        else:
+            size_gb = p.stat().st_size / 1e9
+            p.unlink()
+        log(f"Purged {filename} ({size_gb:.1f} GB freed)")
 
 
 def main():
