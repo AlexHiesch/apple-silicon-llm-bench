@@ -205,6 +205,35 @@ tests:
     kv_cache: default
     enabled: false  # blocked: Ollama GGUF dialect incompatible + q8_0 not pulled yet
 
+  # llama-server — Unsloth GGUF quants (direct HF download bypasses Ollama dialect issue)
+  # Download→bench→purge via run_llamacpp_all.py
+  - id: A_LC_Q4KM
+    name: "Qwen3.5 llama.cpp Q4_K_M"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: A_LC_UDQ4
+    name: "Qwen3.5 llama.cpp UD-Q4_K_XL"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: A_LC_UDQ2
+    name: "Qwen3.5 llama.cpp UD-Q2_K_XL"
+    group: "A — Qwen3.5-35B-A3B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
   # ── Group B: Qwen3-Coder-Next (Dense, GQA) ───────────────────────────────────
   - id: B_Q4_1
     name: "Coder 4bit mlx-lm"
@@ -373,6 +402,34 @@ tests:
     # because all 32B params are activated per token.  Practical context ceiling: 32k.
     # 64k/128k capped: would require ~38 GB (64k) / ~76 GB (128k) KV on top of ~16 GB weights.
     prompts: [context-32k]
+
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: D_LC_Q4KM
+    name: "Qwen3-32B llama.cpp Q4_K_M"
+    group: "D — Qwen3-32B (Dense)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3-32B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: D_LC_UDQ4
+    name: "Qwen3-32B llama.cpp UD-Q4_K_XL"
+    group: "D — Qwen3-32B (Dense)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3-32B-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: D_LC_UDQ2
+    name: "Qwen3-32B llama.cpp UD-Q2_K_XL"
+    group: "D — Qwen3-32B (Dense)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3-32B-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
 
   # ── Group E: Llama 3.3 70B ────────────────────────────────────────────────────
   # BENCHMARKED (2026-04-02):
@@ -805,6 +862,34 @@ tests:
     extra_args: ["--tq-bits", "3"]
     enabled: false
 
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: K_LC_Q4KM
+    name: "Gemma4-26B-A4B llama.cpp Q4_K_M"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26b-a4b-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: K_LC_UDQ4
+    name: "Gemma4-26B-A4B llama.cpp UD-Q4_K_XL"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26b-a4b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: K_LC_UDQ2
+    name: "Gemma4-26B-A4B llama.cpp UD-Q2_K_XL"
+    group: "K — Gemma4 26B A4B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26b-a4b-it-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
   # ══════════════════════════════════════════════════════════════════════════════
   # Group L — Gemma 4 31B Dense
   # Architecture: Dense Gemma4 (full attention, not MoE)
@@ -898,6 +983,34 @@ tests:
     # Enabled 2026-04-03: Ollama 0.20.0 supports gemma4 (see K_Q4_4).
     prompts: [context-32k, context-64k, context-128k]
 
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: L_LC_Q4KM
+    name: "Gemma4-31B llama.cpp Q4_K_M"
+    group: "L — Gemma4 31B Dense"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-31b-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: L_LC_UDQ4
+    name: "Gemma4-31B llama.cpp UD-Q4_K_XL"
+    group: "L — Gemma4 31B Dense"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-31b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: L_LC_UDQ2
+    name: "Gemma4-31B llama.cpp UD-Q2_K_XL"
+    group: "L — Gemma4 31B Dense"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-31b-it-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
   # ══════════════════════════════════════════════════════════════════════════════
   # Group M — Gemma 4 E4B (Efficient 4B) — Google 2026-04
   # Small, fast model from the Gemma 4 family. ~2 GB weights at 4bit.
@@ -982,6 +1095,43 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
     enabled: false  # 2026-04-04: gemma4:4b tag does not exist in Ollama registry yet
 
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: M_LC_Q4KM
+    name: "Gemma4-E4B llama.cpp Q4_K_M"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: M_LC_UDQ4
+    name: "Gemma4-E4B llama.cpp UD-Q4_K_XL"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: M_LC_UDQ2
+    name: "Gemma4-E4B llama.cpp UD-Q2_K_XL"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
+  - id: M_LC_UDQ6
+    name: "Gemma4-E4B llama.cpp UD-Q6_K_XL"
+    group: "M — Gemma4 E4B (4B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e4b-it-UD-Q6_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q6_K_XL
+    kv_cache: default
+
   # ══════════════════════════════════════════════════════════════════════════════
   # Group N — Gemma 4 E2B (Efficient 2B) — Google 2026-04
   # Smallest Gemma 4 model. ~1 GB weights at 4bit.
@@ -1053,6 +1203,43 @@ tests:
     kv_cache: default
     prompts: [context-32k, context-64k, context-128k]
     enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
+
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: N_LC_Q4KM
+    name: "Gemma4-E2B llama.cpp Q4_K_M"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: N_LC_UDQ4
+    name: "Gemma4-E2B llama.cpp UD-Q4_K_XL"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: N_LC_UDQ2
+    name: "Gemma4-E2B llama.cpp UD-Q2_K_XL"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
+  - id: N_LC_UDQ6
+    name: "Gemma4-E2B llama.cpp UD-Q6_K_XL"
+    group: "N — Gemma4 E2B (2B Efficient)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-e2b-it-UD-Q6_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q6_K_XL
+    kv_cache: default
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group O — Qwen3.6-35B-A3B (MoE, Gated Delta Networks)  — Qwen 2026-04-16
@@ -1132,6 +1319,34 @@ tests:
     quant: nvfp4
     kv_cache: default
     prompts: [context-32k, context-64k]
+
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: O_LC_Q4KM
+    name: "Qwen3.6-35B llama.cpp Q4_K_M"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: O_LC_UDQ4
+    name: "Qwen3.6-35B llama.cpp UD-Q4_K_XL"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: O_LC_UDQ2
+    name: "Qwen3.6-35B llama.cpp UD-Q2_K_XL"
+    group: "O — Qwen3.6-35B-A3B (MoE)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group P — Qwen3.6-27B (Dense, VLM, Gated DeltaNet) — Qwen 2026-04-22
@@ -1354,6 +1569,46 @@ tests:
     quant: 4bit
     kv_cache: tq3.5bit
     extra_args: ["--tq-bits", "3.5"]
+
+  # llama-server (llama.cpp) — Unsloth Dynamic GGUF quants
+  # Downloaded one-at-a-time and purged after run to save disk space.
+  # Use run_llamacpp_qwen36.py to orchestrate download→bench→delete cycle.
+
+  - id: P_LC_Q4KM
+    name: "Qwen3.6-27B llama.cpp Q4_K_M"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: P_LC_UDQ4
+    name: "Qwen3.6-27B llama.cpp UD-Q4_K_XL"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: P_LC_UDQ6
+    name: "Qwen3.6-27B llama.cpp UD-Q6_K_XL"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q6_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q6_K_XL
+    kv_cache: default
+
+  - id: P_LC_UDQ2
+    name: "Qwen3.6-27B llama.cpp UD-Q2_K_XL"
+    group: "P — Qwen3.6-27B (Dense, VLM)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
 
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
