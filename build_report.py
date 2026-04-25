@@ -330,7 +330,7 @@ body.in-iframe {{ padding-top: .5rem; }}
   <strong>Total</strong> = wall-clock time for full response &nbsp;·&nbsp;
   <strong>Peak RSS</strong> = process tree RAM during inference.
   All values are median of 3 runs except Peak RSS (max).
-  Backends: mlx-lm 0.31.2, mlx-vlm 0.4.3/0.4.4, Ollama 0.19/0.20, oMLX 0.3.4, llama.cpp b5220/b8670, vllm-mlx 0.1, LM Studio, Docker Model Runner.
+  Backends: mlx-lm 0.31.2–0.31.3, mlx-vlm 0.4.3/0.4.4, Ollama 0.19–0.21, oMLX 0.3.4, llama.cpp b5220–b8920, vllm-mlx 0.1–0.2.9, LM Studio, Docker Model Runner.
 </p>
 
 <script>
