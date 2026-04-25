@@ -80,7 +80,7 @@ tests:
 
   # ── A / Q4 — ~4-bit weight quantization ─────────────────────────────────────
   - id: A_Q4_1
-    name: "Qwen3.5 4bit mlx-lm"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -89,7 +89,7 @@ tests:
     kv_cache: default
 
   - id: A_Q4_2
-    name: "Qwen3.5 4bit mlx-vlm"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -99,7 +99,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: A_Q4_3
-    name: "Qwen3.5 4bit mlx-vlm kv4"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -109,7 +109,7 @@ tests:
     extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
 
   - id: A_Q4_4
-    name: "Qwen3.5 4bit mlx-vlm kv2"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -119,7 +119,7 @@ tests:
     extra_args: ["--max-kv-size", "32768", "--kv-bits", "2"]
 
   - id: A_Q4_5
-    name: "Qwen3.5 Q4_K_M Ollama"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.5:35b-a3b-q4_K_M"
@@ -128,7 +128,7 @@ tests:
     kv_cache: default
 
   - id: A_Q4_6
-    name: "Qwen3.5 NVFP4 Ollama"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.5:35b-a3b-nvfp4"
@@ -137,7 +137,7 @@ tests:
     kv_cache: default
 
   - id: A_Q4_7
-    name: "Qwen3.5 INT4 Ollama"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.5:35b-a3b-int4"
@@ -146,7 +146,7 @@ tests:
     kv_cache: default
 
   - id: A_Q4_8
-    name: "Qwen3.5 llama.cpp Q4_K_M"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     # KNOWN ISSUE: Ollama stores Qwen3.5-MoE in a GGUF dialect that llama-server
@@ -165,7 +165,7 @@ tests:
     enabled: false  # blocked: Ollama GGUF dialect incompatible with current llama-server
 
   - id: A_Q4_9
-    name: "Qwen3.5 Q4_K_M Docker MR"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: docker-model-runner
     model_id: "docker.io/ai/qwen3.5:35B-A3B-Q4_K_M"
@@ -175,7 +175,7 @@ tests:
 
   # ── A / Q8 — 8-bit weight quantization ──────────────────────────────────────
   - id: A_Q8_1
-    name: "Qwen3.5 8bit mlx-lm"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.5-35B-A3B-8bit"
@@ -184,7 +184,7 @@ tests:
     kv_cache: default
 
   - id: A_Q8_2
-    name: "Qwen3.5 8bit mlx-vlm"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.5-35B-A3B-8bit"
@@ -194,7 +194,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: A_Q8_3
-    name: "Qwen3.5 llama.cpp Q8_0"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     # Same GGUF dialect incompatibility as A_Q4_8 (same model family, same Ollama storage format).
@@ -208,7 +208,7 @@ tests:
   # llama-server — Unsloth GGUF quants (direct HF download bypasses Ollama dialect issue)
   # Download→bench→purge via run_llamacpp_all.py
   - id: A_LC_Q4KM
-    name: "Qwen3.5 llama.cpp Q4_K_M"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-Q4_K_M.gguf"
@@ -217,7 +217,7 @@ tests:
     kv_cache: default
 
   - id: A_LC_UDQ4
-    name: "Qwen3.5 llama.cpp UD-Q4_K_XL"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf"
@@ -226,7 +226,7 @@ tests:
     kv_cache: default
 
   - id: A_LC_UDQ2
-    name: "Qwen3.5 llama.cpp UD-Q2_K_XL"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.5-35B-A3B-UD-Q2_K_XL.gguf"
@@ -236,7 +236,7 @@ tests:
 
   # ── Group B: Qwen3-Coder-Next (Dense, GQA) ───────────────────────────────────
   - id: B_Q4_1
-    name: "Coder 4bit mlx-lm"
+    model: "Coder"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3-Coder-Next-4bit"
@@ -245,7 +245,7 @@ tests:
     kv_cache: default
 
   - id: B_Q4_2
-    name: "Coder 4bit mlx-lm cache32k"
+    model: "Coder"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3-Coder-Next-4bit"
@@ -255,7 +255,7 @@ tests:
     extra_args: ["--prompt-cache-bytes", "33554432"]
 
   - id: B_Q4_3
-    name: "Coder 4bit mlx-vlm"
+    model: "Coder"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3-Coder-Next-4bit"
@@ -269,7 +269,7 @@ tests:
     enabled: false
 
   - id: B_Q4_4
-    name: "Coder llama.cpp Q4_K_M"
+    model: "Coder"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: llama-server
     # Provide absolute path to your GGUF file:
@@ -279,7 +279,7 @@ tests:
     kv_cache: default
 
   - id: B_Q4_5
-    name: "Coder llama.cpp Q4 kv-q8"
+    model: "Coder"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
@@ -295,7 +295,7 @@ tests:
   #   256k would need KV-q4 (4-bit KV via mlx-vlm --kv-bits 4)
 
   - id: A_CTX_1
-    name: "Qwen3.5 4bit mlx-lm ctx"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -305,7 +305,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: A_CTX_2
-    name: "Qwen3.5 4bit mlx-vlm kv4 ctx"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -329,7 +329,7 @@ tests:
   # exhausts unified memory before completing the prefill.  Capped at 64k.
 
   - id: B_CTX_1
-    name: "Coder 4bit mlx-lm ctx"
+    model: "Coder"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3-Coder-Next-4bit"
@@ -348,7 +348,7 @@ tests:
   # Intelligence: matches GPT-4o on most coding / instruction-following benchmarks
 
   - id: C_Q4_1
-    name: "Gemma3-27B 4bit mlx-lm"
+    model: "Gemma3-27B"
     group: "C — Gemma 3 27B-IT"
     backend: mlx-lm
     model_id: "mlx-community/gemma-3-27b-it-4bit"
@@ -357,7 +357,7 @@ tests:
     kv_cache: default
 
   - id: C_CTX_1
-    name: "Gemma3-27B 4bit mlx-lm ctx"
+    model: "Gemma3-27B"
     group: "C — Gemma 3 27B-IT"
     backend: mlx-lm
     model_id: "mlx-community/gemma-3-27b-it-4bit"
@@ -379,7 +379,7 @@ tests:
   # Native context: 131072 tokens
 
   - id: D_Q4_1
-    name: "Qwen3-32B 4bit mlx-lm"
+    model: "Qwen3-32B"
     group: "D — Qwen3-32B (Dense)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3-32B-4bit"
@@ -388,7 +388,7 @@ tests:
     kv_cache: default
 
   - id: D_CTX_1
-    name: "Qwen3-32B 4bit mlx-lm ctx"
+    model: "Qwen3-32B"
     group: "D — Qwen3-32B (Dense)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3-32B-4bit"
@@ -405,7 +405,7 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: D_LC_Q4KM
-    name: "Qwen3-32B llama.cpp Q4_K_M"
+    model: "Qwen3-32B"
     group: "D — Qwen3-32B (Dense)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-32B-Q4_K_M.gguf"
@@ -414,7 +414,7 @@ tests:
     kv_cache: default
 
   - id: D_LC_UDQ4
-    name: "Qwen3-32B llama.cpp UD-Q4_K_XL"
+    model: "Qwen3-32B"
     group: "D — Qwen3-32B (Dense)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-32B-UD-Q4_K_XL.gguf"
@@ -423,7 +423,7 @@ tests:
     kv_cache: default
 
   - id: D_LC_UDQ2
-    name: "Qwen3-32B llama.cpp UD-Q2_K_XL"
+    model: "Qwen3-32B"
     group: "D — Qwen3-32B (Dense)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-32B-UD-Q2_K_XL.gguf"
@@ -444,7 +444,7 @@ tests:
   # Native context: 131072 tokens
 
   - id: E_Q4_1
-    name: "Llama3.3-70B 4bit mlx-lm"
+    model: "Llama3.3-70B"
     group: "E — Llama 3.3 70B"
     backend: mlx-lm
     model_id: "mlx-community/Llama-3.3-70B-Instruct-4bit"
@@ -453,7 +453,7 @@ tests:
     kv_cache: default
 
   - id: E_CTX_1
-    name: "Llama3.3-70B 4bit mlx-lm ctx"
+    model: "Llama3.3-70B"
     group: "E — Llama 3.3 70B"
     backend: mlx-lm
     model_id: "mlx-community/Llama-3.3-70B-Instruct-4bit"
@@ -468,7 +468,7 @@ tests:
     prompts: [context-32k, context-64k]
 
   - id: E_CTX_2
-    name: "Llama3.3-70B 4bit mlx-vlm kv4 ctx128k"
+    model: "Llama3.3-70B"
     group: "E — Llama 3.3 70B"
     backend: mlx-vlm
     model_id: "mlx-community/Llama-3.3-70B-Instruct-4bit"
@@ -491,7 +491,7 @@ tests:
   # Or use run_turboquant_omlx.py which handles the install automatically.
 
   - id: F_TQ4_1
-    name: "Qwen3.5 TurboQuant 4bit"
+    model: "Qwen3.5"
     group: "F — TurboQuant"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -501,7 +501,7 @@ tests:
     extra_args: ["--tq-bits", "4"]
 
   - id: F_TQ35_1
-    name: "Qwen3.5 TurboQuant 3.5bit"
+    model: "Qwen3.5"
     group: "F — TurboQuant"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -511,7 +511,7 @@ tests:
     extra_args: ["--tq-bits", "3.5"]
 
   - id: F_CTX_1
-    name: "Qwen3.5 TurboQuant 4bit ctx"
+    model: "Qwen3.5"
     group: "F — TurboQuant"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -522,7 +522,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: F_CTX_2
-    name: "Qwen3.5 TurboQuant 3bit ctx"
+    model: "Qwen3.5"
     group: "F — TurboQuant"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -541,7 +541,7 @@ tests:
   # cold_ttft_ms (warmup run) vs steady TTFT reveals cache warmup benefit.
 
   - id: G_1
-    name: "Qwen3.5 oMLX 4bit"
+    model: "Qwen3.5"
     group: "G — oMLX (SSD KV Cache)"
     backend: omlx
     model_id: "Qwen3.5-35B-A3B-4bit"
@@ -550,7 +550,7 @@ tests:
     kv_cache: ssd-paged
 
   - id: G_CTX_1
-    name: "Qwen3.5 oMLX 4bit ctx"
+    model: "Qwen3.5"
     group: "G — oMLX (SSD KV Cache)"
     backend: omlx
     model_id: "Qwen3.5-35B-A3B-4bit"
@@ -564,7 +564,7 @@ tests:
     prompts: [context-32k]
 
   - id: G_2
-    name: "Coder oMLX 4bit"
+    model: "Coder"
     group: "G — oMLX (SSD KV Cache)"
     backend: omlx
     model_id: "Qwen3-Coder-Next-4bit"
@@ -573,7 +573,7 @@ tests:
     kv_cache: ssd-paged
 
   - id: G_CTX_2
-    name: "Coder oMLX 4bit ctx"
+    model: "Coder"
     group: "G — oMLX (SSD KV Cache)"
     backend: omlx
     model_id: "Qwen3-Coder-Next-4bit"
@@ -591,7 +591,7 @@ tests:
   # -c 131072 allocates full 128k context window upfront.
 
   - id: H_CR_1
-    name: "Coder llama.cpp Q4 kv-q8 cache-reuse"
+    model: "Coder"
     group: "H — llama cache-reuse"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
@@ -602,7 +602,7 @@ tests:
                  "-c", "131072"]
 
   - id: H_CTX_1
-    name: "Coder llama.cpp Q4 cache-reuse ctx"
+    model: "Coder"
     group: "H — llama cache-reuse"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
@@ -619,7 +619,7 @@ tests:
   # Using NVFP4 (fastest TTFT in prior benchmarks: 63ms).
 
   - id: A_OLL_CTX
-    name: "Qwen3.5 Ollama 0.19 NVFP4 ctx"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.5:35b-a3b-nvfp4"
@@ -634,7 +634,7 @@ tests:
   # A_OLL_CTX (NVFP4) to measure format quality/speed tradeoff at long context.
 
   - id: A_OLL_CTX_INT4
-    name: "Qwen3.5 Ollama 0.19 INT4 ctx"
+    model: "Qwen3.5"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.5:35b-a3b-int4"
@@ -651,7 +651,7 @@ tests:
   # model_id: HF repo ID (same as mlx-lm)
 
   - id: I_Q4_1
-    name: "Qwen3.5 vllm-mlx 4bit"
+    model: "Qwen3.5"
     group: "I — vllm-mlx"
     backend: vllm-mlx
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -660,7 +660,7 @@ tests:
     kv_cache: default
 
   - id: I_Q4_2
-    name: "Coder vllm-mlx 4bit"
+    model: "Coder"
     group: "I — vllm-mlx"
     backend: vllm-mlx
     model_id: "mlx-community/Qwen3-Coder-Next-4bit"
@@ -669,7 +669,7 @@ tests:
     kv_cache: default
 
   - id: I_CTX_1
-    name: "Qwen3.5 vllm-mlx 4bit ctx"
+    model: "Qwen3.5"
     group: "I — vllm-mlx"
     backend: vllm-mlx
     model_id: "mlx-community/Qwen3.5-35B-A3B-4bit"
@@ -686,7 +686,7 @@ tests:
   # Note: LM Studio loads models on request; first run captures cold load time.
 
   - id: J_Q4_1
-    name: "Qwen3.5 LM Studio"
+    model: "Qwen3.5"
     group: "J — LM Studio"
     backend: lm-studio
     model_id: "qwen3.5-35b-a3b"
@@ -695,7 +695,7 @@ tests:
     kv_cache: default
 
   - id: J_Q4_2
-    name: "Coder LM Studio"
+    model: "Coder"
     group: "J — LM Studio"
     backend: lm-studio
     model_id: "qwen3-coder-next"
@@ -726,7 +726,7 @@ tests:
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: K_Q4_1
-    name: "Gemma4-26B-A4B mlx-vlm 4bit"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -736,7 +736,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: K_Q4_2
-    name: "Gemma4-26B-A4B mlx-vlm kv4"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -746,7 +746,7 @@ tests:
     extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
 
   - id: K_Q4_3
-    name: "Gemma4-26B-A4B mlx-vlm kv2"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -757,7 +757,7 @@ tests:
     enabled: false  # verify gemma4 kv2 path in mlx-vlm before enabling
 
   - id: K_Q4_4
-    name: "Gemma4-26B-A4B Ollama Q4_K_M"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: ollama
     model_id: "gemma4:26b"
@@ -768,7 +768,7 @@ tests:
     # runs 0.20.0 binary (required updating /opt/homebrew/opt/ollama symlink).
 
   - id: K_MXFP4_1
-    name: "Gemma4-26B-A4B mlx-vlm mxfp4"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-mxfp4"
@@ -780,7 +780,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: K_NVFP4_1
-    name: "Gemma4-26B-A4B mlx-vlm nvfp4"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-nvfp4"
@@ -790,7 +790,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: K_CTX_1
-    name: "Gemma4-26B-A4B mlx-vlm ctx"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -802,7 +802,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: K_CTX_2
-    name: "Gemma4-26B-A4B mlx-vlm kv4 ctx"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -815,7 +815,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: K_OLL_CTX_1
-    name: "Gemma4-26B-A4B Ollama ctx"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: ollama
     model_id: "gemma4:26b"
@@ -830,7 +830,7 @@ tests:
   # TurboQuant patches mlx_lm.models.cache — only applicable to mlx-lm architectures.
   # Re-enable once mlx-lm ships gemma4 support.
   - id: K_TQ4_1
-    name: "Gemma4-26B-A4B TurboQuant 4bit"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -841,7 +841,7 @@ tests:
     enabled: false  # mlx-lm lacks gemma4 support
 
   - id: K_TQ35_1
-    name: "Gemma4-26B-A4B TurboQuant 3.5bit"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -852,7 +852,7 @@ tests:
     enabled: false
 
   - id: K_TQ3_1
-    name: "Gemma4-26B-A4B TurboQuant 3bit"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/gemma-4-26b-a4b-it-4bit"
@@ -864,7 +864,7 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: K_LC_Q4KM
-    name: "Gemma4-26B-A4B llama.cpp UD-Q4_K_M"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf"
@@ -873,7 +873,7 @@ tests:
     kv_cache: default
 
   - id: K_LC_UDQ4
-    name: "Gemma4-26B-A4B llama.cpp UD-Q4_K_XL"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf"
@@ -882,7 +882,7 @@ tests:
     kv_cache: default
 
   - id: K_LC_UDQ2
-    name: "Gemma4-26B-A4B llama.cpp UD-Q2_K_XL"
+    model: "Gemma4-26B-A4B"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q2_K_XL.gguf"
@@ -900,7 +900,7 @@ tests:
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: L_Q4_1
-    name: "Gemma4-31B mlx-vlm 4bit"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-31b-it-4bit"
@@ -910,7 +910,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: L_Q4_2
-    name: "Gemma4-31B mlx-vlm kv4"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-31b-it-4bit"
@@ -920,7 +920,7 @@ tests:
     extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
 
   - id: L_Q4_3
-    name: "Gemma4-31B Ollama Q4_K_M"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: ollama
     model_id: "gemma4:31b"
@@ -930,7 +930,7 @@ tests:
     # Enabled 2026-04-03: Ollama 0.20.0 supports gemma4 (see K_Q4_4).
 
   - id: L_MXFP4_1
-    name: "Gemma4-31B mlx-vlm mxfp4"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-31b-it-mxfp4"
@@ -941,7 +941,7 @@ tests:
     server_timeout: 1200  # 31B mxfp4 needs >600s to load on M3 Max
 
   - id: L_NVFP4_1
-    name: "Gemma4-31B mlx-vlm nvfp4"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-31b-it-nvfp4"
@@ -951,7 +951,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: L_CTX_1
-    name: "Gemma4-31B mlx-vlm ctx"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-31b-it-4bit"
@@ -962,7 +962,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: L_CTX_2
-    name: "Gemma4-31B mlx-vlm kv4 ctx"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-31b-it-4bit"
@@ -973,7 +973,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: L_OLL_CTX_1
-    name: "Gemma4-31B Ollama ctx"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: ollama
     model_id: "gemma4:31b"
@@ -985,7 +985,7 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: L_LC_Q4KM
-    name: "Gemma4-31B llama.cpp Q4_K_M"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-31B-it-Q4_K_M.gguf"
@@ -994,7 +994,7 @@ tests:
     kv_cache: default
 
   - id: L_LC_UDQ4
-    name: "Gemma4-31B llama.cpp UD-Q4_K_XL"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-31B-it-UD-Q4_K_XL.gguf"
@@ -1003,7 +1003,7 @@ tests:
     kv_cache: default
 
   - id: L_LC_UDQ2
-    name: "Gemma4-31B llama.cpp UD-Q2_K_XL"
+    model: "Gemma4-31B"
     group: "L — Gemma4 31B Dense"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-31B-it-UD-Q2_K_XL.gguf"
@@ -1021,7 +1021,7 @@ tests:
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: M_Q4_1
-    name: "Gemma4-E4B mlx-vlm 4bit"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e4b-it-4bit"
@@ -1031,7 +1031,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: M_Q4_2
-    name: "Gemma4-E4B mlx-vlm kv4"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e4b-it-4bit"
@@ -1041,7 +1041,7 @@ tests:
     extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
 
   - id: M_MXFP4_1
-    name: "Gemma4-E4B mlx-vlm mxfp4"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e4b-it-mxfp4"
@@ -1051,7 +1051,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: M_NVFP4_1
-    name: "Gemma4-E4B mlx-vlm nvfp4"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e4b-it-nvfp4"
@@ -1061,7 +1061,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: M_Q4_3
-    name: "Gemma4-E4B Ollama Q4_K_M"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: ollama
     model_id: "gemma4:4b"
@@ -1071,7 +1071,7 @@ tests:
     enabled: false  # 2026-04-04: gemma4:4b tag does not exist in Ollama registry yet
 
   - id: M_CTX_1
-    name: "Gemma4-E4B mlx-vlm ctx"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e4b-it-4bit"
@@ -1085,7 +1085,7 @@ tests:
                     # Root: project_per_layer_inputs in gemma4/language.py line 449.
 
   - id: M_OLL_CTX_1
-    name: "Gemma4-E4B Ollama ctx"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: ollama
     model_id: "gemma4:4b"
@@ -1097,7 +1097,7 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: M_LC_Q4KM
-    name: "Gemma4-E4B llama.cpp Q4_K_M"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-Q4_K_M.gguf"
@@ -1106,7 +1106,7 @@ tests:
     kv_cache: default
 
   - id: M_LC_UDQ4
-    name: "Gemma4-E4B llama.cpp UD-Q4_K_XL"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-UD-Q4_K_XL.gguf"
@@ -1115,7 +1115,7 @@ tests:
     kv_cache: default
 
   - id: M_LC_UDQ2
-    name: "Gemma4-E4B llama.cpp UD-Q2_K_XL"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-UD-Q2_K_XL.gguf"
@@ -1124,7 +1124,7 @@ tests:
     kv_cache: default
 
   - id: M_LC_UDQ6
-    name: "Gemma4-E4B llama.cpp UD-Q6_K_XL"
+    model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-UD-Q6_K_XL.gguf"
@@ -1141,7 +1141,7 @@ tests:
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: N_Q4_1
-    name: "Gemma4-E2B mlx-vlm 4bit"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e2b-it-4bit"
@@ -1151,7 +1151,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: N_Q4_2
-    name: "Gemma4-E2B mlx-vlm kv4"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e2b-it-4bit"
@@ -1161,7 +1161,7 @@ tests:
     extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
 
   - id: N_NVFP4_1
-    name: "Gemma4-E2B mlx-vlm nvfp4"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e2b-it-nvfp4"
@@ -1172,7 +1172,7 @@ tests:
     enabled: false  # 2026-04-04: mlx-community/gemma-4-e2b-it-nvfp4 has no weight files (1 metadata file only)
 
   - id: N_Q4_3
-    name: "Gemma4-E2B Ollama Q4_K_M"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: ollama
     model_id: "gemma4:2b"
@@ -1182,7 +1182,7 @@ tests:
     enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
 
   - id: N_CTX_1
-    name: "Gemma4-E2B mlx-vlm ctx"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: mlx-vlm
     model_id: "mlx-community/gemma-4-e2b-it-4bit"
@@ -1194,7 +1194,7 @@ tests:
     enabled: true  # mlx-vlm 0.4.4 fixes per_layer_projection bug — re-enabled and benchmarked 2026-04-05
 
   - id: N_OLL_CTX_1
-    name: "Gemma4-E2B Ollama ctx"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: ollama
     model_id: "gemma4:2b"
@@ -1206,7 +1206,7 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: N_LC_Q4KM
-    name: "Gemma4-E2B llama.cpp Q4_K_M"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf"
@@ -1215,7 +1215,7 @@ tests:
     kv_cache: default
 
   - id: N_LC_UDQ4
-    name: "Gemma4-E2B llama.cpp UD-Q4_K_XL"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-UD-Q4_K_XL.gguf"
@@ -1224,7 +1224,7 @@ tests:
     kv_cache: default
 
   - id: N_LC_UDQ2
-    name: "Gemma4-E2B llama.cpp UD-Q2_K_XL"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-UD-Q2_K_XL.gguf"
@@ -1233,7 +1233,7 @@ tests:
     kv_cache: default
 
   - id: N_LC_UDQ6
-    name: "Gemma4-E2B llama.cpp UD-Q6_K_XL"
+    model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-UD-Q6_K_XL.gguf"
@@ -1256,7 +1256,7 @@ tests:
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: O_Q4_1
-    name: "Qwen3.6 4bit mlx-lm"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-35B-A3B-4bit"
@@ -1265,7 +1265,7 @@ tests:
     kv_cache: default
 
   - id: O_Q4_2
-    name: "Qwen3.6 Q4_K_M Ollama"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.6:35b-a3b-q4_K_M"
@@ -1274,7 +1274,7 @@ tests:
     kv_cache: default
 
   - id: O_Q4_3
-    name: "Qwen3.6 NVFP4 Ollama"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.6:35b-a3b-nvfp4"
@@ -1283,7 +1283,7 @@ tests:
     kv_cache: default
 
   - id: O_Q4_4
-    name: "Qwen3.6 INT4 Ollama"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.6:35b-a3b-int4"
@@ -1292,7 +1292,7 @@ tests:
     kv_cache: default
 
   - id: O_Q8_1
-    name: "Qwen3.6 8bit mlx-lm"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-35B-A3B-8bit"
@@ -1301,7 +1301,7 @@ tests:
     kv_cache: default
 
   - id: O_CTX_1
-    name: "Qwen3.6 4bit mlx-lm ctx"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-35B-A3B-4bit"
@@ -1311,7 +1311,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: O_OLL_CTX
-    name: "Qwen3.6 Ollama NVFP4 ctx"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: ollama
     model_id: "qwen3.6:35b-a3b-nvfp4"
@@ -1322,7 +1322,7 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: O_LC_Q4KM
-    name: "Qwen3.6-35B llama.cpp UD-Q4_K_M"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
@@ -1331,7 +1331,7 @@ tests:
     kv_cache: default
 
   - id: O_LC_UDQ4
-    name: "Qwen3.6-35B llama.cpp UD-Q4_K_XL"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
@@ -1340,7 +1340,7 @@ tests:
     kv_cache: default
 
   - id: O_LC_UDQ2
-    name: "Qwen3.6-35B llama.cpp UD-Q2_K_XL"
+    model: "Qwen3.6-35B"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf"
@@ -1370,7 +1370,7 @@ tests:
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: P_Q4_0
-    name: "Qwen3.6-27B 4bit mlx-lm"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1379,7 +1379,7 @@ tests:
     kv_cache: default
 
   - id: P_Q4_1
-    name: "Qwen3.6-27B mlx-vlm 4bit"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1390,7 +1390,7 @@ tests:
     enabled: false  # mlx-vlm returns HTTP 500 for qwen3_5 architecture
 
   - id: P_Q4_2
-    name: "Qwen3.6-27B mlx-vlm kv4"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1401,7 +1401,7 @@ tests:
     enabled: false  # mlx-vlm returns HTTP 500 for qwen3_5 architecture
 
   - id: P_Q4_3
-    name: "Qwen3.6-27B mlx-vlm kv2"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1412,7 +1412,7 @@ tests:
     enabled: false  # verify kv2 path in mlx-vlm for qwen3_5 before enabling
 
   - id: P_Q4_4
-    name: "Qwen3.6-27B Ollama Q4_K_M"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: ollama
     model_id: "qwen3.6:27b-q4_K_M"
@@ -1421,7 +1421,7 @@ tests:
     kv_cache: default
 
   - id: P_Q4_5
-    name: "Qwen3.6-27B Ollama NVFP4"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: ollama
     model_id: "qwen3.6:27b-nvfp4"
@@ -1430,7 +1430,7 @@ tests:
     kv_cache: default
 
   - id: P_Q8_0
-    name: "Qwen3.6-27B 8bit mlx-lm"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-27B-8bit"
@@ -1440,7 +1440,7 @@ tests:
     # ~30 GB weights; feasible on 64 GB for short context but tight for long ctx
 
   - id: P_Q8_1
-    name: "Qwen3.6-27B mlx-vlm 8bit"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-8bit"
@@ -1452,7 +1452,7 @@ tests:
     # ~30 GB weights; feasible on 64 GB for short context but tight for long ctx
 
   - id: P_MXFP4_0
-    name: "Qwen3.6-27B mxfp4 mlx-lm"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-27B-mxfp4"
@@ -1461,7 +1461,7 @@ tests:
     kv_cache: default
 
   - id: P_MXFP4_1
-    name: "Qwen3.6-27B mlx-vlm mxfp4"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-mxfp4"
@@ -1472,7 +1472,7 @@ tests:
     enabled: false  # mlx-vlm returns HTTP 500 for qwen3_5 architecture
 
   - id: P_NVFP4_0
-    name: "Qwen3.6-27B nvfp4 mlx-lm"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-27B-nvfp4"
@@ -1481,7 +1481,7 @@ tests:
     kv_cache: default
 
   - id: P_NVFP4_1
-    name: "Qwen3.6-27B mlx-vlm nvfp4"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-nvfp4"
@@ -1492,7 +1492,7 @@ tests:
     enabled: false  # mlx-vlm returns HTTP 500 for qwen3_5 architecture
 
   - id: P_VLLM_1
-    name: "Qwen3.6-27B vllm-mlx 4bit"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: vllm-mlx
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1501,7 +1501,7 @@ tests:
     kv_cache: default
 
   - id: P_CTX_0
-    name: "Qwen3.6-27B 4bit mlx-lm ctx"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1514,7 +1514,7 @@ tests:
     prompts: [context-32k, context-64k]
 
   - id: P_CTX_1
-    name: "Qwen3.6-27B mlx-vlm ctx"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1527,7 +1527,7 @@ tests:
     enabled: false  # mlx-vlm returns HTTP 500 for qwen3_5 architecture
 
   - id: P_CTX_2
-    name: "Qwen3.6-27B mlx-vlm kv4 ctx"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-vlm
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1541,7 +1541,7 @@ tests:
     enabled: false  # mlx-vlm returns HTTP 500 for qwen3_5 architecture
 
   - id: P_OLL_CTX
-    name: "Qwen3.6-27B Ollama Q4_K_M ctx"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: ollama
     model_id: "qwen3.6:27b-q4_K_M"
@@ -1551,7 +1551,7 @@ tests:
     prompts: [context-32k, context-64k, context-128k]
 
   - id: P_TQ4_1
-    name: "Qwen3.6-27B TurboQuant 4bit"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1561,7 +1561,7 @@ tests:
     extra_args: ["--tq-bits", "4"]
 
   - id: P_TQ35_1
-    name: "Qwen3.6-27B TurboQuant 3.5bit"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: mlx-lm-turboquant
     model_id: "mlx-community/Qwen3.6-27B-4bit"
@@ -1575,7 +1575,7 @@ tests:
   # Use run_llamacpp_qwen36.py to orchestrate download→bench→delete cycle.
 
   - id: P_LC_Q4KM
-    name: "Qwen3.6-27B llama.cpp Q4_K_M"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-27B-Q4_K_M.gguf"
@@ -1584,7 +1584,7 @@ tests:
     kv_cache: default
 
   - id: P_LC_UDQ4
-    name: "Qwen3.6-27B llama.cpp UD-Q4_K_XL"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q4_K_XL.gguf"
@@ -1593,7 +1593,7 @@ tests:
     kv_cache: default
 
   - id: P_LC_UDQ6
-    name: "Qwen3.6-27B llama.cpp UD-Q6_K_XL"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q6_K_XL.gguf"
@@ -1602,7 +1602,7 @@ tests:
     kv_cache: default
 
   - id: P_LC_UDQ2
-    name: "Qwen3.6-27B llama.cpp UD-Q2_K_XL"
+    model: "Qwen3.6-27B"
     group: "P — Qwen3.6-27B (Dense, VLM)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q2_K_XL.gguf"

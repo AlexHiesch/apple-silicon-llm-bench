@@ -405,6 +405,7 @@ QUALITY_TESTS = "assert fib(10)==55\nassert fib(0)==0\nassert fib(1)==1"
 @dataclass
 class TestConfig:
     id: str
+    model: str
     name: str
     group: str
     backend: str
@@ -423,6 +424,7 @@ class TestConfig:
 class BenchResult:
     test_id: str
     test_name: str
+    model: str
     backend: str
     fmt: str
     quant: str
@@ -443,6 +445,15 @@ class BenchResult:
     peak_cpu_pct: float = 0
     tool_call_valid: Optional[bool] = None
     quality_pass: Optional[bool] = None
+
+
+def generate_test_name(model: str, backend: str, quant: str, kv_cache: str) -> str:
+    """Auto-generate a display name from test fields."""
+    label = BACKEND_LABELS.get(backend, backend)
+    parts = [model, label, quant]
+    if kv_cache != "default":
+        parts.append(kv_cache)
+    return " ".join(p for p in parts if p)
 
 
 # ── Config loading + prereq auto-detection ────────────────────────────────────
@@ -633,9 +644,14 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
 
         no_think_override = entry.get("no_think", None)
 
+        model = entry.get("model", "")
+        name = entry.get("name") or generate_test_name(
+            model, backend, entry.get("quant", ""), entry.get("kv_cache", "default"))
+
         tests.append(TestConfig(
             id=entry["id"],
-            name=entry["name"],
+            model=model,
+            name=name,
             group=entry.get("group", "default"),
             backend=backend,
             model_id=resolved_model_id or raw_model_id,
@@ -1176,7 +1192,7 @@ BACKEND_LABELS = {
     "mlx-vlm": "mlx-vlm",
     "mlx-lm-turboquant": "TurboQuant",
     "ollama": "Ollama",
-    "llama-server": "llama-server",
+    "llama-server": "llama.cpp",
     "vllm-mlx": "vllm-mlx",
     "omlx": "oMLX",
     "lm-studio": "LM Studio",
@@ -1841,7 +1857,7 @@ def main():
                     continue
 
                 br = BenchResult(
-                    test_id=test.id, test_name=test.name,
+                    test_id=test.id, test_name=test.name, model=test.model,
                     backend=test.backend, fmt=test.fmt, quant=test.quant,
                     kv_cache=test.kv_cache, prompt_type=prompt_name, run_num=run_num,
                     ttft_ms=r["ttft_ms"], decode_tps=r["decode_tps"],

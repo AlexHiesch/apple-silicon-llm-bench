@@ -27,6 +27,9 @@ MODEL_MAP = {
     "Gemma4-E4B":       "Gemma4-E4B",
     "Gemma4-E2B":       "Gemma4-E2B",
     "Llama3.3-70B":     "Llama3.3-70B",
+    "Qwen3.6-27B":      "Qwen3.6-27B",
+    "Qwen3.6-35B":      "Qwen3.6-35B",
+    "Qwen3.6":          "Qwen3.6-35B",
 }
 
 def extract_model(test_name):
@@ -105,7 +108,7 @@ def build_json_rows(rows):
         json_rows.append({
             "id": r.get("test_id", ""),
             "name": r.get("test_name", ""),
-            "model": extract_model(r.get("test_name", "")),
+            "model": r.get("model", "") or extract_model(r.get("test_name", "")),
             "backend": r.get("backend", ""),
             "fmt": r.get("fmt", ""),
             "quant": r.get("quant", ""),
