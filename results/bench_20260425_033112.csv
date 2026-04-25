@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+O_LC_UDQ2,Qwen3.6-35B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,1,123.5,65.4,186.3,192,23,3.05,3.2,0,110,131.5,17327.1,0.0,,
+O_LC_UDQ2,Qwen3.6-35B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,2,117.6,65.4,195.6,192,23,3.04,3.2,0,110,131.5,17327.1,0.0,,
+O_LC_UDQ2,Qwen3.6-35B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,3,118.1,67.1,194.7,192,23,2.97,3.2,0,110,131.5,17327.1,0.0,,
+O_LC_UDQ2,Qwen3.6-35B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,1,57.8,65.5,12999.5,512,751,7.86,3.2,0,213,811.1,17470.3,0.0,,
+O_LC_UDQ2,Qwen3.6-35B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,2,44.1,66.0,17011.7,512,751,7.79,3.2,0,213,811.1,17470.3,0.0,,
+O_LC_UDQ2,Qwen3.6-35B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,3,47.6,65.2,15786.3,512,751,7.88,3.2,0,213,811.1,17470.4,0.0,,

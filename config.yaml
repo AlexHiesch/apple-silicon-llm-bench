@@ -864,12 +864,12 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: K_LC_Q4KM
-    name: "Gemma4-26B-A4B llama.cpp Q4_K_M"
+    name: "Gemma4-26B-A4B llama.cpp UD-Q4_K_M"
     group: "K — Gemma4 26B A4B (MoE)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf"
     fmt: GGUF
-    quant: Q4_K_M
+    quant: UD-Q4_K_M
     kv_cache: default
 
   - id: K_LC_UDQ4
@@ -1322,12 +1322,12 @@ tests:
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: O_LC_Q4KM
-    name: "Qwen3.6-35B llama.cpp Q4_K_M"
+    name: "Qwen3.6-35B llama.cpp UD-Q4_K_M"
     group: "O — Qwen3.6-35B-A3B (MoE)"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-Q4_K_M.gguf"
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"
     fmt: GGUF
-    quant: Q4_K_M
+    quant: UD-Q4_K_M
     kv_cache: default
 
   - id: O_LC_UDQ4

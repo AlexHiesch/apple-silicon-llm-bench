@@ -1,0 +1,7 @@
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
+P_LC_Q4KM,Qwen3.6-27B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,1,433.2,17.3,53.1,170,23,10.18,7.2,0,90,534.0,33259.0,0.0,,
+P_LC_Q4KM,Qwen3.6-27B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,2,391.9,17.2,58.7,170,23,10.2,7.2,0,90,534.0,33259.0,0.0,,
+P_LC_Q4KM,Qwen3.6-27B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,3,394.3,17.3,58.3,170,23,10.15,7.2,0,90,534.0,33259.0,0.0,,
+P_LC_Q4KM,Qwen3.6-27B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,1,251.5,17.3,2986.3,512,751,29.8,7.2,0,203,4728.9,33256.2,0.0,,
+P_LC_Q4KM,Qwen3.6-27B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,2,239.1,17.3,3140.3,512,751,29.72,7.2,0,203,4728.9,33256.4,0.0,,
+P_LC_Q4KM,Qwen3.6-27B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,3,239.2,17.3,3139.3,512,751,29.69,7.2,0,203,4728.9,33256.4,0.0,,

@@ -93,7 +93,7 @@ GROUPS = {
         "label": "Qwen3.6-35B-A3B (MoE)",
         "hf_repo": "unsloth/Qwen3.6-35B-A3B-GGUF",
         "tests": [
-            ("O_LC_Q4KM", "Qwen3.6-35B-A3B-Q4_K_M.gguf"),
+            ("O_LC_Q4KM", "Qwen3.6-35B-A3B-UD-Q4_K_M.gguf"),
             ("O_LC_UDQ4", "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"),
             ("O_LC_UDQ2", "Qwen3.6-35B-A3B-UD-Q2_K_XL.gguf"),
         ],
