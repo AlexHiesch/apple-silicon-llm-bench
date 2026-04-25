@@ -146,7 +146,7 @@ tests:
     kv_cache: default
 
   - id: A_Q4_8
-    name: "Qwen3.5 Q4_K_M llama-server"
+    name: "Qwen3.5 llama.cpp Q4_K_M"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     # KNOWN ISSUE: Ollama stores Qwen3.5-MoE in a GGUF dialect that llama-server
@@ -194,7 +194,7 @@ tests:
     extra_args: ["--max-kv-size", "32768"]
 
   - id: A_Q8_3
-    name: "Qwen3.5 Q8_0 llama-server"
+    name: "Qwen3.5 llama.cpp Q8_0"
     group: "A — Qwen3.5-35B-A3B (MoE)"
     backend: llama-server
     # Same GGUF dialect incompatibility as A_Q4_8 (same model family, same Ollama storage format).
@@ -269,7 +269,7 @@ tests:
     enabled: false
 
   - id: B_Q4_4
-    name: "Coder Q4_K_M llama-server"
+    name: "Coder llama.cpp Q4_K_M"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: llama-server
     # Provide absolute path to your GGUF file:
@@ -279,7 +279,7 @@ tests:
     kv_cache: default
 
   - id: B_Q4_5
-    name: "Coder Q4 kv-q8 llama-server"
+    name: "Coder llama.cpp Q4 kv-q8"
     group: "B — Qwen3-Coder-Next (Dense)"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
@@ -591,7 +591,7 @@ tests:
   # -c 131072 allocates full 128k context window upfront.
 
   - id: H_CR_1
-    name: "Coder Q4 kv-q8 cache-reuse"
+    name: "Coder llama.cpp Q4 kv-q8 cache-reuse"
     group: "H — llama cache-reuse"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
@@ -602,7 +602,7 @@ tests:
                  "-c", "131072"]
 
   - id: H_CTX_1
-    name: "Coder Q4 cache-reuse ctx"
+    name: "Coder llama.cpp Q4 cache-reuse ctx"
     group: "H — llama cache-reuse"
     backend: llama-server
     model_id: "~/.cache/llmfit/models/Qwen3-Coder-Next-Q4_K_M.gguf"
