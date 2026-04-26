@@ -101,15 +101,21 @@ def deduplicate(rows):
 
     return results
 
+BACKEND_LABELS = {
+    "llama-server": "llama.cpp",
+    "llama-b8670": "llama.cpp",
+}
+
 def build_json_rows(rows):
     """Convert to the JSON format expected by the HTML template."""
     json_rows = []
     for r in rows:
+        raw_backend = r.get("backend", "")
         json_rows.append({
             "id": r.get("test_id", ""),
             "name": r.get("test_name", ""),
             "model": r.get("model", "") or extract_model(r.get("test_name", "")),
-            "backend": r.get("backend", ""),
+            "backend": BACKEND_LABELS.get(raw_backend, raw_backend),
             "fmt": r.get("fmt", ""),
             "quant": r.get("quant", ""),
             "kv": r.get("kv_cache", ""),
