@@ -1359,7 +1359,7 @@ def save_results_html(results: list, hardware: dict, path: Path,
 
         rows_data.append({
             "id": tid,
-            "name": r0.test_name,
+            "model": r0.model,
             "backend": BACKEND_LABELS.get(r0.backend, r0.backend),
             "fmt": r0.fmt,
             "quant": r0.quant,
@@ -1496,7 +1496,7 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
 <thead>
 <tr>
   <th data-col="id"      data-type="str"><span class="arrow">ID</span></th>
-  <th data-col="name"    data-type="str"><span class="arrow">Name</span></th>
+  <th data-col="model"   data-type="str"><span class="arrow">Model</span></th>
   <th data-col="prompt"  data-type="str"><span class="arrow">Prompt</span></th>
   <th data-col="backend" data-type="str"><span class="arrow">Backend</span></th>
   <th data-col="fmt"     data-type="str"><span class="arrow">Fmt</span></th>
@@ -1561,10 +1561,10 @@ function fmtMem(mb) {{
 function renderRows(data) {{
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = data.map(r => `
-<tr data-id="${{r.id}}" data-name="${{r.name}}" data-prompt="${{r.prompt}}"
-    data-backend="${{r.backend}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
+<tr data-id="${{r.id}}" data-prompt="${{r.prompt}}"
+    data-model="${{r.model}}" data-backend="${{r.backend}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
   <td><code>${{r.id}}</code></td>
-  <td>${{r.name}}</td>
+  <td>${{r.model}}</td>
   <td>${{r.prompt}}</td>
   <td>${{r.backend}}</td>
   <td>${{r.fmt}}</td>
@@ -1604,7 +1604,7 @@ function getFiltered() {{
   const kv      = document.getElementById('f-kv').value;
 
   return RAW.filter(r =>
-    (!q       || r.id.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)) &&
+    (!q       || r.id.toLowerCase().includes(q) || r.model.toLowerCase().includes(q)) &&
     (!prompt  || r.prompt  === prompt)  &&
     (!backend || r.backend === backend) &&
     (!fmt     || r.fmt     === fmt)     &&
