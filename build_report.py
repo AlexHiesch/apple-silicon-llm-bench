@@ -104,6 +104,11 @@ def deduplicate(rows):
 BACKEND_LABELS = {
     "llama-server": "llama.cpp",
     "llama-b8670": "llama.cpp",
+    "mlx-lm-0.31.2": "mlx-lm",
+    "mlx-lm-0.31.3": "mlx-lm",
+    "mlx-vlm-0.4.3": "mlx-vlm",
+    "mlx-vlm-0.4.4": "mlx-vlm",
+    "omlx-0.3.4": "omlx",
 }
 
 def build_json_rows(rows):
