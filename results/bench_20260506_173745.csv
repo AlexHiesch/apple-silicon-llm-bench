@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+N_LC_UDQ6,Gemma4-E2B llama.cpp UD-Q6_K_XL,Gemma4-E2B,llama-server,GGUF,UD-Q6_K_XL,default,short,1,57.9,94.8,397.2,512,23,5.45,3.1,0,254,64.7,5464.3,0.0,b9020,,
+N_LC_UDQ6,Gemma4-E2B llama.cpp UD-Q6_K_XL,Gemma4-E2B,llama-server,GGUF,UD-Q6_K_XL,default,short,2,58.6,94.3,392.5,512,23,5.48,3.1,0,254,64.7,5464.4,0.0,b9020,,
+N_LC_UDQ6,Gemma4-E2B llama.cpp UD-Q6_K_XL,Gemma4-E2B,llama-server,GGUF,UD-Q6_K_XL,default,short,3,56.7,94.2,405.9,512,23,5.48,3.1,0,254,64.7,5464.4,0.0,b9020,,
+N_LC_UDQ6,Gemma4-E2B llama.cpp UD-Q6_K_XL,Gemma4-E2B,llama-server,GGUF,UD-Q6_K_XL,default,code,1,15.6,93.5,48140.5,512,751,5.48,3.1,0,222,386.1,5529.1,0.0,b9020,,
+N_LC_UDQ6,Gemma4-E2B llama.cpp UD-Q6_K_XL,Gemma4-E2B,llama-server,GGUF,UD-Q6_K_XL,default,code,2,16.7,93.2,44959.6,512,751,5.5,3.1,0,222,386.1,5529.1,0.0,b9020,,
+N_LC_UDQ6,Gemma4-E2B llama.cpp UD-Q6_K_XL,Gemma4-E2B,llama-server,GGUF,UD-Q6_K_XL,default,code,3,16.4,93.3,45850.3,512,751,5.49,3.1,0,222,386.1,5529.1,0.0,b9020,,

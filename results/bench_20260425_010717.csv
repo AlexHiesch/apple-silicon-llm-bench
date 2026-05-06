@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,1,164.1,76.6,140.2,512,23,6.83,8.2,0,270,140.0,16109.3,0.0,,
-K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,2,129.3,76.8,177.8,512,23,6.78,8.2,0,270,140.0,16109.3,0.0,,
-K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,3,123.5,77.1,186.3,512,23,6.75,8.2,0,270,140.0,16109.3,0.0,,
-K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,1,50.4,72.2,14895.5,512,751,7.13,8.2,0,211,885.0,16256.4,0.0,,
-K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,2,48.8,74.6,15402.3,512,751,6.9,8.2,0,211,885.0,16256.4,0.0,,
-K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,3,123.3,72.4,6093.3,512,751,7.18,8.2,0,211,885.0,16256.4,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,1,164.1,76.6,140.2,512,23,6.83,8.2,0,270,140.0,16109.3,0.0,b8920,,
+K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,2,129.3,76.8,177.8,512,23,6.78,8.2,0,270,140.0,16109.3,0.0,b8920,,
+K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,short,3,123.5,77.1,186.3,512,23,6.75,8.2,0,270,140.0,16109.3,0.0,b8920,,
+K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,1,50.4,72.2,14895.5,512,751,7.13,8.2,0,211,885.0,16256.4,0.0,b8920,,
+K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,2,48.8,74.6,15402.3,512,751,6.9,8.2,0,211,885.0,16256.4,0.0,b8920,,
+K_LC_UDQ2,Gemma4-26B-A4B llama.cpp UD-Q2_K_XL,llama-server,GGUF,UD-Q2_K_XL,default,code,3,123.3,72.4,6093.3,512,751,7.18,8.2,0,211,885.0,16256.4,0.0,b8920,,

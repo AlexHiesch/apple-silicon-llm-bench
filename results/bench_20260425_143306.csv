@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,short,1,142.6,58.1,161.3,188,23,3.36,15.2,0,108,145.1,26183.2,0.0,,
-O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,short,2,133.3,59.5,172.5,188,23,3.28,15.2,0,108,145.1,26183.2,0.0,,
-O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,short,3,131.6,58.7,174.7,188,23,3.32,15.2,0,108,145.1,26183.2,0.0,,
-O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,code,1,74.8,58.4,10045.7,512,751,8.83,15.2,0,256,767.3,26187.0,0.0,,
-O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,code,2,56.0,58.3,13404.4,512,751,8.83,15.2,0,256,767.3,26187.2,0.0,,
-O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,code,3,45.5,58.5,16522.1,512,751,8.78,15.2,0,256,767.3,26187.2,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,short,1,142.6,58.1,161.3,188,23,3.36,15.2,0,108,145.1,26183.2,0.0,b8920,,
+O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,short,2,133.3,59.5,172.5,188,23,3.28,15.2,0,108,145.1,26183.2,0.0,b8920,,
+O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,short,3,131.6,58.7,174.7,188,23,3.32,15.2,0,108,145.1,26183.2,0.0,b8920,,
+O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,code,1,74.8,58.4,10045.7,512,751,8.83,15.2,0,256,767.3,26187.0,0.0,b8920,,
+O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,code,2,56.0,58.3,13404.4,512,751,8.83,15.2,0,256,767.3,26187.2,0.0,b8920,,
+O_LC_Q4KM,Qwen3.6-35B llama.cpp UD-Q4_K_M,llama-server,GGUF,UD-Q4_K_M,default,code,3,45.5,58.5,16522.1,512,751,8.78,15.2,0,256,767.3,26187.2,0.0,b8920,,

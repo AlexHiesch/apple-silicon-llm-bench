@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,1,54.3,116.5,423.7,512,23,4.44,14.2,0,262,381.7,3867.4,0.0,,
-N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,2,54.6,115.5,421.4,512,23,4.48,14.2,0,262,381.7,3867.5,0.0,,
-N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,3,54.9,118.0,419.0,512,23,4.39,14.2,0,262,381.7,3867.5,0.0,,
-N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,1,15.1,113.3,49665.1,512,751,4.52,14.2,0,204,719.9,3852.6,0.0,,
-N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,2,14.7,113.3,50963.8,512,751,4.53,14.2,0,204,719.9,3852.6,0.0,,
-N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,3,14.4,115.2,52171.5,512,751,4.45,14.2,0,204,719.9,3852.6,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,1,54.3,116.5,423.7,512,23,4.44,14.2,0,262,381.7,3867.4,0.0,b8920,,
+N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,2,54.6,115.5,421.4,512,23,4.48,14.2,0,262,381.7,3867.5,0.0,b8920,,
+N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,short,3,54.9,118.0,419.0,512,23,4.39,14.2,0,262,381.7,3867.5,0.0,b8920,,
+N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,1,15.1,113.3,49665.1,512,751,4.52,14.2,0,204,719.9,3852.6,0.0,b8920,,
+N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,2,14.7,113.3,50963.8,512,751,4.53,14.2,0,204,719.9,3852.6,0.0,b8920,,
+N_LC_Q4KM,Gemma4-E2B llama.cpp Q4_K_M,llama-server,GGUF,Q4_K_M,default,code,3,14.4,115.2,52171.5,512,751,4.45,14.2,0,204,719.9,3852.6,0.0,b8920,,

@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,short,1,257.8,45.6,1526.4,512,29,11.64,9.1,0,274,435.2,18173.0,0.0,,
-K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,short,2,245.7,45.0,1473.2,512,29,11.79,9.1,0,274,435.2,18174.8,0.0,,
-K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,short,3,256.5,44.8,1534.1,512,29,11.85,9.1,0,274,435.2,18175.1,0.0,,
-K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,code,1,263.8,42.7,37376.4,512,853,12.4,9.1,0,204,1813.9,18262.8,0.0,,
-K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,code,2,261.2,42.6,38614.5,512,853,12.44,9.1,0,204,1813.9,18262.9,0.0,,
-K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,code,3,271.1,42.6,35979.0,512,853,12.43,9.1,0,204,1813.9,18263.0,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,short,1,257.8,45.6,1526.4,512,29,11.64,9.1,0,274,435.2,18173.0,0.0,0.20.0,,
+K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,short,2,245.7,45.0,1473.2,512,29,11.79,9.1,0,274,435.2,18174.8,0.0,0.20.0,,
+K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,short,3,256.5,44.8,1534.1,512,29,11.85,9.1,0,274,435.2,18175.1,0.0,0.20.0,,
+K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,code,1,263.8,42.7,37376.4,512,853,12.4,9.1,0,204,1813.9,18262.8,0.0,0.20.0,,
+K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,code,2,261.2,42.6,38614.5,512,853,12.44,9.1,0,204,1813.9,18262.9,0.0,0.20.0,,
+K_Q4_4,Gemma4-26B-A4B Ollama Q4_K_M,ollama,GGUF,Q4_K_M,default,code,3,271.1,42.6,35979.0,512,853,12.43,9.1,0,204,1813.9,18263.0,0.0,0.20.0,,

@@ -1064,11 +1064,10 @@ tests:
     model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: ollama
-    model_id: "gemma4:4b"
+    model_id: "gemma4:e4b"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
-    enabled: false  # 2026-04-04: gemma4:4b tag does not exist in Ollama registry yet
 
   - id: M_CTX_1
     model: "Gemma4-E4B"
@@ -1088,12 +1087,11 @@ tests:
     model: "Gemma4-E4B"
     group: "M — Gemma4 E4B (4B Efficient)"
     backend: ollama
-    model_id: "gemma4:4b"
+    model_id: "gemma4:e4b"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
     prompts: [context-32k, context-64k, context-128k]
-    enabled: false  # 2026-04-04: gemma4:4b tag does not exist in Ollama registry yet
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: M_LC_Q4KM
@@ -1175,11 +1173,10 @@ tests:
     model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: ollama
-    model_id: "gemma4:2b"
+    model_id: "gemma4:e2b"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
-    enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
 
   - id: N_CTX_1
     model: "Gemma4-E2B"
@@ -1197,12 +1194,11 @@ tests:
     model: "Gemma4-E2B"
     group: "N — Gemma4 E2B (2B Efficient)"
     backend: ollama
-    model_id: "gemma4:2b"
+    model_id: "gemma4:e2b"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
     prompts: [context-32k, context-64k, context-128k]
-    enabled: false  # 2026-04-04: gemma4:2b tag does not exist in Ollama registry yet
 
   # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
   - id: N_LC_Q4KM
@@ -1609,6 +1605,61 @@ tests:
     fmt: GGUF
     quant: UD-Q2_K_XL
     kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group Q — MTP Speculative Decoding (BLOCKED — mlx-lm 0.31.3 limitations)
+  #
+  # Three approaches investigated, all blocked:
+  #
+  # 1. Google's official MTP drafter (gemma4_assistant model_type):
+  #    - Uses a centroid-based output head (num_centroids: 2048) that hooks
+  #      into backbone hidden states (pre_projection 5632→1024, post 1024→2816)
+  #    - NOT a standalone autoregressive model — designed to inject into backbone
+  #      forward pass, not work as an independent draft model
+  #    - mlx-lm 0.31.3 has no gemma4_assistant module (raises ValueError on load)
+  #
+  # 2. Naive speculative (E2B as draft for 26B):
+  #    - E2B is Gemma4ForConditionalGeneration (VLM) with num_kv_shared_layers=20
+  #    - mlx-lm gemma4.py loads 26B (num_kv_shared_layers=0) fine, but fails
+  #      for E2B: 20 layers × 7 KV weight tensors = 140 "extra parameters"
+  #      because gemma4_text.py doesn't match the quantized VLM weight layout
+  #    - Additionally: 26B is MoE (30 layers), E2B is dense (35 layers) →
+  #      architecturally incompatible for mlx-lm speculative decoding
+  #
+  # 3. E2B draft for E4B (both dense):
+  #    - Same num_kv_shared_layers bug affects E4B (num_kv_shared_layers=18)
+  #    - Both would need fixes in mlx-lm before this works
+  #
+  # Resolution: needs mlx-lm update (either gemma4_assistant support or fix
+  # for num_kv_shared_layers weight loading in quantized Gemma4 VLMs).
+  # Re-enable when mlx-lm 0.31.4+ ships with a fix.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  # ── llama.cpp speculative decoding (viable alternative to mlx-lm MTP) ───────
+  # Gemma4-26B as main model, Gemma4-E2B as draft model.
+  # Both share the same Gemma4 tokenizer (262144-token vocab) — required for
+  # llama.cpp speculative decoding. Draft is offloaded fully (-ngld 99).
+  # GGUFs downloaded via run_llamacpp_all.py (groups N + K).
+
+  - id: Q_LC_SPEC1
+    model: "Gemma4-26B-A4B"
+    group: "Q — Speculative Decoding (llama.cpp)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_M
+    kv_cache: spec-e2b
+    extra_args: ["-md", "/Users/HIESCHA/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf", "-ngld", "99"]
+
+  - id: Q_LC_SPEC2
+    model: "Gemma4-26B-A4B"
+    group: "Q — Speculative Decoding (llama.cpp)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: spec-e2b
+    extra_args: ["-md", "/Users/HIESCHA/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf", "-ngld", "99"]
 
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above

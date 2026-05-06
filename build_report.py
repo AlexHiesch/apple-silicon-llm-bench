@@ -62,23 +62,25 @@ def load_all_csvs():
     return rows
 
 def deduplicate(rows):
-    """Group by (test_id, prompt_type), take latest source file per group,
-    then compute median of numeric fields across runs."""
+    """Group by (test_id, prompt_type, backend_version), keep results across
+    different backend versions so version-over-version comparison is visible.
+    Within the same version, take latest source file and compute median."""
     from collections import defaultdict
 
-    # Group by test_id + prompt_type + source
+    # Group by test_id + prompt_type + backend_version + source
     groups = defaultdict(list)
     for r in rows:
-        key = (r["test_id"], r["prompt_type"], r["_source"])
+        ver = r.get("backend_version", "")
+        key = (r["test_id"], r["prompt_type"], ver, r["_source"])
         groups[key].append(r)
 
-    # For each (test_id, prompt_type), pick the latest source file
-    id_prompt = defaultdict(list)
-    for (tid, pt, src), rs in groups.items():
-        id_prompt[(tid, pt)].append((src, rs))
+    # For each (test_id, prompt_type, version), pick the latest source file
+    id_prompt_ver = defaultdict(list)
+    for (tid, pt, ver, src), rs in groups.items():
+        id_prompt_ver[(tid, pt, ver)].append((src, rs))
 
     results = []
-    for (tid, pt), source_groups in id_prompt.items():
+    for (tid, pt, ver), source_groups in id_prompt_ver.items():
         # Sort by source filename (timestamp-based) and take the latest
         source_groups.sort(key=lambda x: x[0], reverse=True)
         latest_src, latest_rows = source_groups[0]
@@ -104,6 +106,8 @@ def deduplicate(rows):
 BACKEND_LABELS = {
     "llama-server": "llama.cpp",
     "llama-b8670": "llama.cpp",
+    "llama-b8920": "llama.cpp",
+    "llama-b9020": "llama.cpp",
     "mlx-lm-0.31.2": "mlx-lm",
     "mlx-lm-0.31.3": "mlx-lm",
     "mlx-vlm-0.4.3": "mlx-vlm",
@@ -121,6 +125,7 @@ def build_json_rows(rows):
             "name": r.get("test_name", ""),
             "model": r.get("model", "") or extract_model(r.get("test_name", "")),
             "backend": BACKEND_LABELS.get(raw_backend, raw_backend),
+            "ver": r.get("backend_version", ""),
             "fmt": r.get("fmt", ""),
             "quant": r.get("quant", ""),
             "kv": r.get("kv_cache", ""),
@@ -136,8 +141,9 @@ def build_json_rows(rows):
             "quality": r.get("quality_pass", ""),
         })
 
-    # Sort: by model, then backend, then id, then prompt
-    json_rows.sort(key=lambda r: (r["model"], r["backend"], r["id"], r["prompt"]))
+    # Sort: by model, then backend, then ver (descending so newest first), then id, then prompt
+    json_rows.sort(key=lambda r: (r["model"], r["backend"], r["ver"] or "zzz", r["id"], r["prompt"]),
+                   reverse=False)
     return json_rows
 
 def generate_html(json_rows, total_raw):
@@ -308,6 +314,7 @@ body.in-iframe {{ padding-top: .5rem; }}
   <select id="f-fmt"><option value="">All formats</option></select>
   <select id="f-quant"><option value="">All quants</option></select>
   <select id="f-kv"><option value="">All KV</option></select>
+  <select id="f-ver"><option value="">All versions</option></select>
   <button class="btn-reset" onclick="reset()">Reset</button>
   <span class="count" id="count"></span>
 </div>
@@ -320,6 +327,7 @@ body.in-iframe {{ padding-top: .5rem; }}
   <th data-col="model"   data-type="str"><span class="arrow">Model</span></th>
   <th data-col="prompt"  data-type="str"><span class="arrow">Prompt</span></th>
   <th data-col="backend" data-type="str"><span class="arrow">Backend</span></th>
+  <th data-col="ver"     data-type="str"><span class="arrow">Ver</span></th>
   <th data-col="fmt"     data-type="str"><span class="arrow">Fmt</span></th>
   <th data-col="quant"   data-type="str"><span class="arrow">Quant</span></th>
   <th data-col="kv"      data-type="str"><span class="arrow">KV Cache</span></th>
@@ -384,11 +392,12 @@ function renderRows(data) {{
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = data.map(r => `
 <tr data-id="${{r.id}}" data-prompt="${{r.prompt}}"
-    data-model="${{r.model}}" data-backend="${{r.backend}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
+    data-model="${{r.model}}" data-backend="${{r.backend}}" data-ver="${{r.ver}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
   <td><code>${{r.id}}</code></td>
   <td>${{r.model}}</td>
   <td>${{r.prompt}}</td>
   <td>${{r.backend}}</td>
+  <td class="dim">${{r.ver || '—'}}</td>
   <td>${{r.fmt}}</td>
   <td>${{r.quant}}</td>
   <td>${{r.kv}}</td>
@@ -410,6 +419,7 @@ function populateSelect(id, key) {{
 populateSelect('f-model',   'model');
 populateSelect('f-prompt',  'prompt');
 populateSelect('f-backend', 'backend');
+populateSelect('f-ver',     'ver');
 populateSelect('f-fmt',     'fmt');
 populateSelect('f-quant',   'quant');
 populateSelect('f-kv',      'kv');
@@ -421,6 +431,7 @@ function getFiltered() {{
   const model   = document.getElementById('f-model').value;
   const prompt  = document.getElementById('f-prompt').value;
   const backend = document.getElementById('f-backend').value;
+  const ver     = document.getElementById('f-ver').value;
   const fmt     = document.getElementById('f-fmt').value;
   const quant   = document.getElementById('f-quant').value;
   const kv      = document.getElementById('f-kv').value;
@@ -430,6 +441,7 @@ function getFiltered() {{
     (!model   || r.model   === model)  &&
     (!prompt  || r.prompt  === prompt)  &&
     (!backend || r.backend === backend) &&
+    (!ver     || r.ver     === ver)     &&
     (!fmt     || r.fmt     === fmt)     &&
     (!quant   || r.quant   === quant)   &&
     (!kv      || r.kv      === kv)
@@ -460,12 +472,12 @@ document.querySelectorAll('th[data-col]').forEach(th => {{
   }});
 }});
 
-['q','f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
+['q','f-model','f-prompt','f-backend','f-ver','f-fmt','f-quant','f-kv'].forEach(id =>
   document.getElementById(id).addEventListener('input', update));
 
 function reset() {{
   document.getElementById('q').value = '';
-  ['f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
+  ['f-model','f-prompt','f-backend','f-ver','f-fmt','f-quant','f-kv'].forEach(id =>
     document.getElementById(id).value = '');
   sortCol = null; sortDir = 1;
   document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));

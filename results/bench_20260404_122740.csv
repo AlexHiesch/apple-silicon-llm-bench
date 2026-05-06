@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,1,512.9,10.9,44.8,283,23,26.33,11.4,0,285,2539.6,3789.5,0.0,,
-L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,2,544.6,10.8,42.2,283,23,26.56,11.4,0,285,2539.6,3789.6,0.0,,
-L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,3,524.7,10.8,43.8,283,23,26.55,11.4,0,285,2539.6,3789.6,0.0,,
-L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,1,5574.8,6.7,134.7,180,751,32.43,11.4,0,198,5717.8,3790.2,0.0,,
-L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,2,5568.1,6.7,134.9,180,751,32.43,11.4,0,198,5717.8,3790.2,0.0,,
-L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,3,5565.6,6.7,134.9,180,751,32.47,11.4,0,198,5717.8,3790.2,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,1,512.9,10.9,44.8,283,23,26.33,11.4,0,285,2539.6,3789.5,0.0,0.4.3,,
+L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,2,544.6,10.8,42.2,283,23,26.56,11.4,0,285,2539.6,3789.6,0.0,0.4.3,,
+L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,short,3,524.7,10.8,43.8,283,23,26.55,11.4,0,285,2539.6,3789.6,0.0,0.4.3,,
+L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,1,5574.8,6.7,134.7,180,751,32.43,11.4,0,198,5717.8,3790.2,0.0,0.4.3,,
+L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,2,5568.1,6.7,134.9,180,751,32.43,11.4,0,198,5717.8,3790.2,0.0,0.4.3,,
+L_MXFP4_1,Gemma4-31B mlx-vlm mxfp4,mlx-vlm,MXFP4,mxfp4,default,code,3,5565.6,6.7,134.9,180,751,32.47,11.4,0,198,5717.8,3790.2,0.0,0.4.3,,

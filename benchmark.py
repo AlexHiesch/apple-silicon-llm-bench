@@ -443,6 +443,7 @@ class BenchResult:
     cold_ttft_ms: float = 0
     peak_mem_mb: float = 0
     peak_cpu_pct: float = 0
+    backend_version: str = ""
     tool_call_valid: Optional[bool] = None
     quality_pass: Optional[bool] = None
 
@@ -518,6 +519,45 @@ def ollama_version() -> tuple[int, ...]:
     except Exception:
         pass
     return (0, 0, 0)
+
+
+def detect_backend_versions() -> dict[str, str]:
+    """Detect installed versions of all backends. Called once at startup."""
+    versions = {}
+    # Ollama
+    try:
+        out = subprocess.check_output(["ollama", "--version"], stderr=subprocess.STDOUT, text=True)
+        for part in out.strip().split():
+            if part[0].isdigit():
+                versions["ollama"] = part
+                break
+    except Exception:
+        pass
+    # llama-server
+    try:
+        out = subprocess.check_output(["llama-server", "--version"], stderr=subprocess.STDOUT, text=True)
+        if m := re.search(r"version:\s*(\d+)", out):
+            versions["llama-server"] = f"b{m.group(1)}"
+    except Exception:
+        pass
+    # mlx-lm
+    try:
+        out = subprocess.check_output([sys.executable, "-m", "pip", "show", "mlx-lm"],
+                                      stderr=subprocess.DEVNULL, text=True)
+        if m := re.search(r"Version:\s*(.+)", out):
+            versions["mlx-lm"] = m.group(1).strip()
+            versions["mlx-lm-turboquant"] = m.group(1).strip()
+    except Exception:
+        pass
+    # mlx-vlm
+    try:
+        out = subprocess.check_output([sys.executable, "-m", "pip", "show", "mlx-vlm"],
+                                      stderr=subprocess.DEVNULL, text=True)
+        if m := re.search(r"Version:\s*(.+)", out):
+            versions["mlx-vlm"] = m.group(1).strip()
+    except Exception:
+        pass
+    return versions
 
 
 def lm_studio_running() -> bool:
@@ -1732,6 +1772,7 @@ def main():
     bench_port = s.get("bench_port", 8090)
 
     all_tests = build_tests(cfg, bench_port)
+    backend_versions = detect_backend_versions()
 
     if args.list:
         print_test_list(all_tests)
@@ -1871,6 +1912,7 @@ def main():
                     cold_ttft_ms=round(cold_ttft, 1),
                     peak_mem_mb=monitor.peak_mem_mb if monitor else 0,
                     peak_cpu_pct=monitor.peak_cpu_pct if monitor else 0,
+                    backend_version=backend_versions.get(test.backend, ""),
                 )
                 all_results.append(br)
 

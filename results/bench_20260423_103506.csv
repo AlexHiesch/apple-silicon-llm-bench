@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,1,370.1,17.3,88211.6,506,32645,29.52,4.0,0,239,169454.2,14854.5,0.0,,
-P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,2,293.6,17.3,111198.2,506,32645,29.45,4.0,0,239,169454.2,14859.2,0.0,,
-P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,3,304.3,17.4,107284.5,506,32645,29.28,4.0,0,239,169454.2,14859.2,0.0,,
-P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,1,574.4,14.6,114308.9,504,65654,34.93,4.0,0,229,385344.1,14705.1,0.0,,
-P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,2,453.5,15.0,144757.4,504,65654,33.99,4.0,0,229,385344.1,14705.1,0.0,,
-P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,3,448.8,15.3,146281.4,504,65654,33.4,4.0,0,229,385344.1,14705.1,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,1,370.1,17.3,88211.6,506,32645,29.52,4.0,0,239,169454.2,14854.5,0.0,0.31.3,,
+P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,2,293.6,17.3,111198.2,506,32645,29.45,4.0,0,239,169454.2,14859.2,0.0,0.31.3,,
+P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-32k,3,304.3,17.4,107284.5,506,32645,29.28,4.0,0,239,169454.2,14859.2,0.0,0.31.3,,
+P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,1,574.4,14.6,114308.9,504,65654,34.93,4.0,0,229,385344.1,14705.1,0.0,0.31.3,,
+P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,2,453.5,15.0,144757.4,504,65654,33.99,4.0,0,229,385344.1,14705.1,0.0,0.31.3,,
+P_CTX_0,Qwen3.6-27B 4bit mlx-lm ctx,mlx-lm,MLX,4bit,default,context-64k,3,448.8,15.3,146281.4,504,65654,33.4,4.0,0,229,385344.1,14705.1,0.0,0.31.3,,

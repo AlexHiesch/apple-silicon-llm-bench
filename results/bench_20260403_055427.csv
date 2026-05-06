@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,1,513.4,10.1,44.8,268,23,26.86,8.2,0,268,1633.5,10723.9,0.0,,
-L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,2,509.9,10.2,45.1,268,23,26.78,8.2,0,268,1633.5,10723.9,0.0,,
-L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,3,549.4,10.1,41.9,268,23,27.03,8.2,0,268,1633.5,10723.9,0.0,,
-L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,1,5876.0,6.4,127.8,174,751,33.09,8.2,0,188,6435.5,10724.1,0.0,,
-L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,2,5775.1,6.4,130.0,174,751,32.85,8.2,0,188,6435.5,10724.1,0.0,,
-L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,3,5755.2,6.4,130.5,174,751,32.82,8.2,0,188,6435.5,10724.1,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,1,513.4,10.1,44.8,268,23,26.86,8.2,0,268,1633.5,10723.9,0.0,0.4.3,,
+L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,2,509.9,10.2,45.1,268,23,26.78,8.2,0,268,1633.5,10723.9,0.0,0.4.3,,
+L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,short,3,549.4,10.1,41.9,268,23,27.03,8.2,0,268,1633.5,10723.9,0.0,0.4.3,,
+L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,1,5876.0,6.4,127.8,174,751,33.09,8.2,0,188,6435.5,10724.1,0.0,0.4.3,,
+L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,2,5775.1,6.4,130.0,174,751,32.85,8.2,0,188,6435.5,10724.1,0.0,0.4.3,,
+L_Q4_1,Gemma4-31B mlx-vlm 4bit,mlx-vlm,MLX,4bit,default,code,3,5755.2,6.4,130.5,174,751,32.82,8.2,0,188,6435.5,10724.1,0.0,0.4.3,,

@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-32k,1,125.3,49.3,523095.6,512,31974,10.52,10.9,0,256,57536.8,169.8,0.0,,
-A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-32k,2,90.7,63.4,891952.3,512,31974,8.17,10.9,0,256,57536.8,173.8,0.0,,
-A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-32k,3,76.7,60.3,1089127.0,512,31974,8.57,10.9,0,256,57536.8,174.1,0.0,,
-A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-64k,1,177.5,44.6,850922.4,512,64860,11.66,10.9,0,256,97132.1,170.4,0.0,,
-A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-64k,2,104.6,47.1,1864572.3,512,64860,10.98,10.9,0,256,97132.1,170.4,0.0,,
-A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-64k,3,109.7,43.2,1767770.1,512,64860,11.95,10.9,0,256,97132.1,172.4,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-32k,1,125.3,49.3,523095.6,512,31974,10.52,10.9,0,256,57536.8,169.8,0.0,0.19.0,,
+A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-32k,2,90.7,63.4,891952.3,512,31974,8.17,10.9,0,256,57536.8,173.8,0.0,0.19.0,,
+A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-32k,3,76.7,60.3,1089127.0,512,31974,8.57,10.9,0,256,57536.8,174.1,0.0,0.19.0,,
+A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-64k,1,177.5,44.6,850922.4,512,64860,11.66,10.9,0,256,97132.1,170.4,0.0,0.19.0,,
+A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-64k,2,104.6,47.1,1864572.3,512,64860,10.98,10.9,0,256,97132.1,170.4,0.0,0.19.0,,
+A_OLL_CTX,Qwen3.5 Ollama 0.19 NVFP4 ctx,ollama,NVFP4,nvfp4,default,context-64k,3,109.7,43.2,1767770.1,512,64860,11.95,10.9,0,256,97132.1,172.4,0.0,0.19.0,,

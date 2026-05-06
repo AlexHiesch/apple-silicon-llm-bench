@@ -1,3 +1,3 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-K_OLL_CTX_1,Gemma4-26B-A4B Ollama ctx,ollama,GGUF,Q4_K_M,default,context-32k,2,431819.0,9.1,143764.1,512,35629,487.99,6.0,0,211,0.0,22849.2,0.0,,
-K_OLL_CTX_1,Gemma4-26B-A4B Ollama ctx,ollama,GGUF,Q4_K_M,default,context-32k,3,936.7,9.2,387375.6,512,35629,56.91,6.0,0,220,0.0,22849.2,0.0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+K_OLL_CTX_1,Gemma4-26B-A4B Ollama ctx,ollama,GGUF,Q4_K_M,default,context-32k,2,431819.0,9.1,143764.1,512,35629,487.99,6.0,0,211,0.0,22849.2,0.0,0.20.0,,
+K_OLL_CTX_1,Gemma4-26B-A4B Ollama ctx,ollama,GGUF,Q4_K_M,default,context-32k,3,936.7,9.2,387375.6,512,35629,56.91,6.0,0,220,0.0,22849.2,0.0,0.20.0,,

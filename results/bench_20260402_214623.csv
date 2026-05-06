@@ -1,7 +1,7 @@
-test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,tool_call_valid,quality_pass
-J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,short,1,458.6,65.2,50.1,235,23,4.05,37.7,0,138,199207.2,0,0,,
-J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,short,2,237.9,64.8,96.7,235,23,3.85,37.7,0,138,199207.2,0,0,,
-J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,short,3,237.8,64.7,96.7,235,23,3.85,37.7,0,138,199207.2,0,0,,
-J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,code,1,917.2,66.8,818.8,508,751,8.51,37.7,0,247,1081.4,0,0,,
-J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,code,2,927.7,66.9,809.6,508,751,8.5,37.7,0,247,1081.4,0,0,,
-J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,code,3,917.0,66.7,819.0,508,751,8.51,37.7,0,247,1081.4,0,0,,
+test_id,test_name,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,short,1,458.6,65.2,50.1,235,23,4.05,37.7,0,138,199207.2,0,0,,,
+J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,short,2,237.9,64.8,96.7,235,23,3.85,37.7,0,138,199207.2,0,0,,,
+J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,short,3,237.8,64.7,96.7,235,23,3.85,37.7,0,138,199207.2,0,0,,,
+J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,code,1,917.2,66.8,818.8,508,751,8.51,37.7,0,247,1081.4,0,0,,,
+J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,code,2,927.7,66.9,809.6,508,751,8.5,37.7,0,247,1081.4,0,0,,,
+J_Q4_2,Coder LM Studio,lm-studio,MLX,4bit,default,code,3,917.0,66.7,819.0,508,751,8.51,37.7,0,247,1081.4,0,0,,,

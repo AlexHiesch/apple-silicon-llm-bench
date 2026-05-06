@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+K_LC_UDQ4,Gemma4-26B-A4B llama.cpp UD-Q4_K_XL,Gemma4-26B-A4B,llama-server,GGUF,UD-Q4_K_XL,default,short,1,128.5,65.8,178.9,512,23,7.89,3.1,0,279,124.3,22537.8,0.0,b9020,,
+K_LC_UDQ4,Gemma4-26B-A4B llama.cpp UD-Q4_K_XL,Gemma4-26B-A4B,llama-server,GGUF,UD-Q4_K_XL,default,short,2,122.2,65.7,188.3,512,23,7.9,3.1,0,279,124.3,22537.9,0.0,b9020,,
+K_LC_UDQ4,Gemma4-26B-A4B llama.cpp UD-Q4_K_XL,Gemma4-26B-A4B,llama-server,GGUF,UD-Q4_K_XL,default,short,3,122.4,65.5,187.9,512,23,7.92,3.1,0,279,124.3,22537.9,0.0,b9020,,
+K_LC_UDQ4,Gemma4-26B-A4B llama.cpp UD-Q4_K_XL,Gemma4-26B-A4B,llama-server,GGUF,UD-Q4_K_XL,default,code,1,53.9,63.9,13941.3,512,751,8.05,3.1,0,211,753.4,22793.5,0.0,b9020,,
+K_LC_UDQ4,Gemma4-26B-A4B llama.cpp UD-Q4_K_XL,Gemma4-26B-A4B,llama-server,GGUF,UD-Q4_K_XL,default,code,2,54.1,64.1,13893.9,512,751,8.03,3.1,0,211,753.4,22793.5,0.0,b9020,,
+K_LC_UDQ4,Gemma4-26B-A4B llama.cpp UD-Q4_K_XL,Gemma4-26B-A4B,llama-server,GGUF,UD-Q4_K_XL,default,code,3,49.8,64.2,15085.3,512,751,8.01,3.1,0,211,753.4,22793.5,0.0,b9020,,
