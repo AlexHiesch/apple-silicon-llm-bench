@@ -1675,15 +1675,48 @@ tests:
     kv_cache: dflash-0.4B
     extra_args: ["--draft-model", "z-lab/gemma-4-26B-A4B-it-DFlash"]
 
-  - id: Q_DF_P1
+  # Q_DF_P1 removed: dflash drafter for Qwen3.6-27B shows no speedup over baseline
+  # (~24 t/s vs 25 t/s baseline). Acceptance rate too low for block-diffusion to help.
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group R — MTP Speculative Decoding (self-draft via trained MTP heads)
+  # Qwen3.6 models ship with MTP heads; no separate draft model needed.
+  # Requires llama.cpp from am17an/llama.cpp:mtp-clean branch.
+  # Expected speedup: 1.5-2x over baseline.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: R_MTP_P1
     model: "Qwen3.6-27B"
-    group: "Q — Speculative Decoding (DFlash)"
-    backend: dflash
-    model_id: "mlx-community/Qwen3.6-27B-4bit"
-    fmt: MLX
-    quant: 4bit
-    kv_cache: dflash
-    extra_args: ["--draft-model", "z-lab/Qwen3.6-27B-DFlash"]
+    group: "R — MTP Speculative Decoding"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q4_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+
+  - id: R_MTP_P2
+    model: "Qwen3.6-27B"
+    group: "R — MTP Speculative Decoding"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q2_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+
+  - id: R_MTP_O1
+    model: "Qwen3.6-35B"
+    group: "R — MTP Speculative Decoding"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
 
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above

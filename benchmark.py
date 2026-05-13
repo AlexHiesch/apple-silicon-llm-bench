@@ -418,6 +418,7 @@ class TestConfig:
     prereq: str
     no_think_override: Optional[bool] = None  # None = follow global flag
     prompts: Optional[list] = None            # per-test prompt override (list of prompt names)
+    server_binary: str = ""                   # Optional override for server binary path
 
 
 @dataclass
@@ -718,6 +719,7 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
             prereq=prereq,
             no_think_override=no_think_override,
             prompts=entry.get("prompts") or None,
+            server_binary=entry.get("server_binary", ""),
         ))
 
     return tests
@@ -812,7 +814,9 @@ def start_server(test: TestConfig, server_timeout: int):
     if test.backend == "llama-server":
         kill_port(test.port)
         time.sleep(1)
-        cmd = ["llama-server", "-m", test.model_id,
+        binary = test.server_binary or "llama-server"
+        binary = str(Path(binary).expanduser())
+        cmd = [binary, "-m", str(Path(test.model_id).expanduser()),
                "--port", str(test.port), "--host", "127.0.0.1",
                "-ngl", "99"] + test.extra_args
         return _popen_server(cmd, "llama-server")

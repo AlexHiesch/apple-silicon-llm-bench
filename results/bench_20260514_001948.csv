@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+R_MTP_O1,Qwen3.6-35B llama.cpp UD-Q4_K_XL mtp-2,Qwen3.6-35B,llama-server,GGUF,UD-Q4_K_XL,mtp-2,short,1,149.2,88.5,154.2,188,23,2.26,13.2,0,108,215.0,21814.2,0.0,b9110,,
+R_MTP_O1,Qwen3.6-35B llama.cpp UD-Q4_K_XL mtp-2,Qwen3.6-35B,llama-server,GGUF,UD-Q4_K_XL,mtp-2,short,2,141.7,88.6,162.4,188,23,2.25,13.2,0,108,215.0,21814.2,0.0,b9110,,
+R_MTP_O1,Qwen3.6-35B llama.cpp UD-Q4_K_XL mtp-2,Qwen3.6-35B,llama-server,GGUF,UD-Q4_K_XL,mtp-2,short,3,140.1,88.4,164.2,188,23,2.25,13.2,0,108,215.0,21814.2,0.0,b9110,,
+R_MTP_O1,Qwen3.6-35B llama.cpp UD-Q4_K_XL mtp-2,Qwen3.6-35B,llama-server,GGUF,UD-Q4_K_XL,mtp-2,code,1,47.0,78.5,15988.6,510,751,6.53,13.2,0,256,1160.2,22400.0,0.0,b9110,,
+R_MTP_O1,Qwen3.6-35B llama.cpp UD-Q4_K_XL mtp-2,Qwen3.6-35B,llama-server,GGUF,UD-Q4_K_XL,mtp-2,code,2,46.0,78.5,16338.7,510,751,6.53,13.2,0,256,1160.2,22400.1,0.0,b9110,,
+R_MTP_O1,Qwen3.6-35B llama.cpp UD-Q4_K_XL mtp-2,Qwen3.6-35B,llama-server,GGUF,UD-Q4_K_XL,mtp-2,code,3,46.5,78.2,16158.5,510,751,6.56,13.2,0,256,1160.2,22400.2,0.0,b9110,,
