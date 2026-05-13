@@ -113,6 +113,8 @@ BACKEND_LABELS = {
     "mlx-vlm-0.4.3": "mlx-vlm",
     "mlx-vlm-0.4.4": "mlx-vlm",
     "omlx-0.3.4": "omlx",
+    "dflash": "DFlash",
+    "dflash-0.1.0": "DFlash",
 }
 
 def build_json_rows(rows):

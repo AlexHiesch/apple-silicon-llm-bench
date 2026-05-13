@@ -3,3 +3,4 @@ __pycache__/
 .DS_Store
 .gemma4_*_done
 results/bench_*.html
+vendor/

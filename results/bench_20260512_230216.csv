@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+Q_DF_P1,Qwen3.6-27B DFlash 4bit dflash,Qwen3.6-27B,dflash,MLX,4bit,dflash,short,1,345.1,21.7,86.9,512,30,23.86,11.3,0,270,2859.0,3618.0,0.0,0.1.0,,
+Q_DF_P1,Qwen3.6-27B DFlash 4bit dflash,Qwen3.6-27B,dflash,MLX,4bit,dflash,short,2,344.9,21.7,87.0,512,30,23.89,11.3,0,270,2859.0,3618.0,0.0,0.1.0,,
+Q_DF_P1,Qwen3.6-27B DFlash 4bit dflash,Qwen3.6-27B,dflash,MLX,4bit,dflash,short,3,350.1,21.9,85.7,512,30,23.71,11.3,0,270,2859.0,3618.0,0.0,0.1.0,,
+Q_DF_P1,Qwen3.6-27B DFlash 4bit dflash,Qwen3.6-27B,dflash,MLX,4bit,dflash,code,1,5890.8,13.9,128.3,512,756,42.65,11.3,0,296,5887.3,3622.6,0.0,0.1.0,,
+Q_DF_P1,Qwen3.6-27B DFlash 4bit dflash,Qwen3.6-27B,dflash,MLX,4bit,dflash,code,2,6004.1,13.9,125.9,512,756,42.71,11.3,0,296,5887.3,3622.8,0.0,0.1.0,,
+Q_DF_P1,Qwen3.6-27B DFlash 4bit dflash,Qwen3.6-27B,dflash,MLX,4bit,dflash,code,3,5835.8,13.2,129.5,512,756,44.68,11.3,0,296,5887.3,3622.9,0.0,0.1.0,,

@@ -557,6 +557,14 @@ def detect_backend_versions() -> dict[str, str]:
             versions["mlx-vlm"] = m.group(1).strip()
     except Exception:
         pass
+    # dflash
+    try:
+        out = subprocess.check_output([sys.executable, "-m", "pip", "show", "dflash"],
+                                      stderr=subprocess.DEVNULL, text=True)
+        if m := re.search(r"Version:\s*(.+)", out):
+            versions["dflash"] = m.group(1).strip()
+    except Exception:
+        pass
     return versions
 
 
@@ -644,6 +652,13 @@ def _auto_prereq(cfg_entry: dict, ollama_ver: tuple[int, ...]) -> str:
     if backend == "docker-model-runner":
         short = model_id.lower().replace("docker.io/ai/", "").split(":")[0]
         return "" if dmr_has_model(short) else f"docker model pull {model_id}"
+
+    if backend == "dflash":
+        try:
+            import dflash  # noqa: F401
+        except ImportError:
+            return "dflash not installed (pip install -e vendor/dflash[mlx])"
+        return "" if hf_model_cached(model_id) else f"Model not in HF cache: {model_id}"
 
     return ""
 
@@ -801,6 +816,15 @@ def start_server(test: TestConfig, server_timeout: int):
                "--port", str(test.port), "--host", "127.0.0.1",
                "-ngl", "99"] + test.extra_args
         return _popen_server(cmd, "llama-server")
+
+    if test.backend == "dflash":
+        kill_port(test.port)
+        time.sleep(1)
+        script = Path(__file__).parent / "dflash_server.py"
+        cmd = [sys.executable, str(script),
+               "--model", test.model_id,
+               "--port", str(test.port)] + test.extra_args
+        return _popen_server(cmd, "dflash")
 
     if test.backend == "vllm-mlx":
         kill_port(test.port)
@@ -1237,6 +1261,7 @@ BACKEND_LABELS = {
     "omlx": "oMLX",
     "lm-studio": "LM Studio",
     "docker-model-runner": "Docker MR",
+    "dflash": "DFlash",
 }
 
 

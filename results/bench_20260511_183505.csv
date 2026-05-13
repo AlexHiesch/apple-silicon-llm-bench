@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+Q_DF_K1,Gemma4-26B-A4B DFlash 4bit dflash-0.4B,Gemma4-26B-A4B,dflash,MLX,4bit,dflash-0.4B,short,1,208.2,145.8,172.9,512,36,3.71,5.1,0,252,424.3,15100.2,0.0,0.1.0,,
+Q_DF_K1,Gemma4-26B-A4B DFlash 4bit dflash-0.4B,Gemma4-26B-A4B,dflash,MLX,4bit,dflash-0.4B,short,2,209.5,145.9,171.8,512,36,3.71,5.1,0,252,424.3,15100.2,0.0,0.1.0,,
+Q_DF_K1,Gemma4-26B-A4B DFlash 4bit dflash-0.4B,Gemma4-26B-A4B,dflash,MLX,4bit,dflash-0.4B,short,3,222.7,145.8,161.7,512,36,3.73,5.1,0,252,424.3,15100.2,0.0,0.1.0,,
+Q_DF_K1,Gemma4-26B-A4B DFlash 4bit dflash-0.4B,Gemma4-26B-A4B,dflash,MLX,4bit,dflash-0.4B,code,1,885.2,69.9,965.9,512,855,8.2,5.1,0,260,907.9,15101.1,0.0,0.1.0,,
+Q_DF_K1,Gemma4-26B-A4B DFlash 4bit dflash-0.4B,Gemma4-26B-A4B,dflash,MLX,4bit,dflash-0.4B,code,2,921.7,69.0,927.6,512,855,8.33,5.1,0,260,907.9,15101.1,0.0,0.1.0,,
+Q_DF_K1,Gemma4-26B-A4B DFlash 4bit dflash-0.4B,Gemma4-26B-A4B,dflash,MLX,4bit,dflash-0.4B,code,3,998.0,66.1,856.7,512,855,8.72,5.1,0,260,907.9,15101.1,0.0,0.1.0,,
