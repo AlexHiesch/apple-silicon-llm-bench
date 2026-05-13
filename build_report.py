@@ -428,6 +428,33 @@ populateSelect('f-kv',      'kv');
 
 let sortCol = null, sortDir = 1;
 
+const PARAM_MAP = {{q:'q', model:'f-model', prompt:'f-prompt', backend:'f-backend', ver:'f-ver', fmt:'f-fmt', quant:'f-quant', kv:'f-kv'}};
+
+function readURL() {{
+  const p = new URLSearchParams(location.search);
+  for (const [param, elId] of Object.entries(PARAM_MAP)) {{
+    const v = p.get(param);
+    if (v) document.getElementById(elId).value = v;
+  }}
+  if (p.get('sort')) {{ sortCol = p.get('sort'); sortDir = p.get('dir') === 'desc' ? -1 : 1; }}
+  if (sortCol) {{
+    const th = document.querySelector(`th[data-col="${{sortCol}}"]`);
+    if (th) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  }}
+}}
+
+function writeURL() {{
+  const p = new URLSearchParams();
+  for (const [param, elId] of Object.entries(PARAM_MAP)) {{
+    const v = document.getElementById(elId).value;
+    if (v) p.set(param, v);
+  }}
+  if (sortCol) {{ p.set('sort', sortCol); p.set('dir', sortDir === -1 ? 'desc' : 'asc'); }}
+  const qs = p.toString();
+  const url = location.pathname + (qs ? '?' + qs : '');
+  history.replaceState(null, '', url);
+}}
+
 function getFiltered() {{
   const q       = document.getElementById('q').value.toLowerCase();
   const model   = document.getElementById('f-model').value;
@@ -461,6 +488,7 @@ function applySort(data) {{
 
 function update() {{
   renderRows(applySort(getFiltered()));
+  writeURL();
 }}
 
 document.querySelectorAll('th[data-col]').forEach(th => {{
@@ -486,6 +514,7 @@ function reset() {{
   update();
 }}
 
+readURL();
 update();
 </script>
 </body>
