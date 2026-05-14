@@ -115,6 +115,7 @@ BACKEND_LABELS = {
     "omlx-0.3.4": "omlx",
     "dflash": "DFlash",
     "dflash-0.1.0": "DFlash",
+    "unsloth-studio": "Unsloth Studio",
 }
 
 def build_json_rows(rows):

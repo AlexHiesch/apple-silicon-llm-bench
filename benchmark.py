@@ -419,6 +419,7 @@ class TestConfig:
     no_think_override: Optional[bool] = None  # None = follow global flag
     prompts: Optional[list] = None            # per-test prompt override (list of prompt names)
     server_binary: str = ""                   # Optional override for server binary path
+    api_key: str = ""                         # API key for authenticated backends
 
 
 @dataclass
@@ -564,6 +565,16 @@ def detect_backend_versions() -> dict[str, str]:
                                       stderr=subprocess.DEVNULL, text=True)
         if m := re.search(r"Version:\s*(.+)", out):
             versions["dflash"] = m.group(1).strip()
+    except Exception:
+        pass
+    # unsloth-studio (uses bundled llama.cpp)
+    try:
+        llama_bin = Path.home() / ".unsloth" / "llama.cpp" / "build" / "bin" / "llama-server"
+        if llama_bin.exists():
+            out = subprocess.check_output([str(llama_bin), "--version"],
+                                          stderr=subprocess.STDOUT, text=True)
+            if m := re.search(r"version:\s*(\d+)", out):
+                versions["unsloth-studio"] = f"b{m.group(1)}"
     except Exception:
         pass
     return versions
@@ -720,6 +731,7 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
             no_think_override=no_think_override,
             prompts=entry.get("prompts") or None,
             server_binary=entry.get("server_binary", ""),
+            api_key=entry.get("api_key", ""),
         ))
 
     return tests
@@ -764,17 +776,26 @@ def kill_port(port: int):
         pass
 
 
-def wait_for_server(port: int, timeout: int, path: str = "/v1/models") -> bool:
+def wait_for_server(port: int, timeout: int, path: str = "/v1/models",
+                    api_key: str = "", require_model: bool = False) -> bool:
     deadline = time.time() + timeout
     url = f"http://localhost:{port}{path}"
     while time.time() < deadline:
         try:
-            with urlopen(url, timeout=5) as r:
+            req = Request(url)
+            if api_key:
+                req.add_header("Authorization", f"Bearer {api_key}")
+            with urlopen(req, timeout=5) as r:
                 if r.status == 200:
-                    return True
+                    if require_model:
+                        data = json.loads(r.read())
+                        if data.get("data"):
+                            return True
+                    else:
+                        return True
         except Exception:
             pass
-        time.sleep(1)
+        time.sleep(2)
     return False
 
 
@@ -820,6 +841,15 @@ def start_server(test: TestConfig, server_timeout: int):
                "--port", str(test.port), "--host", "127.0.0.1",
                "-ngl", "99"] + test.extra_args
         return _popen_server(cmd, "llama-server")
+
+    if test.backend == "unsloth-studio":
+        kill_port(test.port)
+        time.sleep(1)
+        cmd = ["unsloth", "studio", "run",
+               "-m", test.model_id,
+               "-p", str(test.port),
+               "-q", "--disable-tools"] + test.extra_args
+        return _popen_server(cmd, "unsloth-studio")
 
     if test.backend == "dflash":
         kill_port(test.port)
@@ -978,7 +1008,8 @@ def count_thinking_tokens(text: str) -> tuple[int, int]:
 
 
 def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
-                            model_id: str = "default", no_think: bool = False) -> dict:
+                            model_id: str = "default", no_think: bool = False,
+                            api_key: str = "") -> dict:
     body = {
         "model": model_id,
         "messages": messages,
@@ -991,8 +1022,11 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
         body["chat_template_kwargs"] = {"enable_thinking": False}
 
     payload = json.dumps(body).encode()
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
     req = Request(f"http://localhost:{port}/v1/chat/completions", data=payload,
-                  headers={"Content-Type": "application/json"})
+                  headers=headers)
 
     t_start = time.perf_counter()
     t_first = None
@@ -1138,7 +1172,8 @@ def run_single_bench(test: TestConfig, messages: list[dict], max_tokens: int,
     if test.backend == "ollama":
         return bench_ollama_streaming(test.model_id, messages, max_tokens, no_think=no_think)
     return bench_openai_streaming(test.port, messages, max_tokens,
-                                  model_id=test.model_id, no_think=no_think)
+                                  model_id=test.model_id, no_think=no_think,
+                                  api_key=test.api_key)
 
 
 # ── Tool + Quality Tests ──────────────────────────────────────────────────────
@@ -1877,8 +1912,11 @@ def main():
 
         if test.backend not in ("ollama", "lm-studio", "docker-model-runner"):
             info("Waiting for server...")
-            if not wait_for_server(test.port, server_timeout):
-                err(f"Server not ready after {server_timeout}s — skipping")
+            timeout = server_timeout * 4 if test.backend == "unsloth-studio" else server_timeout
+            if not wait_for_server(test.port, timeout,
+                                   api_key=test.api_key,
+                                   require_model=(test.backend == "unsloth-studio")):
+                err(f"Server not ready after {timeout}s — skipping")
                 stop_server(proc, test)
                 continue
 

@@ -1718,6 +1718,44 @@ tests:
     kv_cache: mtp-2
     extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
 
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group S — Unsloth Studio (llama.cpp b9134 wrapper with E2B speculative decoding)
+  # Uses OpenAI-compat API with auth. Auto-downloads models.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: S_US_P1
+    model: "Qwen3.6-27B"
+    group: "S — Unsloth Studio"
+    backend: unsloth-studio
+    model_id: "unsloth/Qwen3.6-27B-GGUF:UD-Q4_K_XL"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: e2b-spec
+    api_key: "sk-unsloth-123a4291dfc96ee67d435ccadce4abe4"
+    extra_args: ["--max-seq-length", "8192"]
+
+  - id: S_US_P2
+    model: "Qwen3.6-27B"
+    group: "S — Unsloth Studio"
+    backend: unsloth-studio
+    model_id: "unsloth/Qwen3.6-27B-GGUF:UD-Q2_K_XL"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: e2b-spec
+    api_key: "sk-unsloth-123a4291dfc96ee67d435ccadce4abe4"
+    extra_args: ["--max-seq-length", "8192"]
+
+  - id: S_US_O1
+    model: "Qwen3.6-35B-A3B"
+    group: "S — Unsloth Studio"
+    backend: unsloth-studio
+    model_id: "unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_XL"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: e2b-spec
+    api_key: "sk-unsloth-123a4291dfc96ee67d435ccadce4abe4"
+    extra_args: ["--max-seq-length", "8192"]
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled

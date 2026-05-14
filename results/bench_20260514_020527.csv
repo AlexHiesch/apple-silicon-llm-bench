@@ -1,0 +1,4 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+S_US_P2,Qwen3.6-27B unsloth-studio UD-Q2_K_XL e2b-spec,Qwen3.6-27B,unsloth-studio,GGUF,UD-Q2_K_XL,e2b-spec,short,1,414.6,19.6,77.2,241,32,12.69,9.3,0,109,695.4,13936.6,0.0,b9134,,
+S_US_P2,Qwen3.6-27B unsloth-studio UD-Q2_K_XL e2b-spec,Qwen3.6-27B,unsloth-studio,GGUF,UD-Q2_K_XL,e2b-spec,short,2,408.6,19.5,78.3,241,32,12.74,9.3,0,109,695.4,13936.7,0.0,b9134,,
+S_US_P2,Qwen3.6-27B unsloth-studio UD-Q2_K_XL e2b-spec,Qwen3.6-27B,unsloth-studio,GGUF,UD-Q2_K_XL,e2b-spec,short,3,406.1,19.3,78.8,241,32,12.84,9.3,0,109,695.4,13936.8,0.0,b9134,,
