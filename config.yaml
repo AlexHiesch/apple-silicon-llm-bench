@@ -1719,6 +1719,31 @@ tests:
     extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
 
   # ══════════════════════════════════════════════════════════════════════════════
+  # Group T — Qwen3.6 backend comparisons (vllm-mlx, MXFP4_MOE)
+  # Note: vllm-mlx --enable-mtp requires MTP heads in MLX weights, which no
+  # current MLX quantization of Qwen3.6 includes. These run without MTP as
+  # baseline comparison of vllm-mlx vs llama.cpp for the same models.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: T_VM_O1
+    model: "Qwen3.6-35B-A3B"
+    group: "T — Qwen3.6 Backend Comparison"
+    backend: vllm-mlx
+    model_id: "mlx-community/Qwen3.6-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: T_VM_P1
+    model: "Qwen3.6-27B"
+    group: "T — Qwen3.6 Backend Comparison"
+    backend: vllm-mlx
+    model_id: "mlx-community/Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
   # Group S — Unsloth Studio (llama.cpp b9134 wrapper with E2B speculative decoding)
   # Uses OpenAI-compat API with auth. Auto-downloads models.
   # ══════════════════════════════════════════════════════════════════════════════
