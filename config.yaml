@@ -1689,34 +1689,15 @@ tests:
     model: "Qwen3.6-27B"
     group: "R — MTP Speculative Decoding"
     backend: llama-server
-    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q4_K_XL.gguf"
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-MTP-UD-Q4_K_XL.gguf"
     server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
     fmt: GGUF
     quant: UD-Q4_K_XL
     kv_cache: mtp-2
     extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
 
-  - id: R_MTP_P2
-    model: "Qwen3.6-27B"
-    group: "R — MTP Speculative Decoding"
-    backend: llama-server
-    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-UD-Q2_K_XL.gguf"
-    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
-    fmt: GGUF
-    quant: UD-Q2_K_XL
-    kv_cache: mtp-2
-    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
-
-  - id: R_MTP_O1
-    model: "Qwen3.6-35B"
-    group: "R — MTP Speculative Decoding"
-    backend: llama-server
-    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
-    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
-    fmt: GGUF
-    quant: UD-Q4_K_XL
-    kv_cache: mtp-2
-    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+  # R_MTP_O1 disabled: Qwen3.6-35B-A3B (MoE) does not have MTP layers.
+  # MTP is only available on the dense Qwen3.6-27B architecture.
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group T — Qwen3.6 backend comparisons (vllm-mlx, MXFP4_MOE)
@@ -1742,6 +1723,34 @@ tests:
     fmt: MLX
     quant: 4bit
     kv_cache: default
+
+  - id: T_MX_O1
+    model: "Qwen3.6-35B-A3B"
+    group: "T — Qwen3.6 Backend Comparison"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-MXFP4_MOE.gguf"
+    fmt: GGUF
+    quant: MXFP4_MOE
+    kv_cache: default
+    extra_args: ["-fa", "on"]
+
+  - id: T_OX_O1
+    model: "Qwen3.6-35B-A3B"
+    group: "T — Qwen3.6 Backend Comparison"
+    backend: omlx
+    model_id: "Qwen3.6-35B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+
+  - id: T_OX_P1
+    model: "Qwen3.6-27B"
+    group: "T — Qwen3.6 Backend Comparison"
+    backend: omlx
+    model_id: "Qwen3.6-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group S — Unsloth Studio (llama.cpp b9134 wrapper with E2B speculative decoding)

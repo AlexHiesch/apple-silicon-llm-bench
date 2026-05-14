@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,short,1,96.8,83.6,237.5,189,23,2.35,3.1,0,109,12737.0,659.2,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,short,2,89.1,85.6,258.0,189,23,2.28,3.1,0,109,12737.0,659.6,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,short,3,89.8,83.4,256.1,189,23,2.34,3.1,0,109,12737.0,659.6,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,code,1,567.1,82.3,1324.3,512,751,6.77,3.1,0,242,560.1,668.9,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,code,2,560.6,83.3,1339.7,512,751,6.7,3.1,0,242,560.1,669.0,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,code,3,567.9,81.9,1322.4,512,751,6.8,3.1,0,242,560.1,669.0,0.0,,,
