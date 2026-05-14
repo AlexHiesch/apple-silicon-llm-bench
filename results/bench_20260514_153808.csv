@@ -1,0 +1,4 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+T_VM_P1,Qwen3.6-27B vllm-mlx 4bit,Qwen3.6-27B,vllm-mlx,MLX,4bit,default,long,1,796.3,23.3,146.9,512,117,22.69,13.2,0,303,2899.5,1110.1,0.0,,,
+T_VM_P1,Qwen3.6-27B vllm-mlx 4bit,Qwen3.6-27B,vllm-mlx,MLX,4bit,default,long,2,797.4,23.4,146.7,512,117,22.67,13.2,0,303,2899.5,1110.3,0.0,,,
+T_VM_P1,Qwen3.6-27B vllm-mlx 4bit,Qwen3.6-27B,vllm-mlx,MLX,4bit,default,long,3,804.3,23.4,145.5,512,117,22.67,13.2,0,303,2899.5,1110.5,0.0,,,

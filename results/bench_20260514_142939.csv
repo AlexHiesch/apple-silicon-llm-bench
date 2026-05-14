@@ -1,0 +1,4 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,context-8k,1,2749.5,78.3,2935.1,512,8070,9.27,3.1,0,266,14505.6,1851.2,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,context-8k,2,2732.1,78.1,2953.8,512,8070,9.27,3.1,0,266,14505.6,1851.2,0.0,,,
+T_OX_O1,Qwen3.6-35B-A3B oMLX 4bit ssd-paged,Qwen3.6-35B-A3B,omlx,MLX,4bit,ssd-paged,context-8k,3,2729.0,78.6,2957.1,512,8070,9.23,3.1,0,266,14505.6,1851.2,0.0,,,

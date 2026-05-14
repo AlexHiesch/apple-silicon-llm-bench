@@ -1,0 +1,4 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+T_MX_O1,Qwen3.6-35B-A3B llama.cpp MXFP4_MOE,Qwen3.6-35B-A3B,llama-server,GGUF,MXFP4_MOE,default,context-32k,1,121.0,49.4,269882.7,512,32645,10.46,5.1,0,261,40954.8,26536.0,0.0,b9110,,
+T_MX_O1,Qwen3.6-35B-A3B llama.cpp MXFP4_MOE,Qwen3.6-35B-A3B,llama-server,GGUF,MXFP4_MOE,default,context-32k,2,120.4,49.1,271025.6,512,32645,10.54,5.1,0,261,40954.8,26536.0,0.0,b9110,,
+T_MX_O1,Qwen3.6-35B-A3B llama.cpp MXFP4_MOE,Qwen3.6-35B-A3B,llama-server,GGUF,MXFP4_MOE,default,context-32k,3,132.8,48.4,245854.9,512,32645,10.7,5.1,0,261,40954.8,26536.0,0.0,b9110,,
