@@ -1,0 +1,13 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+R_THINK_O1,Qwen3.6-35B-A3B llama.cpp UD-Q4_K_XL think,Qwen3.6-35B-A3B,llama-server,GGUF,UD-Q4_K_XL,think,short,1,165.3,69.5,139.2,510,23,7.48,19.2,474,0,148.8,13454.5,0.0,b9110,,
+R_THINK_O1,Qwen3.6-35B-A3B llama.cpp UD-Q4_K_XL think,Qwen3.6-35B-A3B,llama-server,GGUF,UD-Q4_K_XL,think,short,2,170.6,67.2,134.8,512,23,7.78,19.2,449,0,148.8,13500.2,0.0,b9110,,
+R_THINK_O1,Qwen3.6-35B-A3B llama.cpp UD-Q4_K_XL think,Qwen3.6-35B-A3B,llama-server,GGUF,UD-Q4_K_XL,think,short,3,155.7,68.5,147.7,511,23,7.6,19.2,407,0,148.8,13559.4,0.0,b9110,,
+R_THINK_O1,Qwen3.6-35B-A3B llama.cpp UD-Q4_K_XL think,Qwen3.6-35B-A3B,llama-server,GGUF,UD-Q4_K_XL,think,code,1,68.4,64.7,10985.6,512,751,7.96,19.2,552,0,1381.3,13467.5,0.0,b9110,,
+R_THINK_O1,Qwen3.6-35B-A3B llama.cpp UD-Q4_K_XL think,Qwen3.6-35B-A3B,llama-server,GGUF,UD-Q4_K_XL,think,code,2,54.0,62.1,13909.6,512,751,8.29,19.2,557,0,1381.3,13467.5,0.0,b9110,,
+R_THINK_O1,Qwen3.6-35B-A3B llama.cpp UD-Q4_K_XL think,Qwen3.6-35B-A3B,llama-server,GGUF,UD-Q4_K_XL,think,code,3,66.0,58.8,11374.9,511,751,8.75,19.2,595,0,1381.3,13467.5,0.0,b9110,,
+R_THINK_P1,Qwen3.6-27B llama.cpp UD-Q4_K_XL think,Qwen3.6-27B,llama-server,GGUF,UD-Q4_K_XL,think,short,1,459.2,18.3,50.1,510,23,28.28,11.2,425,0,439.9,18088.2,0.0,b9110,,
+R_THINK_P1,Qwen3.6-27B llama.cpp UD-Q4_K_XL think,Qwen3.6-27B,llama-server,GGUF,UD-Q4_K_XL,think,short,2,493.4,18.8,46.6,511,23,27.55,11.2,436,0,439.9,18215.8,0.0,b9110,,
+R_THINK_P1,Qwen3.6-27B llama.cpp UD-Q4_K_XL think,Qwen3.6-27B,llama-server,GGUF,UD-Q4_K_XL,think,short,3,463.7,18.6,49.6,511,23,27.85,11.2,442,0,439.9,18253.7,0.0,b9110,,
+R_THINK_P1,Qwen3.6-27B llama.cpp UD-Q4_K_XL think,Qwen3.6-27B,llama-server,GGUF,UD-Q4_K_XL,think,code,1,209.5,16.7,3584.2,510,751,30.75,11.2,563,0,4749.9,18409.9,0.0,b9110,,
+R_THINK_P1,Qwen3.6-27B llama.cpp UD-Q4_K_XL think,Qwen3.6-27B,llama-server,GGUF,UD-Q4_K_XL,think,code,2,238.5,16.0,3149.0,511,751,32.16,11.2,576,0,4749.9,18409.9,0.0,b9110,,
+R_THINK_P1,Qwen3.6-27B llama.cpp UD-Q4_K_XL think,Qwen3.6-27B,llama-server,GGUF,UD-Q4_K_XL,think,code,3,213.2,15.7,3522.2,512,751,32.78,11.2,587,0,4749.9,18409.9,0.0,b9110,,

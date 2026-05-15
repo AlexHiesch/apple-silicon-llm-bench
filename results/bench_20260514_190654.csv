@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+R_MTP_P2,Qwen3.6-27B llama.cpp IQ4_NL mtp-2,Qwen3.6-27B,llama-server,GGUF,IQ4_NL,mtp-2,short,1,415.8,21.3,55.3,170,23,8.35,9.1,0,90,449.3,16713.9,0.0,b9110,,
+R_MTP_P2,Qwen3.6-27B llama.cpp IQ4_NL mtp-2,Qwen3.6-27B,llama-server,GGUF,IQ4_NL,mtp-2,short,2,393.0,21.3,58.5,170,23,8.34,9.1,0,90,449.3,16714.0,0.0,b9110,,
+R_MTP_P2,Qwen3.6-27B llama.cpp IQ4_NL mtp-2,Qwen3.6-27B,llama-server,GGUF,IQ4_NL,mtp-2,short,3,394.1,20.3,58.4,170,23,8.73,9.1,0,90,449.3,16714.1,0.0,b9110,,
+R_MTP_P2,Qwen3.6-27B llama.cpp IQ4_NL mtp-2,Qwen3.6-27B,llama-server,GGUF,IQ4_NL,mtp-2,code,1,149.8,20.2,5011.8,510,751,25.31,9.1,0,205,5367.7,17591.9,0.0,b9110,,
+R_MTP_P2,Qwen3.6-27B llama.cpp IQ4_NL mtp-2,Qwen3.6-27B,llama-server,GGUF,IQ4_NL,mtp-2,code,2,150.1,19.6,5003.9,510,751,26.08,9.1,0,205,5367.7,17592.0,0.0,b9110,,
+R_MTP_P2,Qwen3.6-27B llama.cpp IQ4_NL mtp-2,Qwen3.6-27B,llama-server,GGUF,IQ4_NL,mtp-2,code,3,178.6,19.3,4205.9,510,751,26.55,9.1,0,205,5367.7,17592.0,0.0,b9110,,

@@ -1009,15 +1009,18 @@ def count_thinking_tokens(text: str) -> tuple[int, int]:
 
 def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
                             model_id: str = "default", no_think: bool = False,
-                            api_key: str = "") -> dict:
+                            force_think: bool = False, api_key: str = "") -> dict:
     body = {
         "model": model_id,
         "messages": messages,
         "max_tokens": max_tokens,
-        "temperature": 0.0,
+        "temperature": 0.6 if force_think else 0.0,
         "stream": True,
     }
-    if no_think:
+    if force_think:
+        body["extra_body"] = {"enable_thinking": True}
+        body["chat_template_kwargs"] = {"enable_thinking": True}
+    elif no_think:
         body["extra_body"] = {"enable_thinking": False}
         body["chat_template_kwargs"] = {"enable_thinking": False}
 
@@ -1034,6 +1037,7 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
     prompt_tokens = 0
     completion_tokens = 0
     full_text = ""
+    reasoning_text = ""
 
     try:
         with urlopen(req, timeout=600) as resp:
@@ -1059,9 +1063,13 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
                     if not choices:
                         continue
                     delta = choices[0].get("delta", {})
-                    content = (delta.get("content") or "") + (delta.get("reasoning_content") or "")
+                    reasoning = delta.get("reasoning_content") or ""
+                    visible = delta.get("content") or ""
+                    content = visible + reasoning
                     if content:
                         full_text += content
+                        if reasoning:
+                            reasoning_text += reasoning
                         if t_first is None:
                             t_first = time.perf_counter()
                         token_count += 1
@@ -1084,7 +1092,12 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
 
     decode_tps = (completion_tokens - 1) / decode_time if decode_time > 0 and completion_tokens > 1 else 0
     prefill_tps = prompt_tokens / (ttft / 1000) if prompt_tokens > 0 and ttft > 0 else 0
-    think_tok, vis_tok = count_thinking_tokens(full_text)
+    # Count thinking tokens from reasoning_content (deepseek format) or <think> tags
+    if reasoning_text:
+        think_tok = estimate_tokens(reasoning_text)
+        vis_tok = estimate_tokens(full_text.replace(reasoning_text, "")) if full_text != reasoning_text else 0
+    else:
+        think_tok, vis_tok = count_thinking_tokens(full_text)
 
     return {
         "ttft_ms": round(ttft, 1),
@@ -1099,10 +1112,12 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
 
 
 def bench_ollama_streaming(model: str, messages: list[dict], max_tokens: int,
-                            no_think: bool = False) -> dict:
+                            no_think: bool = False, force_think: bool = False) -> dict:
     body = {"model": model, "messages": messages, "stream": True,
-            "options": {"temperature": 0.0, "num_predict": max_tokens}}
-    if no_think:
+            "options": {"temperature": 0.6 if force_think else 0.0, "num_predict": max_tokens}}
+    if force_think:
+        body["think"] = True
+    elif no_think:
         body["think"] = False
     payload = json.dumps(body).encode()
     req = Request(f"http://localhost:{OLLAMA_PORT}/api/chat", data=payload,
@@ -1169,11 +1184,13 @@ def bench_ollama_streaming(model: str, messages: list[dict], max_tokens: int,
 
 def run_single_bench(test: TestConfig, messages: list[dict], max_tokens: int,
                      no_think: bool) -> dict:
+    force_think = test.no_think_override is False  # Explicitly enable thinking
     if test.backend == "ollama":
-        return bench_ollama_streaming(test.model_id, messages, max_tokens, no_think=no_think)
+        return bench_ollama_streaming(test.model_id, messages, max_tokens,
+                                      no_think=no_think, force_think=force_think)
     return bench_openai_streaming(test.port, messages, max_tokens,
                                   model_id=test.model_id, no_think=no_think,
-                                  api_key=test.api_key)
+                                  force_think=force_think, api_key=test.api_key)
 
 
 # ── Tool + Quality Tests ──────────────────────────────────────────────────────

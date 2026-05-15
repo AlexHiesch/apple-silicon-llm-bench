@@ -1696,8 +1696,57 @@ tests:
     kv_cache: mtp-2
     extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
 
-  # R_MTP_O1 disabled: Qwen3.6-35B-A3B (MoE) does not have MTP layers.
-  # MTP is only available on the dense Qwen3.6-27B architecture.
+  - id: R_MTP_O1
+    model: "Qwen3.6-35B-A3B"
+    group: "R — MTP Speculative Decoding"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-MTP-UD-Q4_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+    # Re-enabled: using unsloth/Qwen3.6-35B-A3B-MTP-GGUF (MTP heads included)
+
+  - id: R_MTP_P2
+    model: "Qwen3.6-27B"
+    group: "R — MTP Speculative Decoding"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-MTP-IQ4_NL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: IQ4_NL
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group R — Thinking Mode (Qwen3.6 /think enabled, measures think+visible tps)
+  # Uses llama-server with --reasoning on (separates thinking into reasoning_content)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: R_THINK_O1
+    model: "Qwen3.6-35B-A3B"
+    group: "R — Thinking Mode"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-35B-A3B-MTP-UD-Q4_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: think
+    no_think: false
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192", "--reasoning-format", "deepseek"]
+
+  - id: R_THINK_P1
+    model: "Qwen3.6-27B"
+    group: "R — Thinking Mode"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Qwen3.6-27B-MTP-UD-Q4_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: think
+    no_think: false
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192", "--reasoning-format", "deepseek"]
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group T — Qwen3.6 backend comparisons (vllm-mlx, MXFP4_MOE)
