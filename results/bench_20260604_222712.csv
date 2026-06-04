@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_SPEC_1,Gemma4-12B llama.cpp UD-Q4_K_XL spec-e2b,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,spec-e2b,short,1,235.9,27.0,97.5,509,23,19.08,7.2,0,273,343.8,14578.1,0.0,b9110,,
+U_SPEC_1,Gemma4-12B llama.cpp UD-Q4_K_XL spec-e2b,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,spec-e2b,short,2,190.4,26.8,120.8,509,23,19.16,7.2,0,273,343.8,14578.1,0.0,b9110,,
+U_SPEC_1,Gemma4-12B llama.cpp UD-Q4_K_XL spec-e2b,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,spec-e2b,short,3,199.3,26.4,115.4,509,23,19.41,7.2,0,273,343.8,14578.1,0.0,b9110,,
+U_SPEC_1,Gemma4-12B llama.cpp UD-Q4_K_XL spec-e2b,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,spec-e2b,code,1,122.5,35.6,6130.0,506,751,14.3,7.2,0,202,2728.1,14763.2,0.0,b9110,,
+U_SPEC_1,Gemma4-12B llama.cpp UD-Q4_K_XL spec-e2b,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,spec-e2b,code,2,119.9,35.6,6261.3,506,751,14.29,7.2,0,202,2728.1,14763.2,0.0,b9110,,
+U_SPEC_1,Gemma4-12B llama.cpp UD-Q4_K_XL spec-e2b,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,spec-e2b,code,3,120.1,35.6,6253.0,506,751,14.31,7.2,0,202,2728.1,14763.2,0.0,b9110,,

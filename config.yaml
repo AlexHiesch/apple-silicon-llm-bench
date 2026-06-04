@@ -1839,6 +1839,361 @@ tests:
     api_key: "sk-unsloth-123a4291dfc96ee67d435ccadce4abe4"
     extra_args: ["--max-seq-length", "8192"]
 
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group U — Gemma 4 12B (Dense, Unified/Encoder-Free) — Google 2026-06-03
+  # Architecture: Dense 12B, unified encoder-free design (no separate vision/audio
+  #   encoders — raw patches/waveforms projected into LLM embedding space via
+  #   lightweight linear layers). Hybrid attention: sliding window (1024) + global.
+  # Parameters: 11.95B, 48 layers
+  # Native context: 256,144 tokens
+  # Memory budget: ~6 GB weights (4bit), ~12 GB (8bit)
+  #   KV: sliding window keeps effective KV cost low for most layers
+  #   ctx-128k fits easily on 64 GB at 4bit
+  # Thinking: supports enable_thinking=True ("ultrathink" mode)
+  # NOTE: VLM architecture — use mlx-vlm backend (same as other Gemma 4 models).
+  # HuggingFace: google/gemma-4-12B-it
+  # mlx-community models: gemma-4-12B-it-4bit, -8bit, -mxfp4, -nvfp4
+  # Ollama tags: gemma4:12b
+  # GGUF: unsloth/gemma-4-12b-it-GGUF (Q4_K_M ~7 GB, UD-Q4_K_XL ~7.4 GB)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  # NOTE (2026-06-04): Gemma 4 12B uses model_type "gemma4_unified"
+  # (Gemma4UnifiedForConditionalGeneration) — a new architecture not supported by
+  # mlx-vlm (which only has gemma4 / Gemma4ForConditionalGeneration).
+  # All mlx-vlm tests disabled until mlx-vlm ships gemma4_unified support.
+  # Track: https://github.com/Blaizzy/mlx-vlm for updates.
+
+  - id: U_Q4_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_Q4_2
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_Q8_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_MXFP4_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-mxfp4"
+    fmt: MXFP4
+    quant: mxfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_NVFP4_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_Q4_3
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: ollama
+    model_id: "gemma4:12b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # BLOCKED: gemma4:12b tag not in Ollama registry (needs newer Ollama version)
+
+  - id: U_CTX_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_CTX_2
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_OLL_CTX_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: ollama
+    model_id: "gemma4:12b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+    enabled: false  # BLOCKED: gemma4:12b tag not in Ollama registry
+
+  # llama-server — Unsloth GGUF quants (download→bench→purge via run_llamacpp_all.py)
+  - id: U_LC_Q4KM
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: U_LC_UDQ4
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+
+  - id: U_LC_UDQ2
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
+  - id: U_LC_UDQ6
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-UD-Q6_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q6_K_XL
+    kv_cache: default
+
+  # ── vllm-mlx ─────────────────────────────────────────────────────────────────
+  - id: U_VM_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: vllm-mlx
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    enabled: false  # BLOCKED: likely needs gemma4_unified in vllm-mlx — verify before enabling
+
+  # ── oMLX (SSD-tiered paged KV cache) ───────────────────────────────────────
+  - id: U_OX_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: omlx
+    model_id: "gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+    enabled: false  # BLOCKED: oMLX uses mlx-lm internally — needs gemma4_unified
+
+  - id: U_OX_CTX_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: omlx
+    model_id: "gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+    enabled: false  # BLOCKED: oMLX uses mlx-lm internally — needs gemma4_unified
+    # oMLX hard-caps at 32768 tokens per request (same as other oMLX tests)
+    prompts: [context-32k]
+
+  # ── Docker Model Runner ─────────────────────────────────────────────────────
+  - id: U_DMR_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: docker-model-runner
+    model_id: "docker.io/ai/gemma4:12B-Q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  # ── LM Studio ──────────────────────────────────────────────────────────────
+  - id: U_LMS_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: lm-studio
+    model_id: "gemma-4-12b-it"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  # ── Speculative Decoding (llama.cpp: E2B as draft for 12B) ─────────────────
+  # Both Gemma4-12B and E2B share the same 262144-token vocab → compatible.
+  # E2B (~2.6 GB GGUF) as lightweight draft model for 12B main model.
+  - id: U_SPEC_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Speculative)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: spec-e2b
+    extra_args: ["-md", "/Users/HIESCHA/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf", "-ngld", "99"]
+
+  - id: U_SPEC_2
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Speculative)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: spec-e2b
+    extra_args: ["-md", "/Users/HIESCHA/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf", "-ngld", "99"]
+
+  # ── DFlash block diffusion speculative decoding (MLX native) ────────────────
+  # Uses z-lab's diffusion drafters — generates ~16 tokens per draft step.
+  # NOTE: drafter (z-lab/gemma-4-12B-it-DFlash) may not exist yet — disable if unavailable.
+  - id: U_DF_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Speculative)"
+    backend: dflash
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: dflash-0.4B
+    extra_args: ["--draft-model", "z-lab/gemma-4-12B-it-DFlash"]
+    enabled: false  # enable once z-lab publishes DFlash drafter for 12B
+
+  # ── MTP Speculative Decoding (self-draft via trained MTP heads) ─────────────
+  # Blog says Gemma 4 12B ships with MTP drafters for reduced latency.
+  # Requires llama.cpp MTP branch (vendor/llama-mtp).
+  # GGUF: barozp/gemma4-12b-it-mtp-GGUF (community) — verify quality before trusting.
+  - id: U_MTP_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (MTP)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-MTP-Q4_K_M.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+    enabled: false  # enable once MTP GGUF verified (barozp/gemma4-12b-it-mtp-GGUF or unsloth official)
+
+  - id: U_MTP_2
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (MTP)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-MTP-UD-Q4_K_XL.gguf"
+    server_binary: "~/Projects/Work/llm-bench/vendor/llama-mtp/build/bin/llama-server"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: mtp-2
+    extra_args: ["--spec-type", "draft-mtp", "--spec-draft-n-max", "2", "-fa", "on", "-np", "1", "-c", "8192"]
+    enabled: false  # enable once MTP GGUF verified
+
+  # ── TurboQuant (KV cache compression) ──────────────────────────────────────
+  # BLOCKED: mlx-lm has no gemma4 module. TurboQuant patches mlx_lm.models.cache.
+  # Re-enable once mlx-lm ships gemma4 support.
+  - id: U_TQ4_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq4bit
+    extra_args: ["--tq-bits", "4"]
+    enabled: false  # mlx-lm lacks gemma4 support
+
+  - id: U_TQ35_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Dense, Unified)"
+    backend: mlx-lm-turboquant
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: tq3.5bit
+    extra_args: ["--tq-bits", "3.5"]
+    enabled: false  # mlx-lm lacks gemma4 support
+
+  # ── Ultrathink (thinking mode enabled) ──────────────────────────────────────
+  # Gemma 4 12B supports thinking via enable_thinking=True. Measures think+visible tps.
+  # Uses temperature=0.6 (required for thinking mode per Google docs).
+
+  - id: U_THINK_1
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Ultrathink)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ultrathink
+    no_think: false
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_THINK_2
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Ultrathink)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: ultrathink
+    no_think: false
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # BLOCKED: mlx-vlm lacks gemma4_unified architecture
+
+  - id: U_THINK_3
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Ultrathink)"
+    backend: ollama
+    model_id: "gemma4:12b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: ultrathink
+    no_think: false
+    enabled: false  # BLOCKED: gemma4:12b tag not in Ollama registry
+
+  - id: U_THINK_4
+    model: "Gemma4-12B"
+    group: "U — Gemma4 12B (Ultrathink)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-12b-it-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: ultrathink
+    no_think: false
+    extra_args: ["--reasoning-format", "deepseek"]
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled

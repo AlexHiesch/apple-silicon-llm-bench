@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_THINK_4,Gemma4-12B llama.cpp UD-Q4_K_XL ultrathink,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,ultrathink,short,1,299.0,29.6,76.9,509,23,17.47,7.1,419,0,271.7,10759.0,0.0,b9110,,
+U_THINK_4,Gemma4-12B llama.cpp UD-Q4_K_XL ultrathink,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,ultrathink,short,2,302.4,29.3,76.1,509,23,17.67,7.1,431,0,271.7,10938.5,0.0,b9110,,
+U_THINK_4,Gemma4-12B llama.cpp UD-Q4_K_XL ultrathink,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,ultrathink,short,3,312.6,28.6,73.6,509,23,18.08,7.1,451,0,271.7,11118.1,0.0,b9110,,
+U_THINK_4,Gemma4-12B llama.cpp UD-Q4_K_XL ultrathink,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,ultrathink,code,1,212.1,30.0,3541.1,509,751,17.13,7.1,524,0,2308.6,11695.1,0.0,b9110,,
+U_THINK_4,Gemma4-12B llama.cpp UD-Q4_K_XL ultrathink,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,ultrathink,code,2,215.7,30.4,3482.3,509,751,16.95,7.1,527,0,2308.6,11695.1,0.0,b9110,,
+U_THINK_4,Gemma4-12B llama.cpp UD-Q4_K_XL ultrathink,Gemma4-12B,llama-server,GGUF,UD-Q4_K_XL,ultrathink,code,3,256.7,30.9,2925.6,509,751,16.69,7.1,528,0,2308.6,11695.1,0.0,b9110,,

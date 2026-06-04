@@ -153,6 +153,7 @@ def build_combined_html():
             for row in csv.DictReader(f):
                 r = types.SimpleNamespace(
                     test_id=row["test_id"], test_name=row["test_name"],
+                    model=row.get("model", ""),
                     backend=row["backend"], fmt=row["fmt"], quant=row["quant"],
                     kv_cache=row["kv_cache"], prompt_type=row["prompt_type"],
                     ttft_ms=float(row["ttft_ms"] or 0),
