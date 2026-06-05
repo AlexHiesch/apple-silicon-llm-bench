@@ -420,6 +420,7 @@ class TestConfig:
     prompts: Optional[list] = None            # per-test prompt override (list of prompt names)
     server_binary: str = ""                   # Optional override for server binary path
     api_key: str = ""                         # API key for authenticated backends
+    max_tokens: Optional[int] = None          # per-test override (None = use global)
 
 
 @dataclass
@@ -732,6 +733,7 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
             prompts=entry.get("prompts") or None,
             server_binary=entry.get("server_binary", ""),
             api_key=entry.get("api_key", ""),
+            max_tokens=entry.get("max_tokens"),
         ))
 
     return tests
@@ -1949,6 +1951,9 @@ def main():
         # Effective no-think flag
         no_think = test.no_think_override if test.no_think_override is not None else args.no_think
 
+        # Per-test max_tokens override
+        effective_max_tokens = test.max_tokens if test.max_tokens is not None else max_tokens
+
         # Per-test prompts override the global list
         if test.prompts is not None:
             test_prompt_items = []
@@ -1967,7 +1972,7 @@ def main():
             cold_ttft = 0.0
             for w in range(warmup):
                 info(f"Warmup {w + 1}/{warmup}...")
-                wr = run_single_bench(test, prompt_messages, max_tokens, no_think)
+                wr = run_single_bench(test, prompt_messages, effective_max_tokens, no_think)
                 if wr and w == 0:
                     cold_ttft = wr.get("ttft_ms", 0.0)
 
@@ -1976,7 +1981,7 @@ def main():
 
             for run_num in range(1, runs + 1):
                 info(f"Run {run_num}/{runs}...")
-                r = run_single_bench(test, prompt_messages, max_tokens, no_think)
+                r = run_single_bench(test, prompt_messages, effective_max_tokens, no_think)
                 if not r:
                     err(f"Run {run_num} failed")
                     continue

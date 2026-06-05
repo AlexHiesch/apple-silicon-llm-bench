@@ -256,28 +256,54 @@ if DONE_FILE.exists():
 check_single_instance()
 check_prerequisites()
 
-log("Starting Gemma 4 12B benchmark — Group U")
+log("Starting Gemma 4 12B benchmark — Group U (full rerun, all backends)")
 start_ts = time.strftime("%Y-%m-%d %H:%M:%S")
 print(f"  Started: {start_ts}", flush=True)
 print(f"  Log:     {LOG_FILE}", flush=True)
-print(f"  NOTE: mlx-vlm/vllm-mlx/oMLX backends BLOCKED (gemma4_unified not supported)", flush=True)
-print(f"  Active backends: Ollama, llama-server, Docker Model Runner, LM Studio", flush=True)
-print(f"  Total GGUF downloads: ~30 GB  |  Benchmark runtime: ~1-2 h", flush=True)
+print(f"  Backends: mlx-vlm 0.6.1, Ollama 0.30.5, llama-server b9430, oMLX 0.4.1, vllm-mlx, LM Studio", flush=True)
+print(f"  Total downloads: ~30 GB HF + ~30 GB GGUF  |  Runtime: ~3-4 h", flush=True)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# MLX-based backends (mlx-vlm, vllm-mlx, oMLX) are ALL BLOCKED:
-# Gemma 4 12B uses model_type "gemma4_unified" (Gemma4UnifiedForConditionalGeneration)
-# which is NOT supported by any MLX inference server as of 2026-06-04.
-# Re-enable once mlx-vlm ships gemma4_unified support.
-# ══════════════════════════════════════════════════════════════════════════════
+# ── mlx-vlm baselines ───────────────────────────────────────────────────────
 
-# ══════════════════════════════════════════════════════════════════════════════
-# BLOCKED BACKENDS (as of 2026-06-04):
-#   - mlx-vlm/vllm-mlx/oMLX: "gemma4_unified" architecture not supported
-#   - Ollama: gemma4:12b tag not in registry (needs newer Ollama)
-#   - Docker Model Runner: Docker not running
-# WORKING: llama-server (GGUF via Unsloth), LM Studio
-# ══════════════════════════════════════════════════════════════════════════════
+ensure_hf_model("mlx-community/gemma-4-12B-it-4bit")
+
+log("Step 1: U_Q4_1 — mlx-vlm 4bit baseline")
+run_tests("U_Q4_1")
+
+log("Step 2: U_Q4_2 — mlx-vlm kv4 baseline")
+run_tests("U_Q4_2")
+
+ensure_hf_model("mlx-community/gemma-4-12B-it-8bit")
+log("Step 3: U_Q8_1 — mlx-vlm 8bit")
+run_tests("U_Q8_1")
+
+ensure_hf_model("mlx-community/gemma-4-12B-it-mxfp4")
+log("Step 4: U_MXFP4_1 — mlx-vlm mxfp4")
+run_tests("U_MXFP4_1")
+
+ensure_hf_model("mlx-community/gemma-4-12B-it-nvfp4")
+log("Step 5: U_NVFP4_1 — mlx-vlm nvfp4")
+run_tests("U_NVFP4_1")
+
+# ── Ollama ───────────────────────────────────────────────────────────────────
+
+ensure_ollama_model("gemma4:12b")
+
+log("Step 6: U_Q4_3 — Ollama gemma4:12b")
+run_tests("U_Q4_3")
+
+# ── Context scaling (mlx-vlm) ────────────────────────────────────────────────
+
+log("Step 7: U_CTX_1 — mlx-vlm context scaling 32k/64k/128k")
+run_tests("U_CTX_1")
+
+log("Step 8: U_CTX_2 — mlx-vlm kv4 context scaling 32k/64k/128k")
+run_tests("U_CTX_2")
+
+# ── Context scaling (Ollama) ─────────────────────────────────────────────────
+
+log("Step 9: U_OLL_CTX_1 — Ollama context scaling 32k/64k/128k")
+run_tests("U_OLL_CTX_1")
 
 # ── llama-server GGUF quants (download→bench→purge) ──────────────────────────
 
@@ -286,7 +312,7 @@ for step, (quant, test_id) in enumerate([
     ("UD-Q4_K_XL", "U_LC_UDQ4"),
     ("UD-Q2_K_XL", "U_LC_UDQ2"),
     ("UD-Q6_K_XL", "U_LC_UDQ6"),
-], start=1):
+], start=10):
     if ensure_gguf(quant):
         log(f"Step {step}: {test_id} — llama-server {quant}")
         run_tests(test_id)
@@ -294,13 +320,25 @@ for step, (quant, test_id) in enumerate([
     else:
         log(f"Step {step}: {test_id} — SKIPPED (download failed)")
 
+# ── vllm-mlx ────────────────────────────────────────────────────────────────
+
+log("Step 14: U_VM_1 — vllm-mlx 4bit")
+run_tests("U_VM_1")
+
+# ── oMLX ─────────────────────────────────────────────────────────────────────
+
+log("Step 15: U_OX_1 — oMLX ssd-paged baseline")
+run_tests("U_OX_1")
+
+log("Step 16: U_OX_CTX_1 — oMLX context scaling 32k")
+run_tests("U_OX_CTX_1")
+
 # ── LM Studio ───────────────────────────────────────────────────────────────
 
-log("Step 5: U_LMS_1 — Gemma4-12B LM Studio")
+log("Step 17: U_LMS_1 — Gemma4-12B LM Studio")
 run_tests("U_LMS_1")
 
 # ── Speculative Decoding (E2B as draft) ─────────────────────────────────────
-# E2B draft path: ~/.cache/llmfit/models/gemma-4-E2B-it-Q4_K_M.gguf
 
 e2b_draft = GGUF_DIR / "gemma-4-E2B-it-Q4_K_M.gguf"
 if not e2b_draft.exists():
@@ -312,24 +350,33 @@ if not e2b_draft.exists():
     ])
 
 if ensure_gguf("UD-Q4_K_XL"):
-    log("Step 6: U_SPEC_1 — Gemma4-12B speculative (E2B draft, UD-Q4_K_XL)")
+    log("Step 18: U_SPEC_1 — speculative (E2B draft, UD-Q4_K_XL)")
     run_tests("U_SPEC_1")
 else:
-    log("Step 6: U_SPEC_1 — SKIPPED (main model GGUF not available)")
+    log("Step 18: U_SPEC_1 — SKIPPED (main model GGUF not available)")
 
 if ensure_gguf("Q4_K_M"):
-    log("Step 7: U_SPEC_2 — Gemma4-12B speculative (E2B draft, Q4_K_M)")
+    log("Step 19: U_SPEC_2 — speculative (E2B draft, Q4_K_M)")
     run_tests("U_SPEC_2")
 else:
-    log("Step 7: U_SPEC_2 — SKIPPED (main model GGUF not available)")
+    log("Step 19: U_SPEC_2 — SKIPPED (main model GGUF not available)")
 
-# ── Ultrathink (thinking mode via llama-server) ──────────────────────────────
+# ── Ultrathink (thinking mode) ──────────────────────────────────────────────
+
+log("Step 20: U_THINK_1 — ultrathink mlx-vlm 4bit")
+run_tests_think("U_THINK_1")
+
+log("Step 21: U_THINK_2 — ultrathink mlx-vlm 8bit")
+run_tests_think("U_THINK_2")
+
+log("Step 22: U_THINK_3 — ultrathink Ollama")
+run_tests_think("U_THINK_3")
 
 if ensure_gguf("UD-Q4_K_XL"):
-    log("Step 8: U_THINK_4 — Gemma4-12B ultrathink llama-server")
+    log("Step 23: U_THINK_4 — ultrathink llama-server")
     run_tests_think("U_THINK_4")
 else:
-    log("Step 8: U_THINK_4 — SKIPPED (download failed)")
+    log("Step 23: U_THINK_4 — SKIPPED (download failed)")
 
 # Purge remaining GGUFs
 for q in GGUF_FILES:
@@ -344,17 +391,13 @@ build_combined_html()
 end_ts = time.strftime("%Y-%m-%d %H:%M:%S")
 DONE_FILE.write_text(f"Completed: {start_ts} → {end_ts}\n")
 log(f"ALL DONE — Group U (Gemma 4 12B) complete.  {end_ts}")
-print("""
-  Enabled tests run:   U_Q4_3, U_OLL_CTX_1
-                       U_LC_Q4KM, U_LC_UDQ4, U_LC_UDQ2, U_LC_UDQ6
-                       U_DMR_1, U_LMS_1
-                       U_SPEC_1/2
-                       U_THINK_3/4
-  BLOCKED (gemma4_unified not in mlx-vlm/vllm-mlx/oMLX):
-                       U_Q4_1/2, U_Q8_1, U_MXFP4_1, U_NVFP4_1
-                       U_CTX_1/2, U_VM_1, U_OX_1, U_OX_CTX_1
-                       U_THINK_1/2
-  Disabled (other deps): U_DF_1, U_MTP_1/2, U_TQ4_1, U_TQ35_1
-  Results:             ~/Projects/Work/llm-bench/results/complete_results.html
-  Done marker:         ~/Projects/Work/llm-bench/.gemma4_12b_bench_done
+print(f"""
+  Tests run: U_Q4_1/2, U_Q8_1, U_MXFP4_1, U_NVFP4_1
+             U_Q4_3, U_CTX_1/2, U_OLL_CTX_1
+             U_LC_Q4KM, U_LC_UDQ4, U_LC_UDQ2, U_LC_UDQ6
+             U_VM_1, U_OX_1, U_OX_CTX_1, U_LMS_1
+             U_SPEC_1/2, U_THINK_1/2/3/4
+  Disabled:  U_DF_1, U_MTP_1/2, U_TQ4_1, U_TQ35_1, U_DMR_1
+  Results:   ~/Projects/Work/llm-bench/results/complete_results.html
+  Done:      {DONE_FILE}
 """, flush=True)

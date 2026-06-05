@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_THINK_3,Gemma4-12B Ollama Q4_K_M ultrathink,Gemma4-12B,ollama,GGUF,Q4_K_M,ultrathink,short,1,538.1,36.3,209.8,1093,36,30.53,5.2,491,456,551.5,12637.3,0.0,0.30.5,,
+U_THINK_3,Gemma4-12B Ollama Q4_K_M ultrathink,Gemma4-12B,ollama,GGUF,Q4_K_M,ultrathink,short,2,524.3,36.5,209.1,1058,36,29.43,5.2,419,504,551.5,12979.6,0.0,0.30.5,,
+U_THINK_3,Gemma4-12B Ollama Q4_K_M ultrathink,Gemma4-12B,ollama,GGUF,Q4_K_M,ultrathink,short,3,532.5,36.3,204.1,1296,36,36.15,5.2,669,508,551.5,13320.4,0.0,0.30.5,,
+U_THINK_3,Gemma4-12B Ollama Q4_K_M ultrathink,Gemma4-12B,ollama,GGUF,Q4_K_M,ultrathink,code,1,510.1,35.6,8047.3,2048,855,57.97,5.2,875,1224,2211.1,14598.2,0.0,0.30.5,,
+U_THINK_3,Gemma4-12B Ollama Q4_K_M ultrathink,Gemma4-12B,ollama,GGUF,Q4_K_M,ultrathink,code,2,482.3,35.6,8196.5,2048,855,58.0,5.2,1036,1101,2211.1,15231.7,0.0,0.30.5,,
+U_THINK_3,Gemma4-12B Ollama Q4_K_M ultrathink,Gemma4-12B,ollama,GGUF,Q4_K_M,ultrathink,code,3,482.6,35.5,8362.4,2048,855,58.04,5.2,1251,861,2211.1,15865.3,0.0,0.30.5,,

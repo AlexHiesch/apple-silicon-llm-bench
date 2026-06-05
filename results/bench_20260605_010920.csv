@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_CTX_1,Gemma4-12B mlx-vlm 4bit,Gemma4-12B,mlx-vlm,MLX,4bit,default,context-32k,1,93169.7,26.3,350.4,512,32645,112.59,7.2,0,267,95161.8,10692.0,0.0,0.6.1,,
+U_CTX_1,Gemma4-12B mlx-vlm 4bit,Gemma4-12B,mlx-vlm,MLX,4bit,default,context-32k,2,93333.9,26.5,349.8,512,32645,112.63,7.2,0,267,95161.8,10692.1,0.0,0.6.1,,
+U_CTX_1,Gemma4-12B mlx-vlm 4bit,Gemma4-12B,mlx-vlm,MLX,4bit,default,context-32k,3,93766.0,26.1,348.2,512,32645,113.31,7.2,0,267,95161.8,10695.1,0.0,0.6.1,,
+U_CTX_1,Gemma4-12B mlx-vlm 4bit,Gemma4-12B,mlx-vlm,MLX,4bit,default,context-64k,1,212986.2,25.4,308.3,512,65654,233.12,7.2,0,253,214329.1,10714.2,0.0,0.6.1,,
+U_CTX_1,Gemma4-12B mlx-vlm 4bit,Gemma4-12B,mlx-vlm,MLX,4bit,default,context-64k,2,218264.6,24.2,300.8,512,65654,239.41,7.2,0,253,214329.1,10714.2,0.0,0.6.1,,
+U_CTX_1,Gemma4-12B mlx-vlm 4bit,Gemma4-12B,mlx-vlm,MLX,4bit,default,context-64k,3,219238.3,24.5,299.5,512,65654,240.11,7.2,0,253,214329.1,10714.2,0.0,0.6.1,,

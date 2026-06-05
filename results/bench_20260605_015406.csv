@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-32k,1,364.5,28.8,948140.1,512,35633,18.16,4.9,0,219,115137.9,13131.9,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-32k,2,357.8,28.8,835278.9,512,35633,18.11,4.9,0,219,115137.9,13135.4,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-32k,3,375.7,28.5,672485.7,512,35633,18.37,4.9,0,219,115137.9,13141.2,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-64k,1,468.8,25.0,1334237.9,512,72277,20.93,4.9,0,223,207569.1,13616.1,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-64k,2,482.1,25.7,1373800.2,512,72277,20.43,4.9,0,223,207569.1,13619.7,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-64k,3,460.5,25.7,1363382.6,512,72277,20.36,4.9,0,223,207569.1,13619.7,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-128k,1,644.7,18.7,2072653.2,512,145065,27.99,4.9,0,207,572803.1,14248.2,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-128k,2,615.5,18.0,2083459.0,512,145065,29.04,4.9,0,207,572803.1,14248.3,0.0,0.30.5,,
+U_OLL_CTX_1,Gemma4-12B Ollama Q4_K_M,Gemma4-12B,ollama,GGUF,Q4_K_M,default,context-128k,3,626.3,18.3,1935774.4,512,145065,28.57,4.9,0,207,572803.1,14248.3,0.0,0.30.5,,

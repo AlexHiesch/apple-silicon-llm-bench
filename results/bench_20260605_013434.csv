@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_CTX_2,Gemma4-12B mlx-vlm 4bit kv4,Gemma4-12B,mlx-vlm,MLX,4bit,kv4,context-32k,1,96240.4,24.9,339.2,512,32645,116.79,7.2,0,251,98300.2,11247.5,0.0,0.6.1,,
+U_CTX_2,Gemma4-12B mlx-vlm 4bit kv4,Gemma4-12B,mlx-vlm,MLX,4bit,kv4,context-32k,2,95499.7,23.8,341.8,512,32645,117.01,7.2,0,251,98300.2,11247.5,0.0,0.6.1,,
+U_CTX_2,Gemma4-12B mlx-vlm 4bit kv4,Gemma4-12B,mlx-vlm,MLX,4bit,kv4,context-32k,3,96992.2,23.7,336.6,512,32645,118.6,7.2,0,251,98300.2,11247.5,0.0,0.6.1,,
+U_CTX_2,Gemma4-12B mlx-vlm 4bit kv4,Gemma4-12B,mlx-vlm,MLX,4bit,kv4,context-64k,1,232187.4,19.8,282.8,512,65654,258.03,7.2,0,268,230656.9,11263.9,0.0,0.6.1,,
+U_CTX_2,Gemma4-12B mlx-vlm 4bit kv4,Gemma4-12B,mlx-vlm,MLX,4bit,kv4,context-64k,2,232150.6,19.9,282.8,512,65654,257.78,7.2,0,268,230656.9,11268.0,0.0,0.6.1,,
+U_CTX_2,Gemma4-12B mlx-vlm 4bit kv4,Gemma4-12B,mlx-vlm,MLX,4bit,kv4,context-64k,3,232132.1,20.3,282.8,512,65654,257.25,7.2,0,268,230656.9,11268.0,0.0,0.6.1,,

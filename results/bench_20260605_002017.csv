@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_Q8_1,Gemma4-12B mlx-vlm 8bit,Gemma4-12B,mlx-vlm,MLX,8bit,default,short,1,196.3,25.3,117.2,512,23,20.36,9.3,0,271,2533.1,2030.7,0.0,0.6.1,,
+U_Q8_1,Gemma4-12B mlx-vlm 8bit,Gemma4-12B,mlx-vlm,MLX,8bit,default,short,2,197.1,25.3,116.7,512,23,20.39,9.3,0,271,2533.1,2030.7,0.0,0.6.1,,
+U_Q8_1,Gemma4-12B mlx-vlm 8bit,Gemma4-12B,mlx-vlm,MLX,8bit,default,short,3,210.6,24.9,109.2,512,23,20.76,9.3,0,271,2533.1,2030.7,0.0,0.6.1,,
+U_Q8_1,Gemma4-12B mlx-vlm 8bit,Gemma4-12B,mlx-vlm,MLX,8bit,default,code,1,2321.8,23.7,323.4,512,751,23.92,9.3,0,212,2592.3,2031.2,0.0,0.6.1,,
+U_Q8_1,Gemma4-12B mlx-vlm 8bit,Gemma4-12B,mlx-vlm,MLX,8bit,default,code,2,2248.1,23.3,334.1,512,751,24.13,9.3,0,212,2592.3,2031.2,0.0,0.6.1,,
+U_Q8_1,Gemma4-12B mlx-vlm 8bit,Gemma4-12B,mlx-vlm,MLX,8bit,default,code,3,2335.6,23.2,321.5,512,751,24.4,9.3,0,212,2592.3,2031.2,0.0,0.6.1,,

@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+U_THINK_1,Gemma4-12B mlx-vlm 4bit ultrathink,Gemma4-12B,mlx-vlm,MLX,4bit,ultrathink,short,1,209.8,29.8,109.6,657,23,22.25,7.2,0,371,545.7,11229.7,0.0,0.6.1,,
+U_THINK_1,Gemma4-12B mlx-vlm 4bit ultrathink,Gemma4-12B,mlx-vlm,MLX,4bit,ultrathink,short,2,213.6,29.6,107.7,657,23,22.34,7.2,0,371,545.7,11229.7,0.0,0.6.1,,
+U_THINK_1,Gemma4-12B mlx-vlm 4bit ultrathink,Gemma4-12B,mlx-vlm,MLX,4bit,ultrathink,short,3,214.6,29.7,107.2,657,23,22.32,7.2,0,371,545.7,11229.8,0.0,0.6.1,,
+U_THINK_1,Gemma4-12B mlx-vlm 4bit ultrathink,Gemma4-12B,mlx-vlm,MLX,4bit,ultrathink,code,1,2067.9,29.2,363.2,1564,751,55.62,7.2,0,649,2118.9,11229.9,0.0,0.6.1,,
+U_THINK_1,Gemma4-12B mlx-vlm 4bit ultrathink,Gemma4-12B,mlx-vlm,MLX,4bit,ultrathink,code,2,2060.4,29.4,364.5,1564,751,55.31,7.2,0,649,2118.9,11229.9,0.0,0.6.1,,
+U_THINK_1,Gemma4-12B mlx-vlm 4bit ultrathink,Gemma4-12B,mlx-vlm,MLX,4bit,ultrathink,code,3,2048.9,29.4,366.5,1564,751,55.15,7.2,0,649,2118.9,11229.9,0.0,0.6.1,,
