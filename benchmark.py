@@ -1894,12 +1894,44 @@ document.querySelectorAll('th[data-col]').forEach(th => {{
     document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
     th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
     update();
+    syncToURL();
   }});
 }});
 
+// ── URL ↔ filter sync ────────────────────────────────────────────────────
+const FILTER_IDS = ['q','f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'];
+const PARAM_MAP = {{q:'q','f-model':'model','f-prompt':'prompt','f-backend':'backend','f-fmt':'fmt','f-quant':'quant','f-kv':'kv'}};
+
+function syncToURL() {{
+  const params = new URLSearchParams();
+  FILTER_IDS.forEach(id => {{
+    const v = document.getElementById(id).value;
+    if (v) params.set(PARAM_MAP[id], v);
+  }});
+  if (sortCol) {{ params.set('sort', sortCol); params.set('dir', sortDir === 1 ? 'asc' : 'desc'); }}
+  const qs = params.toString();
+  history.replaceState(null, '', qs ? '?' + qs : location.pathname);
+}}
+
+function loadFromURL() {{
+  const params = new URLSearchParams(location.search);
+  FILTER_IDS.forEach(id => {{
+    const v = params.get(PARAM_MAP[id]) || '';
+    document.getElementById(id).value = v;
+  }});
+  if (params.get('sort')) {{
+    sortCol = params.get('sort');
+    sortDir = params.get('dir') === 'desc' ? -1 : 1;
+    const th = document.querySelector(`th[data-col="${{sortCol}}"]`);
+    if (th) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  }}
+}}
+
+window.addEventListener('popstate', () => {{ loadFromURL(); update(); }});
+
 // ── filter events ────────────────────────────────────────────────────────
-['q','f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
-  document.getElementById(id).addEventListener('input', update));
+FILTER_IDS.forEach(id =>
+  document.getElementById(id).addEventListener('input', () => {{ update(); syncToURL(); }}));
 
 function reset() {{
   document.getElementById('q').value = '';
@@ -1908,6 +1940,7 @@ function reset() {{
   sortCol = null; sortDir = 1;
   document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
   update();
+  syncToURL();
 }}
 
 // ── theme toggle ────────────────────────────────────────────────────────
@@ -1927,6 +1960,7 @@ else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(t
 else applyTheme(false);
 
 // ── initial render ───────────────────────────────────────────────────────
+loadFromURL();
 update();
 </script>
 </body>
