@@ -1499,6 +1499,35 @@ def save_results_html(results: list, hardware: dict, path: Path,
             "quality": "pass" if (qr or {}).get("quality_pass") else ("fail" if qr else ""),
         })
 
+    # Backfill empty model names from test ID prefix
+    MODEL_BY_PREFIX = {
+        "A": "Qwen3.5-35B-A3B",
+        "B": "Qwen3-Coder-Next",
+        "C": "Gemma3-27B",
+        "D": "Qwen3-32B",
+        "E": "Llama3.3-70B",
+        "F": "Qwen3.5-35B-A3B",
+        "G": "Qwen3.5-35B-A3B",
+        "H": "Qwen3-Coder-Next",
+        "I": "Qwen3.5-35B-A3B",
+        "J": "Qwen3.5-35B-A3B",
+        "K": "Gemma4-26B-A4B",
+        "L": "Gemma4-31B",
+        "M": "Gemma4-E4B",
+        "N": "Gemma4-E2B",
+        "O": "Qwen3.6-35B",
+        "P": "Qwen3.6-27B",
+    }
+    # More specific overrides for multi-model groups
+    MODEL_OVERRIDES = {
+        "G_2": "Qwen3-Coder-Next", "G_CTX_2": "Qwen3-Coder-Next",
+        "I_Q4_2": "Qwen3-Coder-Next", "J_Q4_2": "Qwen3-Coder-Next",
+    }
+    for row in rows_data:
+        if not row["model"]:
+            tid = row["id"]
+            row["model"] = MODEL_OVERRIDES.get(tid, MODEL_BY_PREFIX.get(tid[0], ""))
+
     rows_json = json.dumps(rows_data)
 
     html = f"""<!DOCTYPE html>
@@ -1509,11 +1538,21 @@ def save_results_html(results: list, hardware: dict, path: Path,
 <title>llm-bench — {hw_str}</title>
 <style>
 :root {{
+  --bg: #f8f9fc; --card: #ffffff; --card2: #f0f1f5;
+  --border: #d4d7e0; --text: #1a1d27; --dim: #5c6078;
+  --green: #16a34a; --red: #dc2626; --accent: #4f46e5;
+  --yellow: #d97706; --sort-arrow: #4f46e5;
+}}
+.dark {{
   --bg: #0f1117; --card: #1a1d27; --card2: #1e2133;
   --border: #2d3148; --text: #e2e4f0; --dim: #7b7f9e;
   --green: #4ade80; --red: #f87171; --accent: #6366f1;
   --yellow: #fbbf24; --sort-arrow: #6366f1;
 }}
+.dark th {{ background: #22253a !important; }}
+.dark tbody tr:hover td {{ background: #232640 !important; }}
+.dark .bar-track {{ background: #2a2e48; }}
+.dark .table-wrap {{ box-shadow: 0 2px 16px #0008; }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
   background: var(--bg); color: var(--text);
@@ -1522,6 +1561,27 @@ body {{
 }}
 h1 {{ font-size: 1.3rem; color: var(--accent); margin-bottom: .2rem; }}
 .meta {{ color: var(--dim); font-size: .82rem; margin-bottom: 1.2rem; }}
+.evergreen {{ color: var(--dim); font-size: .76rem; margin-bottom: 1rem; line-height: 1.5; }}
+
+/* ── Nav ── */
+.site-nav {{
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .6rem 2rem; border-bottom: 1px solid var(--border);
+  margin: -1.5rem -2rem 1.5rem -2rem; background: var(--card);
+}}
+.site-nav a {{
+  color: var(--dim); text-decoration: none; font-size: 12px;
+  padding: .3rem .6rem; border-radius: 4px; transition: .15s;
+}}
+.site-nav a:hover {{ color: var(--text); background: var(--card2); }}
+.site-nav .brand {{ font-weight: 600; color: var(--text); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }}
+.site-nav .links {{ display: flex; align-items: center; gap: .25rem; }}
+.theme-toggle {{
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--dim); border-radius: 5px; padding: .3rem .6rem;
+  font-size: 12px; cursor: pointer; transition: .15s;
+}}
+.theme-toggle:hover {{ border-color: var(--accent); color: var(--accent); }}
 
 /* ── Controls ── */
 .controls {{
@@ -1549,14 +1609,14 @@ h1 {{ font-size: 1.3rem; color: var(--accent); margin-bottom: .2rem; }}
 .count {{ color: var(--dim); font-size: 11px; margin-left: auto; }}
 
 /* ── Table ── */
-.table-wrap {{ overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 16px #0008; }}
+.table-wrap {{ overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 16px #0001; }}
 table {{
   width: 100%; border-collapse: collapse;
   background: var(--card); white-space: nowrap;
 }}
 thead {{ position: sticky; top: 0; z-index: 2; }}
 th {{
-  background: #22253a; color: var(--dim);
+  background: #e8eaf0; color: var(--dim);
   font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
   padding: .55rem .75rem; text-align: left; cursor: pointer;
   user-select: none; border-bottom: 1px solid var(--border);
@@ -1571,7 +1631,7 @@ td {{
   vertical-align: middle;
 }}
 tr:last-child td {{ border-bottom: none; }}
-tbody tr:hover td {{ background: #232640; }}
+tbody tr:hover td {{ background: #f0f1f8; }}
 tbody tr.hidden {{ display: none; }}
 code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--accent); }}
 
@@ -1582,7 +1642,7 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
 }}
 .bar-track {{
   width: 80px; flex-shrink: 0;
-  height: 8px; background: #2a2e48; border-radius: 4px; overflow: hidden;
+  height: 8px; background: #d4d7e0; border-radius: 4px; overflow: hidden;
 }}
 .bar-fill {{ height: 100%; border-radius: 4px; }}
 .bar-val {{ color: var(--text); }}
@@ -1600,11 +1660,22 @@ code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--acc
 </style>
 </head>
 <body>
+<nav class="site-nav">
+  <a href="/" class="brand">Alex Hiesch</a>
+  <div class="links">
+    <a href="/blog">Blog</a>
+    <a href="/projects">Projects</a>
+    <a href="/about">About</a>
+    <button class="theme-toggle" id="theme-toggle" title="Toggle dark/light theme">Dark</button>
+  </div>
+</nav>
 <h1>llm-bench results</h1>
 <p class="meta">{hw_str} &nbsp;·&nbsp; {ts} &nbsp;·&nbsp; median of 3 runs per test</p>
+<p class="evergreen">Continuously updated as new models drop. Bookmark this page to stay current.</p>
 
 <div class="controls">
-  <input type="search" id="q" placeholder="Search ID or name…">
+  <input type="search" id="q" placeholder="Search ID or model…">
+  <select id="f-model"><option value="">All models</option></select>
   <select id="f-prompt"><option value="">All prompts</option></select>
   <select id="f-backend"><option value="">All backends</option></select>
   <select id="f-fmt"><option value="">All formats</option></select>
@@ -1709,6 +1780,7 @@ function populateSelect(id, key) {{
   const vals = [...new Set(RAW.map(r => r[key]))].sort();
   vals.forEach(v => {{ const o = document.createElement('option'); o.value = o.text = v; sel.appendChild(o); }});
 }}
+populateSelect('f-model',   'model');
 populateSelect('f-prompt',  'prompt');
 populateSelect('f-backend', 'backend');
 populateSelect('f-fmt',     'fmt');
@@ -1720,6 +1792,7 @@ let sortCol = null, sortDir = 1;
 
 function getFiltered() {{
   const q       = document.getElementById('q').value.toLowerCase();
+  const model   = document.getElementById('f-model').value;
   const prompt  = document.getElementById('f-prompt').value;
   const backend = document.getElementById('f-backend').value;
   const fmt     = document.getElementById('f-fmt').value;
@@ -1728,6 +1801,7 @@ function getFiltered() {{
 
   return RAW.filter(r =>
     (!q       || r.id.toLowerCase().includes(q) || r.model.toLowerCase().includes(q)) &&
+    (!model   || r.model   === model)  &&
     (!prompt  || r.prompt  === prompt)  &&
     (!backend || r.backend === backend) &&
     (!fmt     || r.fmt     === fmt)     &&
@@ -1762,17 +1836,33 @@ document.querySelectorAll('th[data-col]').forEach(th => {{
 }});
 
 // ── filter events ────────────────────────────────────────────────────────
-['q','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
+['q','f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
   document.getElementById(id).addEventListener('input', update));
 
 function reset() {{
   document.getElementById('q').value = '';
-  ['f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
+  ['f-model','f-prompt','f-backend','f-fmt','f-quant','f-kv'].forEach(id =>
     document.getElementById(id).value = '');
   sortCol = null; sortDir = 1;
   document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
   update();
 }}
+
+// ── theme toggle ────────────────────────────────────────────────────────
+const themeBtn = document.getElementById('theme-toggle');
+function applyTheme(dark) {{
+  document.documentElement.classList.toggle('dark', dark);
+  themeBtn.textContent = dark ? 'Light' : 'Dark';
+  localStorage.setItem('bench-theme', dark ? 'dark' : 'light');
+}}
+themeBtn.addEventListener('click', () => {{
+  applyTheme(!document.documentElement.classList.contains('dark'));
+}});
+const saved = localStorage.getItem('bench-theme');
+if (saved === 'dark') applyTheme(true);
+else if (saved === 'light') applyTheme(false);
+else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
+else applyTheme(false);
 
 // ── initial render ───────────────────────────────────────────────────────
 update();
