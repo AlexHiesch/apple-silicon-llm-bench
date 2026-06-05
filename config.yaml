@@ -2198,6 +2198,38 @@ tests:
     max_tokens: 2048
     extra_args: ["--reasoning-format", "deepseek"]
 
+  # ── Group V — LiteRT-LM (Google Edge Runtime, Metal GPU) ─────────────────────
+  # LiteRT-LM v0.13.1 — serves all imported models via OpenAI-compatible API on
+  # port 9379. Use model_id "name,gpu" for Metal GPU backend.
+  # Models: gemma4-e2b (2.4GB), gemma4-e4b (3.4GB), gemma4-12b (6.1GB)
+
+  - id: V_E2B_1
+    model: "Gemma4-E2B"
+    group: "V — LiteRT-LM"
+    backend: litert-lm
+    model_id: "gemma4-e2b,gpu"
+    fmt: LiteRT
+    quant: default
+    kv_cache: default
+
+  - id: V_E4B_1
+    model: "Gemma4-E4B"
+    group: "V — LiteRT-LM"
+    backend: litert-lm
+    model_id: "gemma4-e4b,gpu"
+    fmt: LiteRT
+    quant: default
+    kv_cache: default
+
+  - id: V_12B_1
+    model: "Gemma4-12B"
+    group: "V — LiteRT-LM"
+    backend: litert-lm
+    model_id: "gemma4-12b,gpu"
+    fmt: LiteRT
+    quant: default
+    kv_cache: default
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled

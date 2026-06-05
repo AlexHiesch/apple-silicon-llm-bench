@@ -6,7 +6,7 @@ Apples-to-apples comparison across backends, formats and quantizations.
 All test definitions live in config.yaml — no code changes required.
 
 Backends: mlx-lm, mlx-vlm, llama-server (llama.cpp), Ollama,
-          LM Studio, Docker Model Runner, vllm-mlx, omlx
+          LM Studio, Docker Model Runner, vllm-mlx, omlx, litert-lm
 
 Usage:
   python3 benchmark.py                        # Run all enabled tests
@@ -60,6 +60,7 @@ HF_PY = "/Users/HIESCHA/.local/share/uv/tools/mlx-lm/bin/python"
 OLLAMA_PORT = 11434
 LM_STUDIO_PORT = 1234
 DMR_PORT = 12434
+LITERT_LM_PORT = 9379
 DMR_SOCKET = Path.home() / "Library/Containers/com.docker.docker/Data/inference.sock"
 
 # ANSI colours
@@ -578,6 +579,13 @@ def detect_backend_versions() -> dict[str, str]:
                 versions["unsloth-studio"] = f"b{m.group(1)}"
     except Exception:
         pass
+    # litert-lm
+    try:
+        out = subprocess.check_output(["litert-lm", "--version"], stderr=subprocess.STDOUT, text=True)
+        if m := re.search(r"v?([\d.]+)", out):
+            versions["litert-lm"] = m.group(1)
+    except Exception:
+        pass
     return versions
 
 
@@ -605,6 +613,14 @@ def omlx_installed() -> bool:
     try:
         subprocess.check_output(["omlx", "-h"], stderr=subprocess.STDOUT, timeout=5)
         return True
+    except Exception:
+        return False
+
+
+def _litert_lm_running() -> bool:
+    try:
+        with urlopen(f"http://localhost:{LITERT_LM_PORT}/v1/models", timeout=3) as r:
+            return r.status == 200
     except Exception:
         return False
 
@@ -673,6 +689,19 @@ def _auto_prereq(cfg_entry: dict, ollama_ver: tuple[int, ...]) -> str:
             return "dflash not installed (pip install -e vendor/dflash[mlx])"
         return "" if hf_model_cached(model_id) else f"Model not in HF cache: {model_id}"
 
+    if backend == "litert-lm":
+        try:
+            subprocess.check_output(["litert-lm", "--version"], stderr=subprocess.STDOUT, timeout=5)
+        except Exception:
+            return "litert-lm not installed (uv tool install litert-lm)"
+        try:
+            out = subprocess.check_output(["litert-lm", "list"], stderr=subprocess.STDOUT, text=True, timeout=10)
+            if model_id.split(",")[0] not in out:
+                return f"litert-lm model not imported: {model_id} (litert-lm import ...)"
+        except Exception:
+            return "litert-lm list failed"
+        return ""
+
     return ""
 
 
@@ -708,6 +737,7 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
             "ollama": OLLAMA_PORT,
             "lm-studio": LM_STUDIO_PORT,
             "docker-model-runner": DMR_PORT,
+            "litert-lm": LITERT_LM_PORT,
         }.get(backend, bench_port)
 
         no_think_override = entry.get("no_think", None)
@@ -940,6 +970,30 @@ def start_server(test: TestConfig, server_timeout: int):
             return None
         return "docker-model-runner"
 
+    if test.backend == "litert-lm":
+        info(f"LiteRT-LM — checking server on port {LITERT_LM_PORT}")
+        if not _litert_lm_running():
+            kill_port(LITERT_LM_PORT)
+            time.sleep(1)
+            cmd = ["litert-lm", "serve", "--host", "127.0.0.1", "--port", str(LITERT_LM_PORT)]
+            proc = _popen_server(cmd, "LiteRT-LM")
+            if not wait_for_server(LITERT_LM_PORT, server_timeout):
+                err("LiteRT-LM server failed to start")
+                proc.terminate()
+                return None
+        payload = json.dumps({"model": test.model_id,
+                               "messages": [{"role": "user", "content": "hi"}],
+                               "max_tokens": 1, "stream": False}).encode()
+        req = Request(f"http://localhost:{LITERT_LM_PORT}/v1/chat/completions", data=payload,
+                      headers={"Content-Type": "application/json"})
+        try:
+            with urlopen(req, timeout=server_timeout) as r:
+                r.read()
+        except Exception as e:
+            err(f"Failed to preload LiteRT-LM model: {e}")
+            return None
+        return "litert-lm"
+
     err(f"Unknown backend: {test.backend}")
     return None
 
@@ -989,6 +1043,8 @@ def stop_server(proc, test: TestConfig):
                 pass
         return
     if test.backend == "docker-model-runner":
+        return
+    if test.backend == "litert-lm":
         return
     if proc and isinstance(proc, subprocess.Popen):
         proc.terminate()
@@ -1075,6 +1131,10 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
                         if t_first is None:
                             t_first = time.perf_counter()
                         token_count += 1
+                        if token_count >= max_tokens:
+                            break
+                if token_count >= max_tokens:
+                    break
     except Exception as e:
         err(f"Request failed: {e}")
         return {}
@@ -1517,11 +1577,13 @@ def save_results_html(results: list, hardware: dict, path: Path,
         "N": "Gemma4-E2B",
         "O": "Qwen3.6-35B",
         "P": "Qwen3.6-27B",
+        "U": "Gemma4-12B",
     }
     # More specific overrides for multi-model groups
     MODEL_OVERRIDES = {
         "G_2": "Qwen3-Coder-Next", "G_CTX_2": "Qwen3-Coder-Next",
         "I_Q4_2": "Qwen3-Coder-Next", "J_Q4_2": "Qwen3-Coder-Next",
+        "V_E2B_1": "Gemma4-E2B", "V_E4B_1": "Gemma4-E4B", "V_12B_1": "Gemma4-12B",
     }
     for row in rows_data:
         if not row["model"]:
@@ -1960,7 +2022,8 @@ def main():
             err(f"Unknown test IDs: {', '.join(sorted(missing))}")
             return
     elif args.group:
-        selected = [t for t in all_tests if t.group == args.group]
+        selected = [t for t in all_tests if t.group == args.group
+                    or t.group.startswith(args.group + " ")]
     else:
         selected = all_tests
 

@@ -1,0 +1,3 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+V_E2B_1,Gemma4-E2B litert-lm default,Gemma4-E2B,litert-lm,LiteRT,default,default,short,1,35.5,136.1,647.8,503,23,3.72,3.9,0,242,62.1,0,0,0.13.1,,
+V_E2B_1,Gemma4-E2B litert-lm default,Gemma4-E2B,litert-lm,LiteRT,default,default,code,1,180.7,135.0,4156.9,512,751,3.97,3.9,0,224,351.4,0,0,0.13.1,,
