@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+W_QAT_Q4_2,Gemma4-12B Ollama QAT-Q4_0,Gemma4-12B,ollama,GGUF,QAT-Q4_0,default,short,1,413.0,38.7,219.8,512,33,13.63,2.1,0,273,438.4,12161.4,0.0,0.30.5,,
+W_QAT_Q4_2,Gemma4-12B Ollama QAT-Q4_0,Gemma4-12B,ollama,GGUF,QAT-Q4_0,default,short,2,408.4,38.8,219.6,512,33,13.62,2.1,0,273,438.4,12340.8,0.0,0.30.5,,
+W_QAT_Q4_2,Gemma4-12B Ollama QAT-Q4_0,Gemma4-12B,ollama,GGUF,QAT-Q4_0,default,short,3,399.4,38.9,217.2,512,33,13.56,2.1,0,273,438.4,12340.9,0.0,0.30.5,,
+W_QAT_Q4_2,Gemma4-12B Ollama QAT-Q4_0,Gemma4-12B,ollama,GGUF,QAT-Q4_0,default,code,1,396.0,37.8,9527.9,512,857,13.93,2.1,0,203,2206.0,12645.3,0.0,0.30.5,,
+W_QAT_Q4_2,Gemma4-12B Ollama QAT-Q4_0,Gemma4-12B,ollama,GGUF,QAT-Q4_0,default,code,2,397.9,37.7,9641.6,512,857,14.0,2.1,0,203,2206.0,12645.3,0.0,0.30.5,,
+W_QAT_Q4_2,Gemma4-12B Ollama QAT-Q4_0,Gemma4-12B,ollama,GGUF,QAT-Q4_0,default,code,3,381.6,37.8,9447.5,512,857,13.94,2.1,0,203,2206.0,12645.3,0.0,0.30.5,,

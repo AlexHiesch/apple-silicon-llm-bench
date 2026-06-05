@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+W_QAT_Q4_1,Gemma4-12B llama.cpp QAT-Q4_0,Gemma4-12B,llama-server,GGUF,QAT-Q4_0,default,short,1,165.5,41.5,138.9,512,23,12.48,5.1,0,274,240.9,12507.5,0.0,b9430,,
+W_QAT_Q4_1,Gemma4-12B llama.cpp QAT-Q4_0,Gemma4-12B,llama-server,GGUF,QAT-Q4_0,default,short,2,150.8,41.6,152.6,512,23,12.44,5.1,0,274,240.9,12507.6,0.0,b9430,,
+W_QAT_Q4_1,Gemma4-12B llama.cpp QAT-Q4_0,Gemma4-12B,llama-server,GGUF,QAT-Q4_0,default,short,3,150.8,41.6,152.6,512,23,12.44,5.1,0,274,240.9,12507.6,0.0,b9430,,
+W_QAT_Q4_1,Gemma4-12B llama.cpp QAT-Q4_0,Gemma4-12B,llama-server,GGUF,QAT-Q4_0,default,code,1,92.4,40.2,8125.7,512,751,12.82,5.1,0,203,2183.5,12919.0,0.0,b9430,,
+W_QAT_Q4_1,Gemma4-12B llama.cpp QAT-Q4_0,Gemma4-12B,llama-server,GGUF,QAT-Q4_0,default,code,2,99.4,40.0,7556.0,512,751,12.87,5.1,0,203,2183.5,12919.1,0.0,b9430,,
+W_QAT_Q4_1,Gemma4-12B llama.cpp QAT-Q4_0,Gemma4-12B,llama-server,GGUF,QAT-Q4_0,default,code,3,96.0,40.2,7826.2,512,751,12.8,5.1,0,203,2183.5,12919.1,0.0,b9430,,
