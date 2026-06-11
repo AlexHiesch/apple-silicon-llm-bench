@@ -882,9 +882,19 @@ def start_server(test: TestConfig, server_timeout: int):
         time.sleep(1)
         binary = test.server_binary or "llama-server"
         binary = str(Path(binary).expanduser())
-        cmd = [binary, "-m", str(Path(test.model_id).expanduser()),
-               "--port", str(test.port), "--host", "127.0.0.1",
-               "-ngl", "99"] + test.extra_args
+        if test.model_id.startswith("hf:"):
+            parts = test.model_id[3:].split(":", 1)
+            repo = parts[0]
+            filename = parts[1] if len(parts) > 1 else ""
+            cmd = [binary, "--hf-repo", repo]
+            if filename:
+                cmd += ["--hf-file", filename]
+            cmd += ["--port", str(test.port), "--host", "127.0.0.1",
+                    "-ngl", "99"] + test.extra_args
+        else:
+            cmd = [binary, "-m", str(Path(test.model_id).expanduser()),
+                   "--port", str(test.port), "--host", "127.0.0.1",
+                   "-ngl", "99"] + test.extra_args
         return _popen_server(cmd, "llama-server")
 
     if test.backend == "unsloth-studio":

@@ -14,7 +14,6 @@ NUMERIC = {"ttft_ms", "decode_tps", "prefill_tps", "completion_tokens", "prompt_
            "total_time_s", "model_load_s", "thinking_tokens", "visible_tokens",
            "cold_ttft_ms", "peak_mem_mb", "peak_cpu_pct"}
 
-# Map from test_name prefix → clean model name
 MODEL_MAP = {
     "Qwen3.5":          "Qwen3.5-35B-A3B",
     "Coder":            "Qwen3-Coder-Next",
@@ -32,17 +31,36 @@ MODEL_MAP = {
     "Qwen3.6-35B":      "Qwen3.6-35B",
     "Qwen3.6-35B-A3B":  "Qwen3.6-35B-A3B",
     "Qwen3.6":          "Qwen3.6-35B",
+    "LFM2.5-8B":        "LFM2.5-8B",
+    "LFM2-24B":         "LFM2-24B",
+    "Nemotron-Nano":    "Nemotron-Nano-30B",
+    "Nemotron-3-Nano":  "Nemotron-Nano-30B",
+    "NEM3":             "Nemotron-Nano-30B",
+    "Nemotron-Cascade": "Nemotron-Cascade2-30B",
+    "NEMC":             "Nemotron-Cascade2-30B",
+    "GLM-4.7":          "GLM-4.7-Flash",
+    "GLM":              "GLM-4.7-Flash",
+    "Granite-4.1":      "Granite-4.1-8B",
+    "GR41":             "Granite-4.1-8B",
+    "Phi-mini-MoE":     "Phi-mini-MoE",
+    "PHIM":             "Phi-mini-MoE",
+    "Reka-Flash":       "Reka-Flash-3.1",
+    "REKA":             "Reka-Flash-3.1",
+    "Falcon3":          "Falcon3-10B",
+    "FAL3":             "Falcon3-10B",
+    "Laguna":           "Laguna-XS.2",
+    "LAG":              "Laguna-XS.2",
+    "North-Mini-Code":  "North-Mini-Code",
+    "NMC":              "North-Mini-Code",
 }
 
 def extract_model(test_name):
-    """Extract clean model name from test_name."""
     for prefix, model in sorted(MODEL_MAP.items(), key=lambda x: -len(x[0])):
         if test_name.startswith(prefix):
             return model
     return test_name.split()[0] if test_name else "unknown"
 
 def load_all_csvs():
-    """Load all CSVs, keeping only rows with valid data."""
     rows = []
     for csv_path in sorted(RESULTS_DIR.glob("*.csv")):
         with open(csv_path) as f:
@@ -50,7 +68,6 @@ def load_all_csvs():
             for r in reader:
                 if not r.get("test_id") or not r.get("ttft_ms"):
                     continue
-                # Convert numeric fields
                 for k in NUMERIC:
                     if k in r and r[k]:
                         try:
@@ -64,31 +81,24 @@ def load_all_csvs():
     return rows
 
 def deduplicate(rows):
-    """Group by (test_id, prompt_type, backend_version), keep results across
-    different backend versions so version-over-version comparison is visible.
-    Within the same version, take latest source file and compute median."""
     from collections import defaultdict
 
-    # Group by test_id + prompt_type + backend_version + source
     groups = defaultdict(list)
     for r in rows:
         ver = r.get("backend_version", "")
         key = (r["test_id"], r["prompt_type"], ver, r["_source"])
         groups[key].append(r)
 
-    # For each (test_id, prompt_type, version), pick the latest source file
     id_prompt_ver = defaultdict(list)
     for (tid, pt, ver, src), rs in groups.items():
         id_prompt_ver[(tid, pt, ver)].append((src, rs))
 
     results = []
     for (tid, pt, ver), source_groups in id_prompt_ver.items():
-        # Sort by source filename (timestamp-based) and take the latest
         source_groups.sort(key=lambda x: x[0], reverse=True)
         latest_src, latest_rows = source_groups[0]
 
-        # Compute median across runs
-        median_row = dict(latest_rows[0])  # copy first row as template
+        median_row = dict(latest_rows[0])
         for k in NUMERIC:
             vals = [r[k] for r in latest_rows if r[k] > 0]
             if vals:
@@ -96,7 +106,6 @@ def deduplicate(rows):
             else:
                 median_row[k] = 0.0
 
-        # Peak memory: take max, not median
         mem_vals = [r["peak_mem_mb"] for r in latest_rows if r["peak_mem_mb"] > 0]
         if mem_vals:
             median_row["peak_mem_mb"] = max(mem_vals)
@@ -120,38 +129,43 @@ BACKEND_LABELS = {
     "unsloth-studio": "Unsloth Studio",
 }
 
-# Quality + release date per model. Sources:
-#   elo: HF Arena Leaderboard (lmarena-ai/arena-leaderboard, 2025-08-04 snapshot)
-#   aa:  Artificial Analysis Intelligence Index v4.0 (non-reasoning variant; we bench with --no-think)
-#   released: from AA API release_date field
-# All scores are model-level, not quant-specific (Q4 ≈ FP16 within ~1-3%).
 MODEL_META = {
-    "Qwen3-32B":        {"elo": 1341, "aa": 14.5, "released": "2025-04-28"},
-    "Qwen3.5":          {"elo": None, "aa": 30.7, "released": "2026-02-24"},
-    "Qwen3.5-35B-A3B":  {"elo": None, "aa": 30.7, "released": "2026-02-24"},
-    "Qwen3-Coder-Next": {"elo": None, "aa": 28.3, "released": "2026-02-03"},
-    "Coder":            {"elo": None, "aa": 28.3, "released": "2026-02-03"},
-    "Gemma3-27B":       {"elo": 1357, "aa": 10.3, "released": "2025-03-12"},
-    "Gemma4-12B":       {"elo": 1335, "aa": 19.5, "released": "2026-06-03"},
-    "Gemma4-26B-A4B":   {"elo": None, "aa": 27.1, "released": "2026-04-02"},
-    "Gemma4-31B":       {"elo": None, "aa": 32.3, "released": "2026-04-02"},
-    "Gemma4-E4B":       {"elo": 1305, "aa": 14.8, "released": "2026-04-03"},
-    "Gemma4-E2B":       {"elo": None, "aa": 12.1, "released": "2026-04-02"},
-    "Llama3.3-70B":     {"elo": 1275, "aa": 14.5, "released": "2024-12-06"},
-    "Qwen3.6-27B":      {"elo": None, "aa": 37.1, "released": "2026-04-22"},
-    "Qwen3.6-35B":      {"elo": None, "aa": 31.5, "released": "2026-04-16"},
-    "Qwen3.6-35B-A3B":  {"elo": None, "aa": 31.5, "released": "2026-04-16"},
-    "DiffusionGemma":   {"elo": None, "aa": None,  "released": None},
-    "NorthCode":        {"elo": None, "aa": 27.6, "released": "2026-06-09"},
-    "Holo3.1":          {"elo": None, "aa": None,  "released": None},
-    "Qwen3.5-27B":      {"elo": None, "aa": 37.1, "released": "2026-02-24"},
-    "Qwen3.5-122B":     {"elo": None, "aa": 35.9, "released": "2026-02-24"},
-    "MistralSmall4":    {"elo": None, "aa": 27.8, "released": "2026-03-16"},
-    "Devstral2":        {"elo": None, "aa": 22.0, "released": "2025-12-09"},
+    "Qwen3-32B":        {"elo": 1342, "aa": 14.5, "released": "2025-04-28", "provider": "Alibaba"},
+    "Qwen3.5":          {"elo": 1321, "aa": 30.7, "released": "2026-02-24", "provider": "Alibaba"},
+    "Qwen3.5-35B-A3B":  {"elo": 1321, "aa": 30.7, "released": "2026-02-24", "provider": "Alibaba"},
+    "Qwen3-Coder-Next": {"elo": 1354, "aa": 28.3, "released": "2026-02-03", "provider": "Alibaba"},
+    "Coder":            {"elo": 1354, "aa": 28.3, "released": "2026-02-03", "provider": "Alibaba"},
+    "Gemma3-27B":       {"elo": 1358, "aa": 10.3, "released": "2025-03-12", "provider": "Google"},
+    "Gemma4-12B":       {"elo": 1335, "aa": 19.5, "released": "2026-06-03", "provider": "Google"},
+    "Gemma4-26B-A4B":   {"elo": None, "aa": 27.1, "released": "2026-04-02", "provider": "Google"},
+    "Gemma4-31B":       {"elo": None, "aa": 32.3, "released": "2026-04-02", "provider": "Google"},
+    "Gemma4-E4B":       {"elo": 1307, "aa": 14.8, "released": "2026-04-03", "provider": "Google"},
+    "Gemma4-E2B":       {"elo": None, "aa": 12.1, "released": "2026-04-02", "provider": "Google"},
+    "Llama3.3-70B":     {"elo": 1278, "aa": 14.5, "released": "2024-12-06", "provider": "Meta"},
+    "Qwen3.6-27B":      {"elo": None, "aa": 37.1, "released": "2026-04-22", "provider": "Alibaba"},
+    "Qwen3.6-35B":      {"elo": None, "aa": 31.5, "released": "2026-04-16", "provider": "Alibaba"},
+    "Qwen3.6-35B-A3B":  {"elo": None, "aa": 31.5, "released": "2026-04-16", "provider": "Alibaba"},
+    "DiffusionGemma":   {"elo": None, "aa": None,  "released": None, "provider": "Google"},
+    "NorthCode":        {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
+    "Holo3.1":          {"elo": None, "aa": None,  "released": None, "provider": "Holocene"},
+    "Qwen3.5-27B":      {"elo": 1321, "aa": 37.1, "released": "2026-02-24", "provider": "Alibaba"},
+    "Qwen3.5-122B":     {"elo": None, "aa": 35.9, "released": "2026-02-24", "provider": "Alibaba"},
+    "MistralSmall4":    {"elo": 1341, "aa": 27.8, "released": "2026-03-16", "provider": "Mistral"},
+    "Devstral2":        {"elo": None, "aa": 22.0, "released": "2025-12-09", "provider": "Mistral"},
+    "LFM2.5-8B":        {"elo": None, "aa": None,  "released": "2026-05-24", "provider": "Liquid AI"},
+    "LFM2-24B":         {"elo": None, "aa": None,  "released": "2026-02-17", "provider": "Liquid AI"},
+    "Nemotron-Nano-30B":     {"elo": None, "aa": 28.5, "released": "2026-05-19", "provider": "NVIDIA"},
+    "Nemotron-Cascade2-30B": {"elo": None, "aa": None,  "released": "2026-05-19", "provider": "NVIDIA"},
+    "GLM-4.7-Flash":         {"elo": None, "aa": None,  "released": "2026-04-30", "provider": "Zhipu AI"},
+    "Granite-4.1-8B":        {"elo": None, "aa": None,  "released": "2026-05-28", "provider": "IBM"},
+    "Phi-mini-MoE":          {"elo": None, "aa": None,  "released": "2025-08-12", "provider": "Microsoft"},
+    "Reka-Flash-3.1":        {"elo": None, "aa": None,  "released": "2026-04-15", "provider": "Reka"},
+    "Falcon3-10B":           {"elo": None, "aa": None,  "released": "2024-12-12", "provider": "TII"},
+    "Laguna-XS.2":           {"elo": None, "aa": None,  "released": "2026-05-07", "provider": "Poolside"},
+    "North-Mini-Code":       {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
 }
 
 def _parse_bench_date(source_filename):
-    """Extract YYYY-MM-DD from bench_YYYYMMDD_... or backend_retest_YYYYMMDD_... filenames."""
     import re
     m = re.search(r'_(\d{4})(\d{2})(\d{2})_', source_filename)
     if m:
@@ -159,7 +173,6 @@ def _parse_bench_date(source_filename):
     return None
 
 def build_json_rows(rows):
-    """Convert to the JSON format expected by the HTML template."""
     json_rows = []
     for r in rows:
         raw_backend = r.get("backend", "")
@@ -169,30 +182,27 @@ def build_json_rows(rows):
             "id": r.get("test_id", ""),
             "name": r.get("test_name", ""),
             "model": model,
+            "provider": meta.get("provider", ""),
             "backend": BACKEND_LABELS.get(raw_backend, raw_backend),
             "ver": r.get("backend_version", ""),
             "fmt": r.get("fmt", ""),
             "quant": r.get("quant", ""),
             "kv": r.get("kv_cache", ""),
             "prompt": r.get("prompt_type", ""),
-            "ttft": r.get("ttft_ms", 0),
-            "cold": r.get("cold_ttft_ms", 0),
-            "decode": r.get("decode_tps", 0),
-            "prefill": r.get("prefill_tps", 0),
+            "ttft": round(r.get("ttft_ms", 0), 1),
+            "cold": round(r.get("cold_ttft_ms", 0), 1),
+            "decode": round(r.get("decode_tps", 0), 1),
+            "prefill": round(r.get("prefill_tps", 0), 1),
             "tokens": int(r.get("completion_tokens", 0)),
-            "total": r.get("total_time_s", 0),
-            "mem_mb": r.get("peak_mem_mb", 0),
-            "tool": r.get("tool_call_valid", ""),
-            "quality": r.get("quality_pass", ""),
+            "total": round(r.get("total_time_s", 0), 2),
+            "mem_mb": round(r.get("peak_mem_mb", 0), 0),
             "elo": meta.get("elo"),
             "aa": meta.get("aa"),
             "released": meta.get("released"),
             "bench_date": _parse_bench_date(r.get("_source", "")),
         })
 
-    # Sort: by model, then backend, then ver (descending so newest first), then id, then prompt
-    json_rows.sort(key=lambda r: (r["model"], r["backend"], r["ver"] or "zzz", r["id"], r["prompt"]),
-                   reverse=False)
+    json_rows.sort(key=lambda r: (r["model"], r["backend"], r["ver"] or "zzz", r["id"], r["prompt"]))
     return json_rows
 
 def generate_html(json_rows, total_raw):
@@ -205,388 +215,523 @@ def generate_html(json_rows, total_raw):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>llm-bench — Apple M3 Max · 64GB</title>
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@35.3.1/dist/ag-grid-community.min.js"></script>
 <style>
 :root {{
-  --bg: #0f1117; --card: #1a1d27; --card2: #1e2133;
-  --border: #2d3148; --text: #e2e4f0; --dim: #7b7f9e;
-  --green: #4ade80; --red: #f87171; --accent: #6366f1;
-  --yellow: #fbbf24; --sort-arrow: #6366f1;
-  --th-bg: #22253a; --row-hover: #232640; --bar-track: #2a2e48;
-  --nav-bg: rgba(28,25,23,0.85); --nav-text: #a8a29e;
-  --nav-hover: rgba(255,255,255,0.08); --nav-active: #fff;
-  --shadow: #0008;
-  --bar-l: 45%;
+  --bg: #09090b; --bg2: #111114; --card: #18181b;
+  --border: #27272a; --border2: #3f3f46;
+  --text: #fafafa; --text2: #a1a1aa; --dim: #71717a;
+  --accent: #818cf8; --accent2: #6366f1;
+  --green: #34d399; --red: #f87171; --yellow: #fbbf24; --blue: #60a5fa;
+  --nav-bg: rgba(9,9,11,0.88); --nav-text: #a1a1aa;
+  --nav-hover: rgba(255,255,255,0.06); --nav-active: #fafafa;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --radius: 10px;
+}}
+html.light {{
+  --bg: #fafafa; --bg2: #f4f4f5; --card: #ffffff;
+  --border: #e4e4e7; --border2: #d4d4d8;
+  --text: #18181b; --text2: #52525b; --dim: #a1a1aa;
+  --accent: #6366f1; --accent2: #4f46e5;
+  --green: #059669; --red: #dc2626; --yellow: #d97706; --blue: #2563eb;
+  --nav-bg: rgba(250,250,250,0.88); --nav-text: #71717a;
+  --nav-hover: rgba(0,0,0,0.04); --nav-active: #18181b;
+  --shadow: 0 4px 24px rgba(0,0,0,.08);
 }}
 @media (prefers-color-scheme: light) {{
-  :root {{
-    --bg: #f5f5f4; --card: #ffffff; --card2: #fafaf9;
-    --border: #d6d3d1; --text: #1c1917; --dim: #78716c;
-    --green: #16a34a; --red: #dc2626; --accent: #4f46e5;
-    --yellow: #d97706; --sort-arrow: #4f46e5;
-    --th-bg: #f5f5f4; --row-hover: #fafaf9; --bar-track: #e7e5e4;
-    --nav-bg: rgba(245,245,244,0.85); --nav-text: #57534e;
-    --nav-hover: rgba(0,0,0,0.05); --nav-active: #1c1917;
-    --shadow: #0002;
-    --bar-l: 40%;
+  html:not(.dark) {{
+    --bg: #fafafa; --bg2: #f4f4f5; --card: #ffffff;
+    --border: #e4e4e7; --border2: #d4d4d8;
+    --text: #18181b; --text2: #52525b; --dim: #a1a1aa;
+    --accent: #6366f1; --accent2: #4f46e5;
+    --green: #059669; --red: #dc2626; --yellow: #d97706; --blue: #2563eb;
+    --nav-bg: rgba(250,250,250,0.88); --nav-text: #71717a;
+    --nav-hover: rgba(0,0,0,0.04); --nav-active: #18181b;
+    --shadow: 0 4px 24px rgba(0,0,0,.08);
   }}
 }}
 * {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
   background: var(--bg); color: var(--text);
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: 13px; padding: 1.5rem 2rem; min-width: 900px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  font-size: 13px; padding: 0;
+  -webkit-font-smoothing: antialiased;
 }}
-h1 {{ font-size: 1.3rem; color: var(--accent); margin-bottom: .2rem; }}
-.meta {{ color: var(--dim); font-size: .82rem; margin-bottom: 1.2rem; }}
+
+/* ── Nav ── */
+.site-nav {{
+  position: sticky; top: 0; z-index: 100;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  display: flex; align-items: center; height: 48px; gap: 1rem;
+}}
+.site-nav a {{
+  color: var(--nav-text); text-decoration: none; font-size: 13px;
+  padding: 5px 12px; border-radius: 6px;
+  transition: all .15s ease;
+}}
+.site-nav a:hover {{ color: var(--nav-active); background: var(--nav-hover); }}
+.site-nav .active {{ color: var(--nav-active); background: var(--nav-hover); }}
+.site-nav .back {{
+  display: flex; align-items: center; gap: 5px;
+  margin-right: auto; font-size: 12px; font-weight: 500;
+}}
+.site-nav .back svg {{ width: 14px; height: 14px; stroke: currentColor; fill: none; }}
+.theme-btn {{
+  background: var(--nav-hover); border: 1px solid var(--border);
+  color: var(--nav-text); border-radius: 6px; padding: 5px 9px;
+  cursor: pointer; font-size: 13px; line-height: 1;
+  transition: all .15s ease; display: flex; align-items: center;
+}}
+.theme-btn:hover {{ color: var(--nav-active); border-color: var(--accent); background: var(--nav-hover); }}
+body.in-iframe .site-nav {{ display: none; }}
+
+/* ── Page ── */
+.page-wrap {{ padding: 1.8rem 2rem 1.5rem; max-width: 100%; }}
+.header {{ margin-bottom: 1.5rem; }}
+.header h1 {{
+  font-size: 1.5rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: .3rem;
+}}
+.header .meta {{
+  color: var(--text2); font-size: .82rem;
+  display: flex; flex-wrap: wrap; gap: .3rem 1.2rem;
+}}
+.header .meta span {{ display: inline-flex; align-items: center; gap: .3rem; }}
+.header .meta .dot {{ width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }}
 
 /* ── Controls ── */
 .controls {{
   display: flex; flex-wrap: wrap; gap: .5rem;
   align-items: center; margin-bottom: .8rem;
 }}
-.controls input[type=search] {{
-  background: var(--card2); border: 1px solid var(--border);
-  color: var(--text); border-radius: 5px; padding: .35rem .6rem;
-  font-size: 12px; width: 180px; outline: none;
+.search-wrap {{
+  position: relative; display: flex; align-items: center;
 }}
-.controls input[type=search]:focus {{ border-color: var(--accent); }}
-.controls select {{
-  background: var(--card2); border: 1px solid var(--border);
-  color: var(--text); border-radius: 5px; padding: .33rem .5rem;
-  font-size: 12px; outline: none; cursor: pointer;
+.search-wrap svg {{
+  position: absolute; left: 10px; width: 14px; height: 14px;
+  stroke: var(--dim); fill: none; pointer-events: none;
 }}
-.controls select:focus {{ border-color: var(--accent); }}
-.btn-reset {{
-  background: transparent; border: 1px solid var(--border);
-  color: var(--dim); border-radius: 5px; padding: .33rem .8rem;
-  font-size: 12px; cursor: pointer; transition: .15s;
+.search-wrap input {{
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: .45rem .7rem .45rem 32px;
+  font-size: 12px; width: 280px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
 }}
-.btn-reset:hover {{ border-color: var(--accent); color: var(--accent); }}
-.count {{ color: var(--dim); font-size: 11px; margin-left: auto; }}
+.search-wrap input:focus {{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}}
+.btn {{
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text2); border-radius: 8px; padding: .42rem 1rem;
+  font-size: 12px; cursor: pointer; transition: all .15s ease;
+  font-weight: 500;
+}}
+.btn:hover {{ border-color: var(--accent); color: var(--accent); }}
+.btn-accent {{
+  background: var(--accent); border-color: var(--accent);
+  color: #fff;
+}}
+.btn-accent:hover {{ background: var(--accent2); border-color: var(--accent2); color: #fff; }}
+.stats {{
+  margin-left: auto; display: flex; gap: 1rem; align-items: center;
+}}
+.stat {{
+  display: flex; flex-direction: column; align-items: center;
+  padding: .2rem .8rem; border-radius: 6px;
+  background: var(--bg2); border: 1px solid var(--border);
+}}
+.stat-val {{ font-size: 14px; font-weight: 700; color: var(--accent); line-height: 1.2; }}
+.stat-label {{ font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }}
 
-/* ── Table ── */
-.table-wrap {{ overflow-x: auto; border-radius: 8px; box-shadow: 0 2px 16px var(--shadow); }}
-table {{
-  width: 100%; border-collapse: collapse;
-  background: var(--card); white-space: nowrap;
+/* ── Grid ── */
+#grid-container {{
+  width: 100%;
+  height: calc(100vh - 240px);
+  min-height: 450px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
 }}
-thead {{ position: sticky; top: 0; z-index: 2; }}
-th {{
-  background: var(--th-bg); color: var(--dim);
-  font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
-  padding: .55rem .75rem; text-align: left; cursor: pointer;
-  user-select: none; border-bottom: 1px solid var(--border);
-  white-space: nowrap;
-}}
-th:hover {{ color: var(--text); }}
-th.sort-asc  .arrow::after {{ content: " ▲"; color: var(--sort-arrow); font-size: .75em; }}
-th.sort-desc .arrow::after {{ content: " ▼"; color: var(--sort-arrow); font-size: .75em; }}
-th .arrow {{ display: inline; }}
-td {{
-  padding: .42rem .75rem; border-bottom: 1px solid var(--border);
-  vertical-align: middle;
-}}
-tr:last-child td {{ border-bottom: none; }}
-tbody tr:hover td {{ background: var(--row-hover); }}
-tbody tr.hidden {{ display: none; }}
-code {{ font-family: ui-monospace, monospace; font-size: .82em; color: var(--accent); }}
 
-/* ── Bar ── */
-.bar-cell {{
-  display: flex; align-items: center; gap: .5rem;
-  min-width: 160px;
+/* ── AG Grid overrides ── */
+.ag-theme-quartz, .ag-theme-quartz-dark {{
+  --ag-font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  --ag-font-size: 12px;
+  --ag-row-height: 34px;
+  --ag-header-height: 38px;
+  --ag-grid-size: 4px;
 }}
-.bar-track {{
-  width: 80px; flex-shrink: 0;
-  height: 8px; background: var(--bar-track); border-radius: 4px; overflow: hidden;
+.ag-theme-quartz-dark {{
+  --ag-background-color: #111114;
+  --ag-header-background-color: #18181b;
+  --ag-odd-row-background-color: #141417;
+  --ag-row-hover-color: #1e1e24;
+  --ag-border-color: #27272a;
+  --ag-secondary-border-color: #27272a;
+  --ag-header-foreground-color: #a1a1aa;
+  --ag-foreground-color: #e4e4e7;
 }}
-.bar-fill {{ height: 100%; border-radius: 4px; }}
-.bar-val {{ color: var(--text); }}
+.ag-theme-quartz {{
+  --ag-background-color: #ffffff;
+  --ag-header-background-color: #fafafa;
+  --ag-odd-row-background-color: #fafafa;
+  --ag-row-hover-color: #f4f4f5;
+  --ag-border-color: #e4e4e7;
+  --ag-secondary-border-color: #e4e4e7;
+  --ag-header-foreground-color: #52525b;
+  --ag-foreground-color: #18181b;
+}}
 
-/* ── Badges ── */
-.pass {{ color: var(--green); font-weight: 600; }}
-.fail {{ color: var(--red); }}
-.dim  {{ color: var(--dim); }}
+/* Custom floating filter select styling */
+.custom-select-filter {{
+  width: 100%; height: 24px;
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 4px;
+  font-size: 11px; padding: 0 4px;
+  outline: none; cursor: pointer;
+}}
+.custom-select-filter:focus {{ border-color: var(--accent); }}
 
 /* ── Legend ── */
 .legend {{
-  margin-top: 1rem; color: var(--dim);
-  font-size: .76rem; line-height: 1.8; max-width: 900px;
+  margin-top: 1.2rem; color: var(--dim);
+  font-size: .75rem; line-height: 1.9;
+  padding: 1rem 1.2rem; border-radius: var(--radius);
+  background: var(--bg2); border: 1px solid var(--border);
 }}
-
-/* ── Site nav (hidden when embedded in iframe) ── */
-.site-nav {{
-  position: sticky; top: 0; z-index: 100;
-  background: var(--nav-bg);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 2rem; margin: -1.5rem -2rem 1.5rem -2rem;
-  display: flex; align-items: center; height: 48px; gap: 1.5rem;
-}}
-.site-nav a {{
-  color: var(--nav-text); text-decoration: none; font-size: 13px;
-  padding: 4px 10px; border-radius: 6px;
-  transition: color .15s, background .15s;
-}}
-.site-nav a:hover {{ color: var(--nav-active); background: var(--nav-hover); }}
-.site-nav .active {{ color: var(--nav-active); background: var(--nav-hover); }}
-.site-nav .back {{
-  display: flex; align-items: center; gap: 4px;
-  margin-right: auto; font-size: 12px;
-}}
-.site-nav .back svg {{ width: 14px; height: 14px; stroke: currentColor; fill: none; }}
-body.in-iframe .site-nav {{ display: none; }}
-body.in-iframe {{ padding-top: .5rem; }}
+.legend strong {{ color: var(--text2); }}
 </style>
 </head>
 <body>
-<script>if (window !== window.top) document.body.classList.add('in-iframe');</script>
+<script>
+if (window !== window.top) document.body.classList.add('in-iframe');
+(function() {{
+  const html = document.documentElement;
+  const stored = localStorage.getItem('bench-theme');
+  if (stored === 'light') html.classList.add('light');
+  else if (stored === 'dark') html.classList.add('dark');
+}})();
+</script>
 
 <nav class="site-nav">
   <a href="/projects/llm-benchmark-harness/" class="back">
     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-    Back to project
+    Project
   </a>
   <a href="/blog">Blog</a>
   <a href="/projects" class="active">Projects</a>
   <a href="/about">About</a>
+  <button class="theme-btn" id="theme-toggle" title="Toggle theme">
+    <svg id="theme-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
 </nav>
 
-<h1>llm-bench results</h1>
-<p class="meta">Apple M3 Max · 64 GB &nbsp;·&nbsp; {now} &nbsp;·&nbsp; {len(json_rows)} configs (median of 3 runs) &nbsp;·&nbsp; {total_raw} total measurements</p>
+<div class="page-wrap">
+<div class="header">
+  <h1>llm-bench</h1>
+  <div class="meta">
+    <span><span class="dot"></span> Apple M3 Max · 64 GB</span>
+    <span>{now}</span>
+    <span>{len(json_rows)} configs</span>
+    <span>{total_raw} measurements</span>
+    <span>median of 3 runs</span>
+  </div>
+</div>
 
 <div class="controls">
-  <input type="search" id="q" placeholder="Search ID or name…">
-  <select id="f-prompt"><option value="">All prompts</option></select>
-  <select id="f-backend"><option value="">All backends</option></select>
-  <select id="f-model"><option value="">All models</option></select>
-  <select id="f-fmt"><option value="">All formats</option></select>
-  <select id="f-quant"><option value="">All quants</option></select>
-  <select id="f-kv"><option value="">All KV</option></select>
-  <select id="f-ver"><option value="">All versions</option></select>
-  <button class="btn-reset" onclick="reset()">Reset</button>
-  <span class="count" id="count"></span>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" id="q" placeholder="Search all columns…">
+  </div>
+  <button class="btn" id="btn-reset">Reset</button>
+  <button class="btn" id="btn-export">Export CSV</button>
+  <div class="stats">
+    <div class="stat"><span class="stat-val" id="stat-shown">{len(json_rows)}</span><span class="stat-label">shown</span></div>
+    <div class="stat"><span class="stat-val">{len(json_rows)}</span><span class="stat-label">configs</span></div>
+    <div class="stat"><span class="stat-val">{total_raw}</span><span class="stat-label">runs</span></div>
+  </div>
 </div>
 
-<div class="table-wrap">
-<table id="tbl">
-<thead>
-<tr>
-  <th data-col="id"         data-type="str"><span class="arrow">ID</span></th>
-  <th data-col="model"      data-type="str"><span class="arrow">Model</span></th>
-  <th data-col="released"   data-type="str"><span class="arrow">Released</span></th>
-  <th data-col="elo"        data-type="num"><span class="arrow">Arena ELO</span></th>
-  <th data-col="aa"         data-type="num"><span class="arrow">AA Index</span></th>
-  <th data-col="prompt"     data-type="str"><span class="arrow">Prompt</span></th>
-  <th data-col="backend" data-type="str"><span class="arrow">Backend</span></th>
-  <th data-col="ver"     data-type="str"><span class="arrow">Ver</span></th>
-  <th data-col="fmt"     data-type="str"><span class="arrow">Fmt</span></th>
-  <th data-col="quant"   data-type="str"><span class="arrow">Quant</span></th>
-  <th data-col="kv"      data-type="str"><span class="arrow">KV Cache</span></th>
-  <th data-col="ttft"    data-type="num"><span class="arrow">TTFT</span></th>
-  <th data-col="decode"  data-type="num"><span class="arrow">Decode</span></th>
-  <th data-col="prefill" data-type="num"><span class="arrow">Prefill</span></th>
-  <th data-col="tokens"  data-type="num"><span class="arrow">Tokens</span></th>
-  <th data-col="total"      data-type="num"><span class="arrow">Total</span></th>
-  <th data-col="mem_mb"     data-type="num"><span class="arrow">Peak RSS</span></th>
-  <th data-col="bench_date" data-type="str"><span class="arrow">Benched</span></th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-</div>
+<div id="grid-container"></div>
 
-<p class="legend">
-  <strong>Arena ELO</strong> = LMSYS Chatbot Arena score (model-level, Dec 2025; higher = smarter) &nbsp;·&nbsp;
-  <strong>AA Index</strong> = Artificial Analysis Intelligence Index v4.0 (0–60 scale, non-reasoning variant; higher = smarter) &nbsp;·&nbsp;
-  <strong>TTFT</strong> = time to first token (warm, with prefix cache where available) &nbsp;·&nbsp;
-  <strong>Cold</strong> = first-request TTFT (shown in parentheses when &gt;1.5× warm) &nbsp;·&nbsp;
-  <strong>Decode</strong> = generation tokens/s &nbsp;·&nbsp;
-  <strong>Prefill</strong> = prompt eval tokens/s &nbsp;·&nbsp;
-  <strong>Total</strong> = wall-clock time for full response &nbsp;·&nbsp;
-  <strong>Peak RSS</strong> = process tree RAM during inference.
-  All values are median of 3 runs except Peak RSS (max).
-  Arena ELO is model-level quality (not quant-specific); Q4 ≈ FP16 within ~1–3% quality loss.
-  Backends: mlx-lm 0.31.2–0.31.3, mlx-vlm 0.4.3/0.4.4, Ollama 0.19–0.21, oMLX 0.3.4, llama.cpp b5220–b9590, vllm-mlx 0.1–0.2.9, LiteRT-LM 0.13.1, LM Studio, Docker Model Runner.
-</p>
+<div class="legend">
+  <strong>Arena ELO</strong> = LMSYS Chatbot Arena (model-level; higher = smarter) &nbsp;·&nbsp;
+  <strong>AA Index</strong> = Artificial Analysis Intelligence Index v4 (0–60, non-reasoning) &nbsp;·&nbsp;
+  <strong>TTFT</strong> = time to first token (warm, ms) &nbsp;·&nbsp;
+  <strong>Cold</strong> = first-request TTFT &nbsp;·&nbsp;
+  <strong>Decode</strong> = generation t/s &nbsp;·&nbsp;
+  <strong>Prefill</strong> = prompt eval t/s &nbsp;·&nbsp;
+  <strong>Total</strong> = wall-clock seconds &nbsp;·&nbsp;
+  <strong>Peak RSS</strong> = max process RAM.
+  Median of 3 runs (Peak RSS = max). Q4 ≈ FP16 quality within ~1–3%.
+</div>
+</div>
 
 <script>
 const RAW = {data_json};
+const TOTAL = RAW.length;
 
-const promptRange = {{}};
-for (const r of RAW) {{
-  if (!promptRange[r.prompt]) promptRange[r.prompt] = {{min: Infinity, max: -Infinity}};
-  promptRange[r.prompt].max = Math.max(promptRange[r.prompt].max, r.decode);
-  promptRange[r.prompt].min = Math.min(promptRange[r.prompt].min, r.decode);
+// ── Theme ──
+function getThemeClass() {{
+  const html = document.documentElement;
+  if (html.classList.contains('light')) return 'light';
+  if (html.classList.contains('dark')) return 'dark';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }}
 
-function barHtml(decode, prompt) {{
-  const range = promptRange[prompt] || {{min: 0, max: 1}};
-  const span = range.max - range.min || 1;
-  const pct = Math.max(4, Math.round(100 * (decode - range.min) / span));
-  const hue = Math.round(pct);
-  const color = `hsl(${{hue}},65%,var(--bar-l))`;
-  return `<div class="bar-cell">
-    <div class="bar-track"><div class="bar-fill" style="width:${{pct}}%;background:${{color}}"></div></div>
-    <span class="bar-val">${{decode.toFixed(1)}} t/s</span>
+function applyGridTheme() {{
+  const c = document.getElementById('grid-container');
+  c.className = getThemeClass() === 'dark' ? 'ag-theme-quartz-dark' : 'ag-theme-quartz';
+}}
+
+document.getElementById('theme-toggle').addEventListener('click', function() {{
+  const html = document.documentElement;
+  const icon = document.getElementById('theme-icon');
+  if (html.classList.contains('light')) {{
+    html.classList.remove('light'); html.classList.add('dark');
+    localStorage.setItem('bench-theme', 'dark');
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }} else if (html.classList.contains('dark')) {{
+    html.classList.remove('dark');
+    localStorage.removeItem('bench-theme');
+    icon.innerHTML = '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>';
+  }} else {{
+    html.classList.add('light');
+    localStorage.setItem('bench-theme', 'light');
+    icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  }}
+  applyGridTheme();
+}});
+
+(function() {{
+  const stored = localStorage.getItem('bench-theme');
+  const icon = document.getElementById('theme-icon');
+  if (stored === 'dark') icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  else if (!stored) icon.innerHTML = '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>';
+}})();
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {{
+  if (!localStorage.getItem('bench-theme')) applyGridTheme();
+}});
+
+// ── Custom Select Floating Filter (text columns) ──
+class SelectFloatingFilter {{
+  init(params) {{
+    this.params = params;
+    this.eGui = document.createElement('div');
+    this.eGui.style.width = '100%';
+    this.eGui.style.padding = '2px 4px';
+
+    const select = document.createElement('select');
+    select.className = 'custom-select-filter';
+
+    const allOpt = document.createElement('option');
+    allOpt.value = ''; allOpt.text = 'All';
+    select.appendChild(allOpt);
+
+    const field = params.column.getColDef().field;
+    const values = [...new Set(RAW.map(r => r[field]).filter(v => v != null && v !== ''))].sort();
+    values.forEach(v => {{
+      const opt = document.createElement('option');
+      opt.value = v; opt.text = v;
+      select.appendChild(opt);
+    }});
+
+    select.addEventListener('change', () => {{
+      if (select.value === '') {{
+        params.parentFilterInstance(instance => instance.setModel(null));
+      }} else {{
+        params.parentFilterInstance(instance => instance.setModel({{
+          type: 'equals', filter: select.value
+        }}));
+      }}
+    }});
+
+    this.select = select;
+    this.eGui.appendChild(select);
+  }}
+  getGui() {{ return this.eGui; }}
+  onParentModelChanged(model) {{
+    this.select.value = model ? (model.filter || '') : '';
+  }}
+}}
+
+// ── Custom Select Floating Filter (number columns) ──
+class SelectNumberFloatingFilter {{
+  init(params) {{
+    this.params = params;
+    this.eGui = document.createElement('div');
+    this.eGui.style.width = '100%';
+    this.eGui.style.padding = '2px 4px';
+
+    const select = document.createElement('select');
+    select.className = 'custom-select-filter';
+
+    const allOpt = document.createElement('option');
+    allOpt.value = ''; allOpt.text = 'All';
+    select.appendChild(allOpt);
+
+    const field = params.column.getColDef().field;
+    const values = [...new Set(RAW.map(r => r[field]).filter(v => v != null && v > 0))].sort((a,b) => a - b);
+    values.forEach(v => {{
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.text = field === 'mem_mb' ? (v >= 1024 ? (v/1024).toFixed(1)+'G' : Math.round(v)+'M')
+               : field === 'ttft' || field === 'cold' ? (v >= 1000 ? (v/1000).toFixed(1)+'s' : Math.round(v)+'ms')
+               : field === 'total' ? v.toFixed(1)+'s'
+               : field === 'aa' ? v.toFixed(1)
+               : v;
+      select.appendChild(opt);
+    }});
+
+    select.addEventListener('change', () => {{
+      if (select.value === '') {{
+        params.parentFilterInstance(instance => instance.setModel(null));
+      }} else {{
+        params.parentFilterInstance(instance => instance.setModel({{
+          type: 'equals', filter: Number(select.value)
+        }}));
+      }}
+    }});
+
+    this.select = select;
+    this.eGui.appendChild(select);
+  }}
+  getGui() {{ return this.eGui; }}
+  onParentModelChanged(model) {{
+    this.select.value = model ? String(model.filter || '') : '';
+  }}
+}}
+
+// ── Decode bar renderer ──
+function decodeRenderer(params) {{
+  if (!params.value || params.value <= 0) return '<span style="color:var(--dim)">—</span>';
+  const maxDecode = Math.max(...RAW.filter(r => r.prompt === params.data.prompt).map(r => r.decode));
+  const pct = Math.max(5, Math.round(100 * params.value / maxDecode));
+  const hue = Math.round(pct * 1.2);
+  return `<div style="display:flex;align-items:center;gap:8px;height:100%">
+    <div style="width:70px;height:7px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0">
+      <div style="width:${{pct}}%;height:100%;border-radius:4px;background:hsl(${{hue}},60%,48%)"></div>
+    </div>
+    <span>${{params.value.toFixed(1)}}</span>
   </div>`;
 }}
 
-function fmtTTFT(r) {{
-  const cold = r.cold > r.ttft * 1.5 && r.cold > 500
-    ? ` <span class="dim">(c:${{(r.cold/1000).toFixed(1)}}s)</span>` : '';
-  if (r.ttft >= 1000) return `${{(r.ttft/1000).toFixed(1)}}s${{cold}}`;
-  return `${{r.ttft.toFixed(0)}} ms${{cold}}`;
+// ── Column definitions ──
+const columnDefs = [
+  {{ field: 'id', headerName: 'ID', minWidth: 100, pinned: 'left',
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter,
+    cellStyle: {{ fontFamily: 'ui-monospace, monospace', fontSize: '11px', color: 'var(--accent)' }} }},
+  {{ field: 'model', headerName: 'Model', minWidth: 120,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter,
+    cellStyle: {{ fontWeight: 600 }} }},
+  {{ field: 'provider', headerName: 'Provider', minWidth: 80,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter }},
+  {{ field: 'elo', headerName: 'ELO', minWidth: 95,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value || '—',
+    cellStyle: p => p.value ? {{color: 'var(--yellow)', fontWeight: 600}} : {{color: 'var(--dim)'}} }},
+  {{ field: 'aa', headerName: 'AA', minWidth: 90,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value ? p.value.toFixed(1) : '—',
+    cellStyle: p => p.value ? {{color: 'var(--green)', fontWeight: 600}} : {{color: 'var(--dim)'}} }},
+  {{ field: 'prompt', headerName: 'Prompt', minWidth: 75,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter }},
+  {{ field: 'backend', headerName: 'Backend', minWidth: 90,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter }},
+  {{ field: 'ver', headerName: 'Ver', minWidth: 70,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter,
+    valueFormatter: p => p.value || '—', cellStyle: p => !p.value ? {{color: 'var(--dim)'}} : null }},
+  {{ field: 'fmt', headerName: 'Fmt', minWidth: 60,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter }},
+  {{ field: 'quant', headerName: 'Quant', minWidth: 75,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter }},
+  {{ field: 'kv', headerName: 'KV', minWidth: 70,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter }},
+  {{ field: 'ttft', headerName: 'TTFT', minWidth: 80,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value >= 1000 ? (p.value/1000).toFixed(1)+'s' : Math.round(p.value)+'ms' }},
+  {{ field: 'cold', headerName: 'Cold', minWidth: 75,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value > 0 ? (p.value >= 1000 ? (p.value/1000).toFixed(1)+'s' : Math.round(p.value)+'ms') : '—',
+    cellStyle: p => !p.value ? {{color: 'var(--dim)'}} : null }},
+  {{ field: 'decode', headerName: 'Decode t/s', minWidth: 145, sort: 'desc',
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    cellRenderer: decodeRenderer }},
+  {{ field: 'prefill', headerName: 'Prefill', minWidth: 80,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value > 0 ? Math.round(p.value)+' t/s' : '—',
+    cellStyle: p => !p.value ? {{color: 'var(--dim)'}} : null }},
+  {{ field: 'tokens', headerName: 'Tok', minWidth: 80,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter }},
+  {{ field: 'total', headerName: 'Total', minWidth: 70,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value > 0 ? p.value.toFixed(1)+'s' : '—' }},
+  {{ field: 'mem_mb', headerName: 'RSS', minWidth: 80,
+    filter: 'agNumberColumnFilter', floatingFilterComponent: SelectNumberFloatingFilter,
+    valueFormatter: p => p.value > 0 ? (p.value >= 1024 ? (p.value/1024).toFixed(1)+'G' : Math.round(p.value)+'M') : '—',
+    cellStyle: p => !p.value ? {{color: 'var(--dim)'}} : null }},
+  {{ field: 'released', headerName: 'Released', minWidth: 90,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter,
+    valueFormatter: p => p.value || '—', cellStyle: p => !p.value ? {{color: 'var(--dim)'}} : {{color: 'var(--text2)'}} }},
+  {{ field: 'bench_date', headerName: 'Benched', minWidth: 90,
+    filter: 'agTextColumnFilter', floatingFilterComponent: SelectFloatingFilter,
+    valueFormatter: p => p.value || '—', cellStyle: p => !p.value ? {{color: 'var(--dim)'}} : {{color: 'var(--text2)'}} }},
+];
+
+// ── Grid init ──
+applyGridTheme();
+const gridOptions = {{
+  columnDefs,
+  rowData: RAW,
+  defaultColDef: {{
+    sortable: true,
+    resizable: true,
+    floatingFilter: true,
+    filterParams: {{ buttons: ['reset'], debounceMs: 150 }},
+    suppressHeaderMenuButton: false,
+  }},
+  autoSizeStrategy: {{ type: 'fitCellContents' }},
+  animateRows: true,
+  rowSelection: 'single',
+  suppressCellFocus: true,
+  enableCellTextSelection: true,
+  onFilterChanged: updateCount,
+  onSortChanged: updateCount,
+}};
+
+const gridApi = agGrid.createGrid(document.getElementById('grid-container'), gridOptions);
+
+function updateCount() {{
+  const n = gridApi.getDisplayedRowCount();
+  document.getElementById('stat-shown').textContent = n;
 }}
 
-function fmtMem(mb) {{
-  if (!mb) return '<span class="dim">&mdash;</span>';
-  return mb >= 1024 ? `${{(mb/1024).toFixed(1)}} GB` : `${{mb.toFixed(0)}} MB`;
-}}
-
-function fmtElo(r) {{
-  if (r.elo) return `<span style="color:var(--yellow)">${{r.elo}}</span>`;
-  return '<span class="dim">&mdash;</span>';
-}}
-
-function fmtAA(r) {{
-  if (r.aa) return `<span style="color:var(--green)">${{r.aa.toFixed(1)}}</span>`;
-  return '<span class="dim">&mdash;</span>';
-}}
-
-function renderRows(data) {{
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = data.map(r => `
-<tr data-id="${{r.id}}" data-prompt="${{r.prompt}}"
-    data-model="${{r.model}}" data-backend="${{r.backend}}" data-ver="${{r.ver}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
-  <td><code>${{r.id}}</code></td>
-  <td>${{r.model}}</td>
-  <td class="dim">${{r.released || '—'}}</td>
-  <td>${{fmtElo(r)}}</td>
-  <td>${{fmtAA(r)}}</td>
-  <td>${{r.prompt}}</td>
-  <td>${{r.backend}}</td>
-  <td class="dim">${{r.ver || '—'}}</td>
-  <td>${{r.fmt}}</td>
-  <td>${{r.quant}}</td>
-  <td>${{r.kv}}</td>
-  <td>${{fmtTTFT(r)}}</td>
-  <td>${{barHtml(r.decode, r.prompt)}}</td>
-  <td>${{r.prefill > 0 ? r.prefill.toFixed(0) + ' t/s' : '<span class="dim">&mdash;</span>'}}</td>
-  <td>${{r.tokens}}</td>
-  <td>${{r.total.toFixed(1)}} s</td>
-  <td>${{fmtMem(r.mem_mb)}}</td>
-  <td class="dim">${{r.bench_date || '—'}}</td>
-</tr>`).join('');
-  document.getElementById('count').textContent = `${{data.length}} / ${{RAW.length}} configs`;
-}}
-
-function populateSelect(id, key) {{
-  const sel = document.getElementById(id);
-  const vals = [...new Set(RAW.map(r => r[key]))].sort();
-  vals.forEach(v => {{ const o = document.createElement('option'); o.value = o.text = v; sel.appendChild(o); }});
-}}
-populateSelect('f-model',   'model');
-populateSelect('f-prompt',  'prompt');
-populateSelect('f-backend', 'backend');
-populateSelect('f-ver',     'ver');
-populateSelect('f-fmt',     'fmt');
-populateSelect('f-quant',   'quant');
-populateSelect('f-kv',      'kv');
-
-let sortCol = null, sortDir = 1;
-
-const PARAM_MAP = {{q:'q', model:'f-model', prompt:'f-prompt', backend:'f-backend', ver:'f-ver', fmt:'f-fmt', quant:'f-quant', kv:'f-kv'}};
-
-function readURL() {{
-  const p = new URLSearchParams(location.search);
-  for (const [param, elId] of Object.entries(PARAM_MAP)) {{
-    const v = p.get(param);
-    if (v) document.getElementById(elId).value = v;
-  }}
-  if (p.get('sort')) {{ sortCol = p.get('sort'); sortDir = p.get('dir') === 'desc' ? -1 : 1; }}
-  if (sortCol) {{
-    const th = document.querySelector(`th[data-col="${{sortCol}}"]`);
-    if (th) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
-  }}
-}}
-
-function writeURL() {{
-  const p = new URLSearchParams();
-  for (const [param, elId] of Object.entries(PARAM_MAP)) {{
-    const v = document.getElementById(elId).value;
-    if (v) p.set(param, v);
-  }}
-  if (sortCol) {{ p.set('sort', sortCol); p.set('dir', sortDir === -1 ? 'desc' : 'asc'); }}
-  const qs = p.toString();
-  const url = location.pathname + (qs ? '?' + qs : '');
-  history.replaceState(null, '', url);
-}}
-
-function getFiltered() {{
-  const q       = document.getElementById('q').value.toLowerCase();
-  const model   = document.getElementById('f-model').value;
-  const prompt  = document.getElementById('f-prompt').value;
-  const backend = document.getElementById('f-backend').value;
-  const ver     = document.getElementById('f-ver').value;
-  const fmt     = document.getElementById('f-fmt').value;
-  const quant   = document.getElementById('f-quant').value;
-  const kv      = document.getElementById('f-kv').value;
-
-  return RAW.filter(r =>
-    (!q       || r.id.toLowerCase().includes(q) || r.model.toLowerCase().includes(q)) &&
-    (!model   || r.model   === model)  &&
-    (!prompt  || r.prompt  === prompt)  &&
-    (!backend || r.backend === backend) &&
-    (!ver     || r.ver     === ver)     &&
-    (!fmt     || r.fmt     === fmt)     &&
-    (!quant   || r.quant   === quant)   &&
-    (!kv      || r.kv      === kv)
-  );
-}}
-
-function applySort(data) {{
-  if (!sortCol) return data;
-  return [...data].sort((a, b) => {{
-    let av = a[sortCol], bv = b[sortCol];
-    if (av == null && bv == null) return 0;
-    if (av == null) return 1;
-    if (bv == null) return -1;
-    if (typeof av === 'number') return sortDir * (av - bv);
-    return sortDir * String(av).localeCompare(String(bv));
-  }});
-}}
-
-function update() {{
-  renderRows(applySort(getFiltered()));
-  writeURL();
-}}
-
-document.querySelectorAll('th[data-col]').forEach(th => {{
-  th.addEventListener('click', () => {{
-    const col = th.dataset.col;
-    if (sortCol === col) {{ sortDir *= -1; }}
-    else {{ sortCol = col; sortDir = 1; }}
-    document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
-    th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
-    update();
-  }});
+// Quick filter
+document.getElementById('q').addEventListener('input', function(e) {{
+  gridApi.setGridOption('quickFilterText', e.target.value);
+  updateCount();
 }});
 
-['q','f-model','f-prompt','f-backend','f-ver','f-fmt','f-quant','f-kv'].forEach(id =>
-  document.getElementById(id).addEventListener('input', update));
-
-function reset() {{
+// Reset
+document.getElementById('btn-reset').addEventListener('click', function() {{
   document.getElementById('q').value = '';
-  ['f-model','f-prompt','f-backend','f-ver','f-fmt','f-quant','f-kv'].forEach(id =>
-    document.getElementById(id).value = '');
-  sortCol = null; sortDir = 1;
-  document.querySelectorAll('th').forEach(t => t.classList.remove('sort-asc', 'sort-desc'));
-  update();
-}}
+  gridApi.setGridOption('quickFilterText', '');
+  gridApi.setFilterModel(null);
+  updateCount();
+}});
 
-readURL();
-update();
+// CSV export
+document.getElementById('btn-export').addEventListener('click', function() {{
+  gridApi.exportDataAsCsv({{ fileName: 'llm-bench-results.csv' }});
+}});
 </script>
 </body>
 </html>'''

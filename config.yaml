@@ -3065,6 +3065,385 @@ tests:
     quant: Q4_K_M
     kv_cache: default
 
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group LFM25 — LFM2.5-8B-A1B (Liquid, 8B total / 1B active MoE, May 2026)
+  # NOTE: Liquid's custom architecture — supported by llama.cpp, mlx-lm, Ollama.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: LFM25_Q4_1
+    model: "LFM2.5-8B"
+    group: "LFM25 — LFM2.5-8B-A1B (MoE, 1B active)"
+    backend: mlx-lm
+    model_id: "LiquidAI/LFM2.5-8B-A1B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: LFM25_Q8_1
+    model: "LFM2.5-8B"
+    group: "LFM25 — LFM2.5-8B-A1B (MoE, 1B active)"
+    backend: mlx-lm
+    model_id: "LiquidAI/LFM2.5-8B-A1B-MLX-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: LFM25_OLL_1
+    model: "LFM2.5-8B"
+    group: "LFM25 — LFM2.5-8B-A1B (MoE, 1B active)"
+    backend: ollama
+    model_id: "lfm2.5:8b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: LFM25_LC_Q4KM
+    model: "LFM2.5-8B"
+    group: "LFM25 — LFM2.5-8B-A1B (MoE, 1B active)"
+    backend: llama-server
+    model_id: "hf:LiquidAI/LFM2.5-8B-A1B-GGUF:LFM2.5-8B-A1B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: LFM25_LC_Q8
+    model: "LFM2.5-8B"
+    group: "LFM25 — LFM2.5-8B-A1B (MoE, 1B active)"
+    backend: llama-server
+    model_id: "hf:LiquidAI/LFM2.5-8B-A1B-GGUF:LFM2.5-8B-A1B-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group LFM2 — LFM2-24B-A2B (Liquid, 24B total / 2B active MoE, Feb 2026)
+  # NOTE: Liquid's custom architecture — supported by llama.cpp, mlx-lm, Ollama.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: LFM2_Q4_1
+    model: "LFM2-24B"
+    group: "LFM2 — LFM2-24B-A2B (MoE, 2B active)"
+    backend: mlx-lm
+    model_id: "lmstudio-community/LFM2-24B-A2B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: LFM2_Q8_1
+    model: "LFM2-24B"
+    group: "LFM2 — LFM2-24B-A2B (MoE, 2B active)"
+    backend: mlx-lm
+    model_id: "lmstudio-community/LFM2-24B-A2B-MLX-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: LFM2_OLL_1
+    model: "LFM2-24B"
+    group: "LFM2 — LFM2-24B-A2B (MoE, 2B active)"
+    backend: ollama
+    model_id: "lfm2:24b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: LFM2_LC_Q4KM
+    model: "LFM2-24B"
+    group: "LFM2 — LFM2-24B-A2B (MoE, 2B active)"
+    backend: llama-server
+    model_id: "hf:LiquidAI/LFM2-24B-A2B-GGUF:LFM2-24B-A2B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: LFM2_LC_Q8
+    model: "LFM2-24B"
+    group: "LFM2 — LFM2-24B-A2B (MoE, 2B active)"
+    backend: llama-server
+    model_id: "hf:LiquidAI/LFM2-24B-A2B-GGUF:LFM2-24B-A2B-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group NEM3 — Nemotron-3-Nano-30B-A3B (NVIDIA, 30B total / 3B active MoE)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: NEM3_Q4_1
+    model: "Nemotron-Nano-30B"
+    group: "NEM3 — Nemotron-3-Nano-30B-A3B (MoE, 3B active)"
+    backend: mlx-lm
+    model_id: "lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: NEM3_Q8_1
+    model: "Nemotron-Nano-30B"
+    group: "NEM3 — Nemotron-3-Nano-30B-A3B (MoE, 3B active)"
+    backend: mlx-lm
+    model_id: "lmstudio-community/NVIDIA-Nemotron-3-Nano-30B-A3B-MLX-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: NEM3_OLL_1
+    model: "Nemotron-Nano-30B"
+    group: "NEM3 — Nemotron-3-Nano-30B-A3B (MoE, 3B active)"
+    backend: ollama
+    model_id: "nemotron-3-nano:30b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: NEM3_LC_Q4KM
+    model: "Nemotron-Nano-30B"
+    group: "NEM3 — Nemotron-3-Nano-30B-A3B (MoE, 3B active)"
+    backend: llama-server
+    model_id: "hf:unsloth/Nemotron-3-Nano-30B-A3B-GGUF:Nemotron-3-Nano-30B-A3B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group NEMC — Nemotron-Cascade-2-30B-A3B (NVIDIA, 30B / 3B active, Mar 2026)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: NEMC_Q4_1
+    model: "Nemotron-Cascade2-30B"
+    group: "NEMC — Nemotron-Cascade-2-30B-A3B (MoE, 3B active)"
+    backend: mlx-lm
+    model_id: "mlx-community/Nemotron-Cascade-2-30B-A3B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: NEMC_OLL_1
+    model: "Nemotron-Cascade2-30B"
+    group: "NEMC — Nemotron-Cascade-2-30B-A3B (MoE, 3B active)"
+    backend: ollama
+    model_id: "nemotron-cascade-2:30b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: NEMC_LC_Q4KM
+    model: "Nemotron-Cascade2-30B"
+    group: "NEMC — Nemotron-Cascade-2-30B-A3B (MoE, 3B active)"
+    backend: llama-server
+    model_id: "hf:bartowski/nvidia_Nemotron-Cascade-2-30B-A3B-GGUF:nvidia_Nemotron-Cascade-2-30B-A3B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group GLM — GLM-4.7-Flash (Zhipu AI, 23B MoE / 3B active, Jan 2026)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: GLM_Q4_1
+    model: "GLM-4.7-Flash"
+    group: "GLM — GLM-4.7-Flash (MoE, 3B active)"
+    backend: mlx-lm
+    model_id: "mlx-community/GLM-4.7-Flash-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: GLM_Q8_1
+    model: "GLM-4.7-Flash"
+    group: "GLM — GLM-4.7-Flash (MoE, 3B active)"
+    backend: mlx-lm
+    model_id: "lmstudio-community/GLM-4.7-Flash-MLX-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: GLM_OLL_1
+    model: "GLM-4.7-Flash"
+    group: "GLM — GLM-4.7-Flash (MoE, 3B active)"
+    backend: ollama
+    model_id: "glm-4.7-flash"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: GLM_LC_Q4KM
+    model: "GLM-4.7-Flash"
+    group: "GLM — GLM-4.7-Flash (MoE, 3B active)"
+    backend: llama-server
+    model_id: "hf:unsloth/GLM-4.7-Flash-GGUF:GLM-4.7-Flash-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group GR41 — Granite 4.1-8B (IBM, 8B dense, Apr 2026)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: GR41_Q4_1
+    model: "Granite-4.1-8B"
+    group: "GR41 — Granite 4.1-8B (Dense)"
+    backend: ollama
+    model_id: "granite4.1:8b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: GR41_LC_Q4KM
+    model: "Granite-4.1-8B"
+    group: "GR41 — Granite 4.1-8B (Dense)"
+    backend: llama-server
+    model_id: "hf:unsloth/granite-4.1-8b-GGUF:granite-4.1-8b-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: GR41_LC_Q8
+    model: "Granite-4.1-8B"
+    group: "GR41 — Granite 4.1-8B (Dense)"
+    backend: llama-server
+    model_id: "hf:unsloth/granite-4.1-8b-GGUF:granite-4.1-8b-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group PHIM — Phi-mini-MoE (Microsoft, 7.6B / 2.4B active MoE, Jun 2025)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: PHIM_Q4_1
+    model: "Phi-mini-MoE"
+    group: "PHIM — Phi-mini-MoE (MoE, 2.4B active)"
+    backend: mlx-lm
+    model_id: "mlx-community/Phi-3.5-MoE-instruct-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: PHIM_LC_Q4KM
+    model: "Phi-mini-MoE"
+    group: "PHIM — Phi-mini-MoE (MoE, 2.4B active)"
+    backend: llama-server
+    model_id: "hf:gabriellarson/Phi-mini-MoE-instruct-GGUF:Phi-mini-MoE-instruct-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: PHIM_LC_Q8
+    model: "Phi-mini-MoE"
+    group: "PHIM — Phi-mini-MoE (MoE, 2.4B active)"
+    backend: llama-server
+    model_id: "hf:gabriellarson/Phi-mini-MoE-instruct-GGUF:Phi-mini-MoE-instruct-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group REKA — Reka Flash 3.1 (Reka AI, 21B dense, Jul 2025, coding-strong)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: REKA_LC_Q4KM
+    model: "Reka-Flash-3.1"
+    group: "REKA — Reka Flash 3.1 (21B Dense)"
+    backend: llama-server
+    model_id: "hf:bartowski/RekaAI_reka-flash-3.1-GGUF:RekaAI_reka-flash-3.1-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: REKA_LC_Q8
+    model: "Reka-Flash-3.1"
+    group: "REKA — Reka Flash 3.1 (21B Dense)"
+    backend: llama-server
+    model_id: "hf:bartowski/RekaAI_reka-flash-3.1-GGUF:RekaAI_reka-flash-3.1-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group FAL3 — Falcon3-10B (TII/UAE, 10B dense, Dec 2024)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: FAL3_OLL_1
+    model: "Falcon3-10B"
+    group: "FAL3 — Falcon3-10B (Dense)"
+    backend: ollama
+    model_id: "falcon3:10b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: FAL3_LC_Q4KM
+    model: "Falcon3-10B"
+    group: "FAL3 — Falcon3-10B (Dense)"
+    backend: llama-server
+    model_id: "hf:bartowski/Falcon3-10B-Instruct-GGUF:Falcon3-10B-Instruct-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: FAL3_LC_Q8
+    model: "Falcon3-10B"
+    group: "FAL3 — Falcon3-10B (Dense)"
+    backend: llama-server
+    model_id: "hf:bartowski/Falcon3-10B-Instruct-GGUF:Falcon3-10B-Instruct-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group LAG — Laguna-XS.2 (Poolside, 31B dense, Apr 2026, coding)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: LAG_Q4_1
+    model: "Laguna-XS.2"
+    group: "LAG — Laguna-XS.2 (31B Dense, Coding)"
+    backend: mlx-lm
+    model_id: "mlx-community/Laguna-XS.2-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: LAG_OLL_1
+    model: "Laguna-XS.2"
+    group: "LAG — Laguna-XS.2 (31B Dense, Coding)"
+    backend: ollama
+    model_id: "laguna-xs.2:q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: LAG_LC_Q4KM
+    model: "Laguna-XS.2"
+    group: "LAG — Laguna-XS.2 (31B Dense, Coding)"
+    backend: llama-server
+    model_id: "hf:Lucebox/Laguna-XS.2-GGUF:laguna-xs2-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group NMC — North-Mini-Code-1.0 (Cohere, ~30B MoE 128E/8A, Jun 2026, coding)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: NMC_Q4_1
+    model: "North-Mini-Code"
+    group: "NMC — North-Mini-Code-1.0 (MoE, Coding)"
+    backend: mlx-lm
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: NMC_LC_Q4K
+    model: "North-Mini-Code"
+    group: "NMC — North-Mini-Code-1.0 (MoE, Coding)"
+    backend: llama-server
+    model_id: "hf:michaelw9999/North-Mini-Code-1.0-GGUF:BLS-Mini-Code-1.0-Q4_K.gguf"
+    fmt: GGUF
+    quant: Q4_K
+    kv_cache: default
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled
