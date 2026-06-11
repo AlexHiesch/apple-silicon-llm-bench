@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,short,1,87.2,78.2,263.7,498,23,6.44,3.1,0,244,110.6,6380.7,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,short,2,92.1,78.2,249.7,498,23,6.45,3.1,0,244,110.6,6380.8,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,short,3,84.9,79.0,271.0,498,23,6.38,3.1,0,244,110.6,6380.8,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,long,1,138.5,78.8,989.0,512,137,6.62,3.1,0,296,150.4,6422.6,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,long,2,139.3,78.7,983.7,512,137,6.63,3.1,0,296,150.4,6422.6,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,long,3,144.4,78.7,948.7,512,137,6.63,3.1,0,296,150.4,6422.6,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,code,1,20.9,77.5,35992.0,512,751,6.61,3.1,0,225,730.9,6504.4,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,code,2,19.8,77.5,37942.5,512,751,6.62,3.1,0,225,730.9,6504.5,0.0,b9580,,
+Z_E4B_QAT_UDQ4_1,Gemma4-E4B llama.cpp QAT-UD-Q4_K_XL,Gemma4-E4B,llama-server,GGUF,QAT-UD-Q4_K_XL,default,code,3,20.9,77.4,35871.8,512,751,6.62,3.1,0,225,730.9,6504.5,0.0,b9580,,

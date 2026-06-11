@@ -422,6 +422,7 @@ class TestConfig:
     server_binary: str = ""                   # Optional override for server binary path
     api_key: str = ""                         # API key for authenticated backends
     max_tokens: Optional[int] = None          # per-test override (None = use global)
+    temperature: Optional[float] = None       # per-test override (None = use default 0.0/0.6)
 
 
 @dataclass
@@ -764,6 +765,7 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
             server_binary=entry.get("server_binary", ""),
             api_key=entry.get("api_key", ""),
             max_tokens=entry.get("max_tokens"),
+            temperature=entry.get("temperature"),
         ))
 
     return tests
@@ -1067,12 +1069,19 @@ def count_thinking_tokens(text: str) -> tuple[int, int]:
 
 def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
                             model_id: str = "default", no_think: bool = False,
-                            force_think: bool = False, api_key: str = "") -> dict:
+                            force_think: bool = False, api_key: str = "",
+                            temperature: Optional[float] = None) -> dict:
+    if temperature is not None:
+        temp = temperature
+    elif force_think:
+        temp = 0.6
+    else:
+        temp = 0.0
     body = {
         "model": model_id,
         "messages": messages,
         "max_tokens": max_tokens,
-        "temperature": 0.6 if force_think else 0.0,
+        "temperature": temp,
         "stream": True,
     }
     if force_think:
@@ -1148,7 +1157,7 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
     ttft = (t_first - t_start) * 1000
     decode_time = t_end - t_first
     if completion_tokens == 0:
-        completion_tokens = token_count
+        completion_tokens = max(token_count, estimate_tokens(full_text))
     if prompt_tokens == 0:
         prompt_tokens = sum(estimate_tokens(m.get("content", "")) for m in messages)
 
@@ -1174,9 +1183,16 @@ def bench_openai_streaming(port: int, messages: list[dict], max_tokens: int,
 
 
 def bench_ollama_streaming(model: str, messages: list[dict], max_tokens: int,
-                            no_think: bool = False, force_think: bool = False) -> dict:
+                            no_think: bool = False, force_think: bool = False,
+                            temperature: Optional[float] = None) -> dict:
+    if temperature is not None:
+        temp = temperature
+    elif force_think:
+        temp = 0.6
+    else:
+        temp = 0.0
     body = {"model": model, "messages": messages, "stream": True,
-            "options": {"temperature": 0.6 if force_think else 0.0, "num_predict": max_tokens}}
+            "options": {"temperature": temp, "num_predict": max_tokens}}
     if force_think:
         body["think"] = True
     elif no_think:
@@ -1249,10 +1265,12 @@ def run_single_bench(test: TestConfig, messages: list[dict], max_tokens: int,
     force_think = test.no_think_override is False  # Explicitly enable thinking
     if test.backend == "ollama":
         return bench_ollama_streaming(test.model_id, messages, max_tokens,
-                                      no_think=no_think, force_think=force_think)
+                                      no_think=no_think, force_think=force_think,
+                                      temperature=test.temperature)
     return bench_openai_streaming(test.port, messages, max_tokens,
                                   model_id=test.model_id, no_think=no_think,
-                                  force_think=force_think, api_key=test.api_key)
+                                  force_think=force_think, api_key=test.api_key,
+                                  temperature=test.temperature)
 
 
 # ── Tool + Quality Tests ──────────────────────────────────────────────────────

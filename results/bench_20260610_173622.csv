@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,short,1,86.6,76.0,265.6,448,23,5.97,3.1,0,222,305.2,7269.6,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,short,2,85.4,75.1,269.4,448,23,6.03,3.1,0,222,305.2,7269.7,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,short,3,86.5,76.3,265.9,448,23,5.94,3.1,0,222,305.2,7269.7,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,long,1,140.4,75.1,975.7,512,137,6.94,3.1,0,293,276.3,7311.5,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,long,2,138.5,75.5,989.0,512,137,6.9,3.1,0,293,276.3,7311.6,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,long,3,138.3,75.1,990.6,512,137,6.94,3.1,0,293,276.3,7311.6,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,code,1,21.1,75.0,35537.2,512,751,6.83,3.1,0,208,756.2,7395.6,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,code,2,20.4,75.3,36773.1,512,751,6.81,3.1,0,208,756.2,7395.6,0.0,b9580,,
+Z_E4B_QAT_Q4_1,Gemma4-E4B llama.cpp QAT-Q4_0,Gemma4-E4B,llama-server,GGUF,QAT-Q4_0,default,code,3,20.7,75.4,36235.7,512,751,6.8,3.1,0,208,756.2,7395.7,0.0,b9580,,

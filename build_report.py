@@ -24,11 +24,13 @@ MODEL_MAP = {
     "Gemma3-27B":       "Gemma3-27B",
     "Gemma4-26B":       "Gemma4-26B-A4B",
     "Gemma4-31B":       "Gemma4-31B",
+    "Gemma4-12B":       "Gemma4-12B",
     "Gemma4-E4B":       "Gemma4-E4B",
     "Gemma4-E2B":       "Gemma4-E2B",
     "Llama3.3-70B":     "Llama3.3-70B",
     "Qwen3.6-27B":      "Qwen3.6-27B",
     "Qwen3.6-35B":      "Qwen3.6-35B",
+    "Qwen3.6-35B-A3B":  "Qwen3.6-35B-A3B",
     "Qwen3.6":          "Qwen3.6-35B",
 }
 
@@ -118,15 +120,51 @@ BACKEND_LABELS = {
     "unsloth-studio": "Unsloth Studio",
 }
 
+# Quality + release date per model. Sources:
+#   elo: LMSYS Chatbot Arena (Dec 2025 snapshot)
+#   aa:  Artificial Analysis Intelligence Index v4.0 (non-reasoning variant; we bench with --no-think)
+#   released: from AA API release_date field
+# All scores are model-level, not quant-specific (Q4 ≈ FP16 within ~1-3%).
+MODEL_META = {
+    "Qwen3-32B":        {"elo": 1344, "aa": 14.5, "released": "2025-04-28"},
+    "Qwen3.5":          {"elo": None, "aa": 30.7, "released": "2026-02-24"},
+    "Qwen3.5-35B-A3B":  {"elo": None, "aa": 30.7, "released": "2026-02-24"},
+    "Qwen3-Coder-Next": {"elo": 1385, "aa": 28.3, "released": "2026-02-03"},
+    "Coder":            {"elo": 1385, "aa": 28.3, "released": "2026-02-03"},
+    "Gemma3-27B":       {"elo": 1365, "aa": 10.3, "released": "2025-03-12"},
+    "Gemma4-12B":       {"elo": 1340, "aa": 19.5, "released": "2026-06-03"},
+    "Gemma4-26B-A4B":   {"elo": None, "aa": 27.1, "released": "2026-04-02"},
+    "Gemma4-31B":       {"elo": None, "aa": 32.3, "released": "2026-04-02"},
+    "Gemma4-E4B":       {"elo": 1318, "aa": 14.8, "released": "2026-04-03"},
+    "Gemma4-E2B":       {"elo": None, "aa": 12.1, "released": "2026-04-02"},
+    "Llama3.3-70B":     {"elo": 1319, "aa": 14.5, "released": "2024-12-06"},
+    "Qwen3.6-27B":      {"elo": None, "aa": 37.1, "released": "2026-04-22"},
+    "Qwen3.6-35B":      {"elo": None, "aa": 31.5, "released": "2026-04-16"},
+    "Qwen3.6-35B-A3B":  {"elo": None, "aa": 31.5, "released": "2026-04-16"},
+    "DiffusionGemma":   {"elo": None, "aa": None,  "released": None},
+    "NorthCode":        {"elo": None, "aa": 27.6, "released": "2026-06-09"},
+    "Holo3.1":          {"elo": None, "aa": None,  "released": None},
+}
+
+def _parse_bench_date(source_filename):
+    """Extract YYYY-MM-DD from bench_YYYYMMDD_HHMMSS.csv."""
+    import re
+    m = re.search(r'bench_(\d{4})(\d{2})(\d{2})_', source_filename)
+    if m:
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    return None
+
 def build_json_rows(rows):
     """Convert to the JSON format expected by the HTML template."""
     json_rows = []
     for r in rows:
         raw_backend = r.get("backend", "")
+        model = r.get("model", "") or extract_model(r.get("test_name", ""))
+        meta = MODEL_META.get(model, {})
         json_rows.append({
             "id": r.get("test_id", ""),
             "name": r.get("test_name", ""),
-            "model": r.get("model", "") or extract_model(r.get("test_name", "")),
+            "model": model,
             "backend": BACKEND_LABELS.get(raw_backend, raw_backend),
             "ver": r.get("backend_version", ""),
             "fmt": r.get("fmt", ""),
@@ -142,6 +180,10 @@ def build_json_rows(rows):
             "mem_mb": r.get("peak_mem_mb", 0),
             "tool": r.get("tool_call_valid", ""),
             "quality": r.get("quality_pass", ""),
+            "elo": meta.get("elo"),
+            "aa": meta.get("aa"),
+            "released": meta.get("released"),
+            "bench_date": _parse_bench_date(r.get("_source", "")),
         })
 
     # Sort: by model, then backend, then ver (descending so newest first), then id, then prompt
@@ -326,9 +368,12 @@ body.in-iframe {{ padding-top: .5rem; }}
 <table id="tbl">
 <thead>
 <tr>
-  <th data-col="id"      data-type="str"><span class="arrow">ID</span></th>
-  <th data-col="model"   data-type="str"><span class="arrow">Model</span></th>
-  <th data-col="prompt"  data-type="str"><span class="arrow">Prompt</span></th>
+  <th data-col="id"         data-type="str"><span class="arrow">ID</span></th>
+  <th data-col="model"      data-type="str"><span class="arrow">Model</span></th>
+  <th data-col="released"   data-type="str"><span class="arrow">Released</span></th>
+  <th data-col="elo"        data-type="num"><span class="arrow">Arena ELO</span></th>
+  <th data-col="aa"         data-type="num"><span class="arrow">AA Index</span></th>
+  <th data-col="prompt"     data-type="str"><span class="arrow">Prompt</span></th>
   <th data-col="backend" data-type="str"><span class="arrow">Backend</span></th>
   <th data-col="ver"     data-type="str"><span class="arrow">Ver</span></th>
   <th data-col="fmt"     data-type="str"><span class="arrow">Fmt</span></th>
@@ -338,8 +383,9 @@ body.in-iframe {{ padding-top: .5rem; }}
   <th data-col="decode"  data-type="num"><span class="arrow">Decode</span></th>
   <th data-col="prefill" data-type="num"><span class="arrow">Prefill</span></th>
   <th data-col="tokens"  data-type="num"><span class="arrow">Tokens</span></th>
-  <th data-col="total"   data-type="num"><span class="arrow">Total</span></th>
-  <th data-col="mem_mb"  data-type="num"><span class="arrow">Peak RSS</span></th>
+  <th data-col="total"      data-type="num"><span class="arrow">Total</span></th>
+  <th data-col="mem_mb"     data-type="num"><span class="arrow">Peak RSS</span></th>
+  <th data-col="bench_date" data-type="str"><span class="arrow">Benched</span></th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
@@ -347,6 +393,8 @@ body.in-iframe {{ padding-top: .5rem; }}
 </div>
 
 <p class="legend">
+  <strong>Arena ELO</strong> = LMSYS Chatbot Arena score (model-level, Dec 2025; higher = smarter) &nbsp;·&nbsp;
+  <strong>AA Index</strong> = Artificial Analysis Intelligence Index v4.0 (0–60 scale, non-reasoning variant; higher = smarter) &nbsp;·&nbsp;
   <strong>TTFT</strong> = time to first token (warm, with prefix cache where available) &nbsp;·&nbsp;
   <strong>Cold</strong> = first-request TTFT (shown in parentheses when &gt;1.5× warm) &nbsp;·&nbsp;
   <strong>Decode</strong> = generation tokens/s &nbsp;·&nbsp;
@@ -354,7 +402,8 @@ body.in-iframe {{ padding-top: .5rem; }}
   <strong>Total</strong> = wall-clock time for full response &nbsp;·&nbsp;
   <strong>Peak RSS</strong> = process tree RAM during inference.
   All values are median of 3 runs except Peak RSS (max).
-  Backends: mlx-lm 0.31.2–0.31.3, mlx-vlm 0.4.3/0.4.4, Ollama 0.19–0.21, oMLX 0.3.4, llama.cpp b5220–b8920, vllm-mlx 0.1–0.2.9, LM Studio, Docker Model Runner.
+  Arena ELO is model-level quality (not quant-specific); Q4 ≈ FP16 within ~1–3% quality loss.
+  Backends: mlx-lm 0.31.2–0.31.3, mlx-vlm 0.4.3/0.4.4, Ollama 0.19–0.21, oMLX 0.3.4, llama.cpp b5220–b9590, vllm-mlx 0.1–0.2.9, LiteRT-LM 0.13.1, LM Studio, Docker Model Runner.
 </p>
 
 <script>
@@ -391,6 +440,16 @@ function fmtMem(mb) {{
   return mb >= 1024 ? `${{(mb/1024).toFixed(1)}} GB` : `${{mb.toFixed(0)}} MB`;
 }}
 
+function fmtElo(r) {{
+  if (r.elo) return `<span style="color:var(--yellow)">${{r.elo}}</span>`;
+  return '<span class="dim">&mdash;</span>';
+}}
+
+function fmtAA(r) {{
+  if (r.aa) return `<span style="color:var(--green)">${{r.aa.toFixed(1)}}</span>`;
+  return '<span class="dim">&mdash;</span>';
+}}
+
 function renderRows(data) {{
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = data.map(r => `
@@ -398,6 +457,9 @@ function renderRows(data) {{
     data-model="${{r.model}}" data-backend="${{r.backend}}" data-ver="${{r.ver}}" data-fmt="${{r.fmt}}" data-quant="${{r.quant}}" data-kv="${{r.kv}}">
   <td><code>${{r.id}}</code></td>
   <td>${{r.model}}</td>
+  <td class="dim">${{r.released || '—'}}</td>
+  <td>${{fmtElo(r)}}</td>
+  <td>${{fmtAA(r)}}</td>
   <td>${{r.prompt}}</td>
   <td>${{r.backend}}</td>
   <td class="dim">${{r.ver || '—'}}</td>
@@ -410,6 +472,7 @@ function renderRows(data) {{
   <td>${{r.tokens}}</td>
   <td>${{r.total.toFixed(1)}} s</td>
   <td>${{fmtMem(r.mem_mb)}}</td>
+  <td class="dim">${{r.bench_date || '—'}}</td>
 </tr>`).join('');
   document.getElementById('count').textContent = `${{data.length}} / ${{RAW.length}} configs`;
 }}
@@ -481,7 +544,10 @@ function getFiltered() {{
 function applySort(data) {{
   if (!sortCol) return data;
   return [...data].sort((a, b) => {{
-    const av = a[sortCol], bv = b[sortCol];
+    let av = a[sortCol], bv = b[sortCol];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
     if (typeof av === 'number') return sortDir * (av - bv);
     return sortDir * String(av).localeCompare(String(bv));
   }});

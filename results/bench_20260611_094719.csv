@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,short,1,6353.7,65.6,3.6,389,23,12.27,7.2,0,269,6586.1,15651.1,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,short,2,6342.8,65.1,3.6,389,23,12.3,7.2,0,269,6586.1,15651.2,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,short,3,6345.2,65.6,3.6,389,23,12.26,7.2,0,269,6586.1,15651.2,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,long,1,10243.4,56.3,13.4,518,137,19.42,7.2,0,305,10207.0,15651.3,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,long,2,10343.9,56.9,13.2,518,137,19.43,7.2,0,305,10207.0,15651.3,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,long,3,10145.1,57.2,13.5,518,137,19.18,7.2,0,305,10207.0,15651.3,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,code,1,9916.0,299.4,75.7,476,751,11.5,7.2,0,191,9893.2,15651.6,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,code,2,9933.0,299.2,75.6,476,751,11.52,7.2,0,191,9893.2,15651.6,0.0,0.6.3,,
+DG_Q4_1,DiffusionGemma mlx-vlm 4bit,DiffusionGemma,mlx-vlm,MLX,4bit,default,code,3,10033.5,298.6,74.8,476,751,11.62,7.2,0,191,9893.2,15651.6,0.0,0.6.3,,

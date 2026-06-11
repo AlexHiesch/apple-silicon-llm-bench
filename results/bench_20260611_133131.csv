@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+H3_CTX_1,Holo3.1 mlx-vlm 4bit,Holo3.1,mlx-vlm,MLX,4bit,default,context-32k,1,40001.1,71.5,816.1,571,32645,47.97,9.3,0,181,38418.6,2795.5,0.0,0.6.3,,
+H3_CTX_1,Holo3.1 mlx-vlm 4bit,Holo3.1,mlx-vlm,MLX,4bit,default,context-32k,2,37262.8,73.2,876.1,571,32645,45.05,9.3,0,181,38418.6,2795.5,0.0,0.6.3,,
+H3_CTX_1,Holo3.1 mlx-vlm 4bit,Holo3.1,mlx-vlm,MLX,4bit,default,context-32k,3,37867.8,72.3,862.1,571,32645,45.76,9.3,0,181,38418.6,2795.5,0.0,0.6.3,,
+H3_CTX_1,Holo3.1 mlx-vlm 4bit,Holo3.1,mlx-vlm,MLX,4bit,default,context-64k,1,109688.9,56.5,598.5,582,65654,119.96,9.3,0,190,110673.5,2620.9,0.0,0.6.3,,
+H3_CTX_1,Holo3.1 mlx-vlm 4bit,Holo3.1,mlx-vlm,MLX,4bit,default,context-64k,2,109564.8,55.4,599.2,582,65654,120.05,9.3,0,190,110673.5,2624.4,0.0,0.6.3,,
+H3_CTX_1,Holo3.1 mlx-vlm 4bit,Holo3.1,mlx-vlm,MLX,4bit,default,context-64k,3,109535.5,56.3,599.4,582,65654,119.86,9.3,0,190,110673.5,2624.4,0.0,0.6.3,,

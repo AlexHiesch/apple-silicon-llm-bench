@@ -26,6 +26,7 @@ settings:
 # Use "all" to run short + long + code.  Use "context" for all context tiers.
 prompts:
   - short
+  - long
   - code
 
 # ── Optional: define your own prompts ─────────────────────────────────────────
@@ -2229,6 +2230,250 @@ tests:
     quant: QAT-UD-Q4_K_XL
     kv_cache: default
 
+  # ── MLX QAT models (mlx-community quantizations of Google's QAT checkpoints) ─
+  - id: W_QAT_MLX_1
+    model: "Gemma4-12B"
+    group: "W — QAT (Gemma4 12B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-qat-4bit"
+    fmt: MLX
+    quant: QAT-4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: W_QAT_NVFP4_1
+    model: "Gemma4-12B"
+    group: "W — QAT (Gemma4 12B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-12B-it-qat-nvfp4"
+    fmt: NVFP4
+    quant: QAT-nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group X — QAT (Gemma4 26B A4B) — Google official QAT checkpoints
+  # Compare against Group K PTQ baselines (K_LC_Q4KM, K_Q4_1, etc.)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: X_QAT_Q4_1
+    model: "Gemma4-26B-A4B"
+    group: "X — QAT (Gemma4 26B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-qat-q4_0.gguf"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: X_QAT_UDQ4_1
+    model: "Gemma4-26B-A4B"
+    group: "X — QAT (Gemma4 26B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-26B-A4B-it-qat-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: QAT-UD-Q4_K_XL
+    kv_cache: default
+
+  - id: X_QAT_OLL_1
+    model: "Gemma4-26B-A4B"
+    group: "X — QAT (Gemma4 26B)"
+    backend: ollama
+    model_id: "gemma4:26b-qat"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: X_QAT_MLX_1
+    model: "Gemma4-26B-A4B"
+    group: "X — QAT (Gemma4 26B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26B-A4B-it-qat-mxfp4"
+    fmt: MXFP4
+    quant: QAT-mxfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: X_QAT_NVFP4_1
+    model: "Gemma4-26B-A4B"
+    group: "X — QAT (Gemma4 26B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-26B-A4B-it-qat-nvfp4"
+    fmt: NVFP4
+    quant: QAT-nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group Y — QAT (Gemma4 31B Dense) — Google official QAT checkpoints
+  # Compare against Group L PTQ baselines (L_LC_Q4KM, L_Q4_1, etc.)
+  # 31B dense is the largest Gemma4 model; QAT-Q4_0 ~20 GB GGUF.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: Y_QAT_Q4_1
+    model: "Gemma4-31B"
+    group: "Y — QAT (Gemma4 31B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-31B-it-qat-q4_0.gguf"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: Y_QAT_UDQ4_1
+    model: "Gemma4-31B"
+    group: "Y — QAT (Gemma4 31B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: QAT-UD-Q4_K_XL
+    kv_cache: default
+
+  - id: Y_QAT_OLL_1
+    model: "Gemma4-31B"
+    group: "Y — QAT (Gemma4 31B)"
+    backend: ollama
+    model_id: "gemma4:31b-qat"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: Y_QAT_MLX_1
+    model: "Gemma4-31B"
+    group: "Y — QAT (Gemma4 31B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31B-it-qat-4bit"
+    fmt: MLX
+    quant: QAT-4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: Y_QAT_NVFP4_1
+    model: "Gemma4-31B"
+    group: "Y — QAT (Gemma4 31B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-31B-it-qat-nvfp4"
+    fmt: NVFP4
+    quant: QAT-nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group Z — QAT (Gemma4 E4B + E2B) — Google official QAT checkpoints
+  # Compare against Groups M/N PTQ baselines
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  # ── E4B QAT ─────────────────────────────────────────────────────────────────
+  - id: Z_E4B_QAT_Q4_1
+    model: "Gemma4-E4B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-qat-q4_0.gguf"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: Z_E4B_QAT_UDQ4_1
+    model: "Gemma4-E4B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-qat-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: QAT-UD-Q4_K_XL
+    kv_cache: default
+
+  - id: Z_E4B_QAT_UDQ2_1
+    model: "Gemma4-E4B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-E4B-it-qat-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: QAT-UD-Q2_K_XL
+    kv_cache: default
+
+  - id: Z_E4B_QAT_OLL_1
+    model: "Gemma4-E4B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: ollama
+    model_id: "gemma4:e4b-qat"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: Z_E4B_QAT_MLX_1
+    model: "Gemma4-E4B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-E4B-it-qat-4bit"
+    fmt: MLX
+    quant: QAT-4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: Z_E4B_QAT_NVFP4_1
+    model: "Gemma4-E4B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-E4B-it-qat-nvfp4"
+    fmt: NVFP4
+    quant: QAT-nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  # ── E2B QAT ─────────────────────────────────────────────────────────────────
+  - id: Z_E2B_QAT_Q4_1
+    model: "Gemma4-E2B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-qat-q4_0.gguf"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: Z_E2B_QAT_UDQ4_1
+    model: "Gemma4-E2B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: QAT-UD-Q4_K_XL
+    kv_cache: default
+
+  - id: Z_E2B_QAT_UDQ2_1
+    model: "Gemma4-E2B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/gemma-4-E2B-it-qat-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: QAT-UD-Q2_K_XL
+    kv_cache: default
+
+  - id: Z_E2B_QAT_OLL_1
+    model: "Gemma4-E2B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: ollama
+    model_id: "gemma4:e2b-qat"
+    fmt: GGUF
+    quant: QAT-Q4_0
+    kv_cache: default
+
+  - id: Z_E2B_QAT_MLX_1
+    model: "Gemma4-E2B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-E2B-it-qat-4bit"
+    fmt: MLX
+    quant: QAT-4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: Z_E2B_QAT_NVFP4_1
+    model: "Gemma4-E2B"
+    group: "Z — QAT (Gemma4 E4B/E2B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/gemma-4-E2B-it-qat-nvfp4"
+    fmt: NVFP4
+    quant: QAT-nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
 
   # ── Group V — LiteRT-LM (Google Edge Runtime, Metal GPU) ─────────────────────
   # LiteRT-LM v0.13.1 — serves all imported models via OpenAI-compatible API on
@@ -2260,6 +2505,377 @@ tests:
     model_id: "gemma4-12b,gpu"
     fmt: LiteRT
     quant: default
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group DG — DiffusionGemma 26B-A4B (Block Diffusion, MoE)
+  # Architecture: DiffusionGemmaForBlockDiffusion — 26B MoE (3.8B active / 25.2B total)
+  #   Uses discrete diffusion with block-autoregressive multi-canvas sampling:
+  #   generates 256-token blocks in parallel via iterative denoising, NOT
+  #   standard autoregressive token-by-token generation.
+  # Claims: up to 4x faster inference (1000+ tok/s on H100, 700+ on RTX 5090)
+  # Native context: 256K tokens (sliding window 1024 + global attention)
+  # Memory budget: same as Gemma4 26B A4B (~13 GB weights at 4bit + KV)
+  # HuggingFace: google/diffusiongemma-26B-A4B-it (Apache 2.0)
+  # mlx-community models: diffusiongemma-26B-A4B-it-4bit, -8bit, -5bit, -6bit,
+  #   -mxfp4, -mxfp8, -nvfp4, -bf16
+  # GGUF: unsloth/diffusiongemma-26B-A4B-it-GGUF (Q4_K_M, Q5_K_M, Q6_K, Q8_0)
+  # Backend support:
+  #   mlx-vlm 0.6.0+ — supports diffusion_gemma model type (block diffusion decoding)
+  #   vLLM (GPU) — supports diffusion decoding via OpenAI-compat API
+  #   llama.cpp — DRAFT PR #24423 only, no server mode yet (llama-diffusion-cli only)
+  #   Ollama — NOT supported (depends on llama.cpp merge)
+  # NOTE: llama.cpp GGUF quants exist but standard llama-server cannot run them
+  #   with diffusion decoding. Only llama-diffusion-cli (from PR #24423) works.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: DG_Q4_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    server_timeout: 1200
+    temperature: 0.7
+
+  - id: DG_Q4_2
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+    server_timeout: 1200
+    temperature: 0.7
+
+  - id: DG_Q8_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    temperature: 0.7
+
+  - id: DG_MXFP4_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-mxfp4"
+    fmt: MXFP4
+    quant: mxfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    temperature: 0.7
+    enabled: false  # mlx-vlm dequantize crash: MXFP4 affine quant incompatible with diffusion soft-embedding
+
+  - id: DG_NVFP4_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-nvfp4"
+    fmt: NVFP4
+    quant: nvfp4
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    temperature: 0.7
+    enabled: false  # Same dequantize crash as MXFP4 — affine quant incompatible with diffusion path
+
+  - id: DG_CTX_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+    temperature: 0.7
+    enabled: false  # OOM crash — 15 GB model + 128k FP16 KV exceeds 64 GB
+
+  - id: DG_CTX_2
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: mlx-vlm
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+    temperature: 0.7
+    enabled: false  # OOM crash — even with kv4, large-context DG overflows 64 GB
+
+  # ── vllm-mlx (may support diffusion decoding via mlx-vlm integration) ───────
+  - id: DG_VM_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: vllm-mlx
+    model_id: "mlx-community/diffusiongemma-26B-A4B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    temperature: 0.7
+    enabled: false  # vllm-mlx's mlx_lm doesn't support diffusion_gemma model type
+
+  # ── oMLX (SSD-tiered paged KV cache) ───────────────────────────────────────
+  - id: DG_OX_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: omlx
+    model_id: "diffusiongemma-26B-A4B-it-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+    temperature: 0.7
+
+  # ── Ollama — NOT supported (standard llama.cpp has no diffusion decoding) ───
+  - id: DG_OLL_1
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: ollama
+    model_id: "diffusiongemma:26b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # Ollama/llama.cpp cannot do diffusion decoding yet (PR #24423 not merged)
+
+  # ── llama-server — BLOCKED (no server mode in diffusion PR) ─────────────────
+  # GGUF files exist (unsloth/diffusiongemma-26B-A4B-it-GGUF) but only
+  # llama-diffusion-cli can decode them with diffusion; no HTTP server available.
+  - id: DG_LC_Q4KM
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/diffusiongemma-26B-A4B-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # llama-server cannot do diffusion decoding (only llama-diffusion-cli from PR #24423)
+
+  - id: DG_LC_Q8
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/diffusiongemma-26B-A4B-it-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+    enabled: false  # llama-server cannot do diffusion decoding
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group NC — North Mini Code 1.0 (Cohere, MoE 30B-A3B, Agentic Coding)
+  # Architecture: cohere2_moe — 30B MoE (3B active / 30B total)
+  #   128 experts, 8 active per token. Interleaved sliding-window + global
+  #   attention (3:1 ratio). SwiGLU FFN. Sigmoid-gated router.
+  # Context: 128K tokens (trained Stage 1 @ 64K, Stage 2 @ 128K)
+  # License: Apache 2.0
+  # Purpose: agentic software engineering — SWE-Bench 80.2% pass@10,
+  #   outperforms Qwen3.5-35B-A3B, Gemma4-26B-A4B on Artificial Analysis
+  #   Coding Index (33.4). Direct competitor to Group A/O/B.
+  # Memory budget: ~18 GB weights (4bit) + KV. Very similar to Qwen3.5 35B-A3B.
+  # HuggingFace: CohereLabs/North-Mini-Code-1.0
+  # mlx-community: North-Mini-Code-1.0-4bit, -5bit, -6bit, -bf16
+  # GGUF: unsloth/North-Mini-Code-1.0-GGUF (UD-Q4_K_M ~19 GB, UD-Q4_K_XL ~19 GB,
+  #   UD-Q2_K_XL ~10 GB, Q8_0 ~32 GB, MXFP4_MOE ~19 GB)
+  # NOTE: model_type is cohere2_moe — mlx-vlm 0.6.2+ supports this.
+  #   mlx-lm support unclear (cohere2_moe may not be in mlx_lm.models).
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: NC_Q4_1
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: NC_Q4_2
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: NC_Q4_3
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: mlx-lm
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    enabled: false  # mlx-lm 0.31.1 doesn't support cohere2_moe architecture
+
+  - id: NC_CTX_1
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: NC_CTX_2
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: mlx-vlm
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "131072", "--kv-bits", "4"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ── vllm-mlx ─────────────────────────────────────────────────────────────────
+  - id: NC_VM_1
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: vllm-mlx
+    model_id: "mlx-community/North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    enabled: false  # vllm-mlx's mlx_lm doesn't support cohere2_moe architecture
+
+  # ── oMLX (SSD-tiered paged KV cache) ───────────────────────────────────────
+  - id: NC_OX_1
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: omlx
+    model_id: "North-Mini-Code-1.0-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+
+  # ── Ollama (HF GGUF path — BLOCKED: Ollama 0.30.7 only ships MLX runner) ─────
+  - id: NC_OLL_1
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: ollama
+    model_id: "hf.co/unsloth/North-Mini-Code-1.0-GGUF:Q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    enabled: false  # Ollama 0.30.7 only has MLX runner; HF GGUF requires llama-server runner
+
+  # ── llama-server — Unsloth GGUF quants ─────────────────────────────────────
+  - id: NC_LC_Q4KM
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/North-Mini-Code-1.0-UD-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_M
+    kv_cache: default
+    enabled: false  # llama.cpp 9590 doesn't support cohere2moe architecture
+
+  - id: NC_LC_UDQ4
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/North-Mini-Code-1.0-UD-Q4_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q4_K_XL
+    kv_cache: default
+    enabled: false  # llama.cpp 9590 doesn't support cohere2moe architecture
+
+  - id: NC_LC_UDQ2
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/North-Mini-Code-1.0-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+    enabled: false  # llama.cpp 9590 doesn't support cohere2moe architecture
+
+  - id: NC_LC_MXFP4
+    model: "NorthCode"
+    group: "NC — North Mini Code (MoE 30B-A3B)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/North-Mini-Code-1.0-MXFP4_MOE.gguf"
+    fmt: GGUF
+    quant: MXFP4_MOE
+    kv_cache: default
+    extra_args: ["-fa", "on"]
+    enabled: false  # llama.cpp 9590 doesn't support cohere2moe architecture
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group H3 — Holo3.1 35B-A3B (Computer-Use Agent VLM, MoE)
+  # Architecture: qwen3_5_moe — 35B MoE (3B active / 256 experts / 8 active)
+  # Hidden: 2048, heads: 16, KV-heads: 2, layers: 40, context: 262k
+  # Vision: 27-layer ViT (1152-dim) for screenshot/UI grounding
+  # Primary use: computer-use agent (desktop/mobile/web automation)
+  # Text-only benchmark measures decode speed for response generation latency.
+  # Model: pipenetwork/Holo-3.1-35B-A3B-MLX-4bit (community conversion)
+  # GGUF: Hcompany/Holo-3.1-35B-A3B-GGUF (official, Q4_K_M = 21.3 GB)
+  # License: Apache 2.0
+
+  - id: H3_Q4_1
+    model: "Holo3.1"
+    group: "H3 — Holo3.1 35B-A3B (Computer-Use Agent)"
+    backend: mlx-vlm
+    model_id: "pipenetwork/Holo-3.1-35B-A3B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+
+  - id: H3_Q4_2
+    model: "Holo3.1"
+    group: "H3 — Holo3.1 35B-A3B (Computer-Use Agent)"
+    backend: mlx-vlm
+    model_id: "pipenetwork/Holo-3.1-35B-A3B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: kv4
+    extra_args: ["--max-kv-size", "32768", "--kv-bits", "4"]
+
+  - id: H3_Q8_1
+    model: "Holo3.1"
+    group: "H3 — Holo3.1 35B-A3B (Computer-Use Agent)"
+    backend: mlx-vlm
+    model_id: "pipenetwork/Holo-3.1-35B-A3B-MLX-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "32768"]
+    enabled: false  # 28 GB model — doesn't fit on disk alongside other models
+
+  - id: H3_CTX_1
+    model: "Holo3.1"
+    group: "H3 — Holo3.1 35B-A3B (Computer-Use Agent)"
+    backend: mlx-vlm
+    model_id: "pipenetwork/Holo-3.1-35B-A3B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    extra_args: ["--max-kv-size", "131072"]
+    prompts: [context-32k, context-64k, context-128k]
+
+  - id: H3_LC_Q4KM
+    model: "Holo3.1"
+    group: "H3 — Holo3.1 35B-A3B (Computer-Use Agent)"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/Holo-3.1-35B-A3B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
     kv_cache: default
 
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
