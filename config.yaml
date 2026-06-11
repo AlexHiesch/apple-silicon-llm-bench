@@ -2878,6 +2878,191 @@ tests:
     quant: Q4_K_M
     kv_cache: default
 
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group QW27 — Qwen3.5-27B (Dense 27B, AA Index 37.1)
+  # Architecture: qwen3_5 (dense transformer, NOT MoE)
+  # Parameters: 27B total, 27B active — same quality tier as Qwen3.6-27B (AA 37.1)
+  #   but as a dense model should be faster per token on CPU/memory-bound workloads.
+  # Context: 128K tokens
+  # License: Apache 2.0
+  # Purpose: high-quality dense 27B — direct comparison to MoE peers at same size tier.
+  #   AA Intelligence Index 37.1 (non-reasoning), among top open-weights models <40B.
+  # Memory budget: Q4_K_M ~16 GB, MLX 4bit ~16 GB
+  # HuggingFace base: Qwen/Qwen3.5-27B-FP8 (instruct weights, same family)
+  # mlx-community: Qwen3.5-27B-4bit, -5bit, -6bit, -8bit
+  # GGUF: bartowski/Qwen3.5-27B-Instruct-GGUF (Q4_K_M ~16 GB)
+  # Ollama: qwen3.5:27b
+  # NOTE: qwen3_5 architecture — supported by mlx-lm, llama.cpp, Ollama.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: QW27_Q4_1
+    model: "Qwen3.5-27B"
+    group: "QW27 — Qwen3.5-27B (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.5-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: QW27_Q4_2
+    model: "Qwen3.5-27B"
+    group: "QW27 — Qwen3.5-27B (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.5-27B-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: QW27_OLL_1
+    model: "Qwen3.5-27B"
+    group: "QW27 — Qwen3.5-27B (Dense)"
+    backend: ollama
+    model_id: "qwen3.5:27b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: QW27_LC_Q4KM
+    model: "Qwen3.5-27B"
+    group: "QW27 — Qwen3.5-27B (Dense)"
+    backend: llama-server
+    model_id: "hf:bartowski/Qwen3.5-27B-Instruct-GGUF:Q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: QW27_CTX_1
+    model: "Qwen3.5-27B"
+    group: "QW27 — Qwen3.5-27B (Dense)"
+    backend: mlx-lm
+    model_id: "mlx-community/Qwen3.5-27B-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    prompts: [context-32k, context-64k, context-128k]
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group QW122 — Qwen3.5-122B-A10B (MoE 122B total / 10B active, AA Index 35.9)
+  # Architecture: qwen3_5_moe
+  # Parameters: 122B total, 10B active per token. Same MoE family as Qwen3.5-35B-A3B.
+  # Context: 128K tokens
+  # License: Apache 2.0
+  # Purpose: largest feasible MoE on 64 GB at aggressive quantization.
+  #   AA 35.9 non-reasoning — comparable to Qwen3.5-35B-A3B (30.7) but larger model.
+  #   MLX 4bit is ~65 GB and will NOT fit. GGUF UD-Q2_K_XL = 42.8 GB fits with headroom.
+  #   IQ2_M = 40.4 GB also fits and may have better perplexity than Q2_K_XL.
+  # Memory budget: UD-Q2_K_XL ~42.8 GB, UD-IQ2_M ~40.4 GB
+  # HuggingFace: Qwen/Qwen3.5-122B-A10B
+  # GGUF: unsloth/Qwen3.5-122B-A10B-MTP-GGUF (UD-Q2_K_XL 42.8 GB, UD-IQ2_M 40.4 GB)
+  # NOTE: mlx-community/Qwen3.5-122B-A10B-4bit is ~65 GB — too large for 64 GB machine.
+  #   llama.cpp must support qwen3_5_moe — verify at runtime; disable if unsupported.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: QW122_UDQ2_1
+    model: "Qwen3.5-122B"
+    group: "QW122 — Qwen3.5-122B-A10B (MoE, Q2)"
+    backend: llama-server
+    model_id: "hf:unsloth/Qwen3.5-122B-A10B-MTP-GGUF:Qwen3.5-122B-A10B-UD-Q2_K_XL.gguf"
+    fmt: GGUF
+    quant: UD-Q2_K_XL
+    kv_cache: default
+
+  - id: QW122_UDQ2_2
+    model: "Qwen3.5-122B"
+    group: "QW122 — Qwen3.5-122B-A10B (MoE, Q2)"
+    backend: llama-server
+    model_id: "hf:unsloth/Qwen3.5-122B-A10B-MTP-GGUF:Qwen3.5-122B-A10B-UD-IQ2_M.gguf"
+    fmt: GGUF
+    quant: UD-IQ2_M
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group MS4 — Mistral Small 4 (119B dense, AA Index 27.8)
+  # Architecture: mistral3
+  # Parameters: 119B dense — large dense model, NOT MoE.
+  # Context: 128K tokens
+  # License: Apache 2.0
+  # Purpose: largest dense open-weights model feasible at extreme quantization.
+  #   AA 27.8 (reasoning) — strong reasoning model from Mistral.
+  #   IQ2_M = 38.9 GB fits; Q3_K_L = 61.7 GB fits tightly; Q4_K_M = 72.3 GB too big.
+  #   No MLX quants available for this model yet.
+  # Memory budget: IQ2_M ~38.9 GB, IQ3_M ~52.2 GB, Q3_K_L ~61.7 GB (tight)
+  # GGUF: mradermacher/Mistral-Small-4-119B-2603-i1-GGUF
+  # NOTE: mistral3 arch — verify llama.cpp supports it; disable if not.
+  #   No Ollama tag found. llama-server only.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: MS4_IQ2_1
+    model: "MistralSmall4"
+    group: "MS4 — Mistral Small 4 (119B Dense, IQ2)"
+    backend: llama-server
+    model_id: "hf:mradermacher/Mistral-Small-4-119B-2603-i1-GGUF:Mistral-Small-4-119B-2603.i1-IQ2_M.gguf"
+    fmt: GGUF
+    quant: IQ2_M
+    kv_cache: default
+
+  - id: MS4_IQ3_1
+    model: "MistralSmall4"
+    group: "MS4 — Mistral Small 4 (119B Dense, IQ3)"
+    backend: llama-server
+    model_id: "hf:mradermacher/Mistral-Small-4-119B-2603-i1-GGUF:Mistral-Small-4-119B-2603.i1-IQ3_M.gguf"
+    fmt: GGUF
+    quant: IQ3_M
+    kv_cache: default
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group DST2 — Devstral Small 2 (24B dense, AA Index 22.0)
+  # Architecture: mistral3
+  # Parameters: 24B dense — Mistral's second-generation coding model
+  # Context: 128K tokens (32K sliding window attention)
+  # License: Apache 2.0
+  # Purpose: coding-focused 24B dense model from Mistral. Direct competitor to
+  #   Qwen3-Coder-Next and NorthCode on software engineering tasks.
+  #   AA 22.0 — lower than our other coding models but interesting as a non-Qwen data point.
+  # Memory budget: Q4_K_M ~14.3 GB, MLX 4bit ~14 GB
+  # HuggingFace: mistralai/Devstral-Small-2-24B-Instruct-2512
+  # mlx-community: Devstral-Small-2-24B-Instruct-2512-4bit, -5bit, -6bit, -8bit
+  # GGUF: bartowski/mistralai_Devstral-Small-2-24B-Instruct-2512-GGUF (Q4_K_M 14.3 GB)
+  # Ollama: devstral:24b
+  # NOTE: mistral3 arch — same as Mistral Small 4. Supported by mlx-lm and llama.cpp.
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: DST2_Q4_1
+    model: "Devstral2"
+    group: "DST2 — Devstral Small 2 (24B Coding)"
+    backend: mlx-lm
+    model_id: "mlx-community/Devstral-Small-2-24B-Instruct-2512-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: DST2_Q4_2
+    model: "Devstral2"
+    group: "DST2 — Devstral Small 2 (24B Coding)"
+    backend: mlx-lm
+    model_id: "mlx-community/Devstral-Small-2-24B-Instruct-2512-8bit"
+    fmt: MLX
+    quant: 8bit
+    kv_cache: default
+
+  - id: DST2_OLL_1
+    model: "Devstral2"
+    group: "DST2 — Devstral Small 2 (24B Coding)"
+    backend: ollama
+    model_id: "devstral:24b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: DST2_LC_Q4KM
+    model: "Devstral2"
+    group: "DST2 — Devstral Small 2 (24B Coding)"
+    backend: llama-server
+    model_id: "hf:bartowski/mistralai_Devstral-Small-2-24B-Instruct-2512-GGUF:Q4_K_M"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled

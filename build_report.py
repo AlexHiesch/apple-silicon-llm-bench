@@ -144,6 +144,10 @@ MODEL_META = {
     "DiffusionGemma":   {"elo": None, "aa": None,  "released": None},
     "NorthCode":        {"elo": None, "aa": 27.6, "released": "2026-06-09"},
     "Holo3.1":          {"elo": None, "aa": None,  "released": None},
+    "Qwen3.5-27B":      {"elo": None, "aa": 37.1, "released": "2026-02-24"},
+    "Qwen3.5-122B":     {"elo": None, "aa": 35.9, "released": "2026-02-24"},
+    "MistralSmall4":    {"elo": None, "aa": 27.8, "released": "2026-03-16"},
+    "Devstral2":        {"elo": None, "aa": 22.0, "released": "2025-12-09"},
 }
 
 def _parse_bench_date(source_filename):
