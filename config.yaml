@@ -2926,7 +2926,7 @@ tests:
     model: "Qwen3.5-27B"
     group: "QW27 — Qwen3.5-27B (Dense)"
     backend: llama-server
-    model_id: "hf:bartowski/Qwen3.5-27B-Instruct-GGUF:Q4_K_M"
+    model_id: "~/.cache/huggingface/hub/models--bartowski--Qwen_Qwen3.5-27B-GGUF/snapshots/d7b113c40283f4d99f4eb0ec20d126ad653cc736/Qwen_Qwen3.5-27B-Q4_K_M.gguf"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
@@ -2962,7 +2962,7 @@ tests:
     model: "Qwen3.5-122B"
     group: "QW122 — Qwen3.5-122B-A10B (MoE, Q2)"
     backend: llama-server
-    model_id: "hf:unsloth/Qwen3.5-122B-A10B-MTP-GGUF:Qwen3.5-122B-A10B-UD-Q2_K_XL.gguf"
+    model_id: "~/.cache/huggingface/hub/models--unsloth--Qwen3.5-122B-A10B-MTP-GGUF/snapshots/907becb33103ab66b23da06a2dc74a5fca0583bd/Qwen3.5-122B-A10B-UD-Q2_K_XL.gguf"
     fmt: GGUF
     quant: UD-Q2_K_XL
     kv_cache: default
@@ -2971,7 +2971,7 @@ tests:
     model: "Qwen3.5-122B"
     group: "QW122 — Qwen3.5-122B-A10B (MoE, Q2)"
     backend: llama-server
-    model_id: "hf:unsloth/Qwen3.5-122B-A10B-MTP-GGUF:Qwen3.5-122B-A10B-UD-IQ2_M.gguf"
+    model_id: "~/.cache/huggingface/hub/models--unsloth--Qwen3.5-122B-A10B-MTP-GGUF/snapshots/907becb33103ab66b23da06a2dc74a5fca0583bd/Qwen3.5-122B-A10B-UD-IQ2_M.gguf"
     fmt: GGUF
     quant: UD-IQ2_M
     kv_cache: default
@@ -2996,19 +2996,21 @@ tests:
     model: "MistralSmall4"
     group: "MS4 — Mistral Small 4 (119B Dense, IQ2)"
     backend: llama-server
-    model_id: "hf:mradermacher/Mistral-Small-4-119B-2603-i1-GGUF:Mistral-Small-4-119B-2603.i1-IQ2_M.gguf"
+    model_id: "~/.cache/huggingface/hub/models--mradermacher--Mistral-Small-4-119B-2603-i1-GGUF/snapshots/1cb5f803eab639379d7b0d593eceb6e6ab690443/Mistral-Small-4-119B-2603.i1-IQ2_M.gguf"
     fmt: GGUF
     quant: IQ2_M
     kv_cache: default
+    extra_args: ["--chat-template", "chatml", "-c", "4096", "-np", "1"]
 
   - id: MS4_IQ3_1
     model: "MistralSmall4"
     group: "MS4 — Mistral Small 4 (119B Dense, IQ3)"
     backend: llama-server
-    model_id: "hf:mradermacher/Mistral-Small-4-119B-2603-i1-GGUF:Mistral-Small-4-119B-2603.i1-IQ3_M.gguf"
+    model_id: "~/.cache/huggingface/hub/models--mradermacher--Mistral-Small-4-119B-2603-i1-GGUF/snapshots/1cb5f803eab639379d7b0d593eceb6e6ab690443/Mistral-Small-4-119B-2603.i1-IQ3_M.gguf"
     fmt: GGUF
     quant: IQ3_M
     kv_cache: default
+    extra_args: ["--chat-template", "chatml", "-c", "4096", "-np", "1"]
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group DST2 — Devstral Small 2 (24B dense, AA Index 22.0)
@@ -3058,7 +3060,7 @@ tests:
     model: "Devstral2"
     group: "DST2 — Devstral Small 2 (24B Coding)"
     backend: llama-server
-    model_id: "hf:bartowski/mistralai_Devstral-Small-2-24B-Instruct-2512-GGUF:Q4_K_M"
+    model_id: "~/.cache/huggingface/hub/models--bartowski--mistralai_Devstral-Small-2-24B-Instruct-2512-GGUF/snapshots/027695770ae1de77c2f6fb19f8e1ba9d65fcd15d/mistralai_Devstral-Small-2-24B-Instruct-2512-Q4_K_M.gguf"
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default

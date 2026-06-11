@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,short,1,58.4,21.7,394.0,455,23,20.97,15.7,0,260,249.1,51790.1,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,short,2,45.4,22.3,506.4,455,23,20.37,15.7,0,260,249.1,51790.1,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,short,3,48.0,22.9,479.5,455,23,19.85,15.7,0,260,249.1,51790.1,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,long,1,66.9,22.5,2048.8,512,137,22.78,15.7,0,277,675.5,51801.9,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,long,2,52.0,15.9,2634.5,512,137,32.26,15.7,0,277,675.5,51801.9,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,long,3,51.3,19.6,2670.8,512,137,26.07,15.7,0,277,675.5,51801.9,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,code,1,60.5,22.3,12417.6,526,751,23.57,15.7,0,212,3718.5,50896.4,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,code,2,55.8,22.5,13464.8,526,751,23.36,15.7,0,212,3718.5,50896.4,0.0,b9590,,
+DST2_LC_Q4KM,Devstral2 llama.cpp Q4_K_M,Devstral2,llama-server,GGUF,Q4_K_M,default,code,3,76.9,22.8,9762.7,526,751,23.06,15.7,0,212,3718.5,50896.4,0.0,b9590,,

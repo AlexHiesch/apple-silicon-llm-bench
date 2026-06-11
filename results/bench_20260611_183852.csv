@@ -1,0 +1,7 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+QW27_CTX_1,Qwen3.5-27B mlx-lm 4bit,Qwen3.5-27B,mlx-lm,MLX,4bit,default,context-32k,1,325.6,17.5,100262.8,559,32645,32.24,3.2,0,253,206490.0,15003.9,0.0,0.31.3,,
+QW27_CTX_1,Qwen3.5-27B mlx-lm 4bit,Qwen3.5-27B,mlx-lm,MLX,4bit,default,context-32k,2,302.6,18.0,107870.1,559,32645,31.27,3.2,0,253,206490.0,15004.6,0.0,0.31.3,,
+QW27_CTX_1,Qwen3.5-27B mlx-lm 4bit,Qwen3.5-27B,mlx-lm,MLX,4bit,default,context-32k,3,309.8,18.4,105381.6,559,32645,30.72,3.2,0,253,206490.0,15008.8,0.0,0.31.3,,
+QW27_CTX_1,Qwen3.5-27B mlx-lm 4bit,Qwen3.5-27B,mlx-lm,MLX,4bit,default,context-64k,1,536.9,15.8,122292.9,569,65654,36.4,3.2,0,224,417758.8,14687.7,0.0,0.31.3,,
+QW27_CTX_1,Qwen3.5-27B mlx-lm 4bit,Qwen3.5-27B,mlx-lm,MLX,4bit,default,context-64k,2,495.2,16.6,132580.5,569,65654,34.71,3.2,0,224,417758.8,14687.7,0.0,0.31.3,,
+QW27_CTX_1,Qwen3.5-27B mlx-lm 4bit,Qwen3.5-27B,mlx-lm,MLX,4bit,default,context-64k,3,597.3,16.6,109925.2,569,65654,34.77,3.2,0,224,417758.8,14687.7,0.0,0.31.3,,

@@ -121,23 +121,23 @@ BACKEND_LABELS = {
 }
 
 # Quality + release date per model. Sources:
-#   elo: LMSYS Chatbot Arena (Dec 2025 snapshot)
+#   elo: HF Arena Leaderboard (lmarena-ai/arena-leaderboard, 2025-08-04 snapshot)
 #   aa:  Artificial Analysis Intelligence Index v4.0 (non-reasoning variant; we bench with --no-think)
 #   released: from AA API release_date field
 # All scores are model-level, not quant-specific (Q4 ≈ FP16 within ~1-3%).
 MODEL_META = {
-    "Qwen3-32B":        {"elo": 1344, "aa": 14.5, "released": "2025-04-28"},
+    "Qwen3-32B":        {"elo": 1341, "aa": 14.5, "released": "2025-04-28"},
     "Qwen3.5":          {"elo": None, "aa": 30.7, "released": "2026-02-24"},
     "Qwen3.5-35B-A3B":  {"elo": None, "aa": 30.7, "released": "2026-02-24"},
-    "Qwen3-Coder-Next": {"elo": 1385, "aa": 28.3, "released": "2026-02-03"},
-    "Coder":            {"elo": 1385, "aa": 28.3, "released": "2026-02-03"},
-    "Gemma3-27B":       {"elo": 1365, "aa": 10.3, "released": "2025-03-12"},
-    "Gemma4-12B":       {"elo": 1340, "aa": 19.5, "released": "2026-06-03"},
+    "Qwen3-Coder-Next": {"elo": None, "aa": 28.3, "released": "2026-02-03"},
+    "Coder":            {"elo": None, "aa": 28.3, "released": "2026-02-03"},
+    "Gemma3-27B":       {"elo": 1357, "aa": 10.3, "released": "2025-03-12"},
+    "Gemma4-12B":       {"elo": 1335, "aa": 19.5, "released": "2026-06-03"},
     "Gemma4-26B-A4B":   {"elo": None, "aa": 27.1, "released": "2026-04-02"},
     "Gemma4-31B":       {"elo": None, "aa": 32.3, "released": "2026-04-02"},
-    "Gemma4-E4B":       {"elo": 1318, "aa": 14.8, "released": "2026-04-03"},
+    "Gemma4-E4B":       {"elo": 1305, "aa": 14.8, "released": "2026-04-03"},
     "Gemma4-E2B":       {"elo": None, "aa": 12.1, "released": "2026-04-02"},
-    "Llama3.3-70B":     {"elo": 1319, "aa": 14.5, "released": "2024-12-06"},
+    "Llama3.3-70B":     {"elo": 1275, "aa": 14.5, "released": "2024-12-06"},
     "Qwen3.6-27B":      {"elo": None, "aa": 37.1, "released": "2026-04-22"},
     "Qwen3.6-35B":      {"elo": None, "aa": 31.5, "released": "2026-04-16"},
     "Qwen3.6-35B-A3B":  {"elo": None, "aa": 31.5, "released": "2026-04-16"},
@@ -151,9 +151,9 @@ MODEL_META = {
 }
 
 def _parse_bench_date(source_filename):
-    """Extract YYYY-MM-DD from bench_YYYYMMDD_HHMMSS.csv."""
+    """Extract YYYY-MM-DD from bench_YYYYMMDD_... or backend_retest_YYYYMMDD_... filenames."""
     import re
-    m = re.search(r'bench_(\d{4})(\d{2})(\d{2})_', source_filename)
+    m = re.search(r'_(\d{4})(\d{2})(\d{2})_', source_filename)
     if m:
         return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
     return None

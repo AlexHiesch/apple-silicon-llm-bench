@@ -660,6 +660,17 @@ def _auto_prereq(cfg_entry: dict, ollama_ver: tuple[int, ...]) -> str:
         if model_id.startswith("ollama:"):
             tag = model_id[7:]
             return "" if _ollama_gguf_blob(tag) else f"ollama pull {tag}"
+        if model_id.startswith("hf:"):
+            # hf:owner/repo:filename.gguf — check HF cache
+            parts = model_id[3:].split(":", 1)
+            repo_id = parts[0]
+            filename = parts[1] if len(parts) > 1 else ""
+            cache_dir = HF_CACHE / f"models--{repo_id.replace('/', '--')}"
+            if filename and cache_dir.exists():
+                for snap in (cache_dir / "snapshots").iterdir() if (cache_dir / "snapshots").exists() else []:
+                    if (snap / filename).exists():
+                        return ""
+            return ""  # let llama-server attempt HF download at runtime
         path = Path(model_id).expanduser()
         return "" if path.exists() else f"GGUF not found: {path}"
 
@@ -802,10 +813,10 @@ def kill_port(port: int):
         pids = subprocess.check_output(["lsof", "-ti", f":{port}"], text=True).strip()
         for pid in pids.split("\n"):
             try:
-                os.kill(int(pid), signal.SIGTERM)
+                os.kill(int(pid), signal.SIGKILL)
             except (ProcessLookupError, ValueError):
                 pass
-        time.sleep(2)
+        time.sleep(3)
     except subprocess.CalledProcessError:
         pass
 
@@ -1263,6 +1274,10 @@ def bench_ollama_streaming(model: str, messages: list[dict], max_tokens: int,
 def run_single_bench(test: TestConfig, messages: list[dict], max_tokens: int,
                      no_think: bool) -> dict:
     force_think = test.no_think_override is False  # Explicitly enable thinking
+    # Skip chat_template_kwargs when server handles reasoning format itself
+    if "--reasoning-format" in test.extra_args:
+        no_think = False
+        force_think = False
     if test.backend == "ollama":
         return bench_ollama_streaming(test.model_id, messages, max_tokens,
                                       no_think=no_think, force_think=force_think,

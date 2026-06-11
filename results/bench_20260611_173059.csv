@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,short,1,220.0,13.9,104.5,419,23,30.19,3.2,0,1,8422.0,3993.8,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,short,2,238.2,13.8,96.5,419,23,30.56,3.2,0,1,8422.0,3996.9,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,short,3,231.2,14.0,99.5,419,23,30.0,3.2,0,1,8422.0,3997.3,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,long,1,217.2,12.7,630.7,512,137,40.36,3.2,0,1,790.0,3998.6,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,long,2,239.3,12.9,572.5,512,137,40.0,3.2,0,1,790.0,4000.1,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,long,3,228.7,12.8,598.9,512,137,40.15,3.2,0,1,790.0,4006.0,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,code,1,241.1,12.8,3114.6,520,751,40.74,3.2,0,1,4244.5,4001.3,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,code,2,242.3,12.8,3099.0,520,751,40.8,3.2,0,1,4244.5,4002.6,0.0,0.31.3,,
+DST2_Q4_2,Devstral2 mlx-lm 8bit,Devstral2,mlx-lm,MLX,8bit,default,code,3,244.4,13.0,3073.1,520,751,40.12,3.2,0,1,4244.5,4007.6,0.0,0.31.3,,
