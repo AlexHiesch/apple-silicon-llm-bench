@@ -3458,6 +3458,46 @@ tests:
     quant: Q4_K
     kv_cache: default
 
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group GOSS — GPT-OSS-20B (OpenAI, 20B dense, MXFP4 native, Jun 2025)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: GOSS_MLX_1
+    model: "GPT-OSS-20B"
+    group: "GOSS — GPT-OSS-20B (OpenAI, Dense, MXFP4)"
+    backend: mlx-lm
+    model_id: "mlx-community/gpt-oss-20b-MXFP4-Q8"
+    fmt: MLX
+    quant: MXFP4-Q8
+    kv_cache: default
+
+  - id: GOSS_OLL_1
+    model: "GPT-OSS-20B"
+    group: "GOSS — GPT-OSS-20B (OpenAI, Dense, MXFP4)"
+    backend: ollama
+    model_id: "gpt-oss:20b"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: GOSS_LC_Q4KM
+    model: "GPT-OSS-20B"
+    group: "GOSS — GPT-OSS-20B (OpenAI, Dense, MXFP4)"
+    backend: llama-server
+    model_id: "hf:unsloth/gpt-oss-20b-GGUF:gpt-oss-20b-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: GOSS_LC_Q8
+    model: "GPT-OSS-20B"
+    group: "GOSS — GPT-OSS-20B (OpenAI, Dense, MXFP4)"
+    backend: llama-server
+    model_id: "hf:unsloth/gpt-oss-20b-GGUF:gpt-oss-20b-Q8_0.gguf"
+    fmt: GGUF
+    quant: Q8_0
+    kv_cache: default
+
   # ── F baseline re-run (clean AC power, precautionary) ────────────────────────
   # F_TQ4_1 and F_TQ35_1 ran at ~12:27-12:45 when battery was ~22% (above
   # Low Power Mode threshold). Decode speeds (89-93 t/s) match un-throttled

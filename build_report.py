@@ -61,6 +61,8 @@ MODEL_MAP = {
     "LAG":              "Laguna-XS.2",
     "North-Mini-Code":  "NorthMiniCode-1.0",
     "NMC":              "NorthMiniCode-1.0",
+    "GPT-OSS-20B":      "GPT-OSS-20B",
+    "GOSS":             "GPT-OSS-20B",
 }
 
 def extract_model(test_name):
@@ -173,6 +175,7 @@ MODEL_META = {
     "Falcon3-10B":           {"elo": None, "aa": None,  "released": "2024-12-12", "provider": "TII"},
     "Laguna-XS.2":           {"elo": None, "aa": None,  "released": "2026-05-07", "provider": "Poolside"},
     "NorthMiniCode-1.0":     {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
+    "GPT-OSS-20B":           {"elo": None, "aa": None,  "released": "2025-06-10", "provider": "OpenAI"},
 }
 
 def _parse_bench_date(source_filename):

@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,short,1,383.9,69.9,627.2,512,82,7.66,4.8,189,294,505.0,14555.2,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,short,2,384.7,69.7,626.9,512,82,7.69,4.8,189,294,505.0,14562.5,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,short,3,391.1,69.5,627.0,512,82,7.71,4.8,189,294,505.0,14562.6,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,long,1,299.4,69.3,10095.4,512,164,7.63,4.8,606,0,427.0,14574.7,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,long,2,268.2,69.5,10464.5,512,164,7.6,4.8,606,0,427.0,14584.7,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,long,3,273.9,68.9,10191.4,512,164,7.67,4.8,606,0,427.0,14585.2,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,code,1,321.3,68.5,48376.9,512,763,7.78,4.8,662,0,878.4,13720.2,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,code,2,345.8,68.9,47834.0,512,763,7.73,4.8,662,0,878.4,13720.2,0.0,0.30.7,,
+GOSS_OLL_1,GPT-OSS-20B Ollama Q4_K_M,GPT-OSS-20B,ollama,GGUF,Q4_K_M,default,code,3,332.6,68.6,47320.8,512,763,7.76,4.8,662,0,878.4,13720.2,0.0,0.30.7,,

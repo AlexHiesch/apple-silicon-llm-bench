@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,short,1,108.7,86.0,211.6,523,23,6.18,3.7,0,305,601.3,12084.6,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,short,2,113.7,86.8,202.2,523,23,6.12,3.7,0,305,601.3,12085.8,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,short,3,113.7,86.5,202.3,523,23,6.15,3.7,0,305,601.3,12085.8,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,long,1,116.4,98.3,1176.7,602,137,6.23,3.7,0,307,251.7,12085.9,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,long,2,111.7,99.0,1226.6,602,137,6.18,3.7,0,307,251.7,12086.0,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,long,3,113.6,98.0,1205.9,602,137,6.25,3.7,0,307,251.7,12086.0,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,code,1,122.0,107.4,6154.6,677,751,6.41,3.7,0,323,680.1,12088.6,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,code,2,120.7,107.4,6223.1,677,751,6.42,3.7,0,323,680.1,12089.3,0.0,0.31.3,,
+GOSS_MLX_1,GPT-OSS-20B mlx-lm MXFP4-Q8,GPT-OSS-20B,mlx-lm,MLX,MXFP4-Q8,default,code,3,115.9,106.6,6481.7,677,751,6.46,3.7,0,323,680.1,12089.3,0.0,0.31.3,,
