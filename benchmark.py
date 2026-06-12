@@ -906,6 +906,23 @@ def start_server(test: TestConfig, server_timeout: int):
                "-q", "--disable-tools"] + test.extra_args
         return _popen_server(cmd, "unsloth-studio")
 
+    if test.backend == "diffusion-cli":
+        kill_port(test.port)
+        time.sleep(1)
+        script = Path(__file__).parent / "diffusion_server.py"
+        if test.model_id.startswith("hf:"):
+            parts = test.model_id[3:].split(":", 1)
+            repo = parts[0]
+            filename = parts[1] if len(parts) > 1 else ""
+            from huggingface_hub import hf_hub_download
+            model_path = hf_hub_download(repo_id=repo, filename=filename)
+        else:
+            model_path = str(Path(test.model_id).expanduser())
+        cmd = [sys.executable, str(script),
+               "-m", model_path,
+               "-p", str(test.port)] + test.extra_args
+        return _popen_server(cmd, "diffusion-cli")
+
     if test.backend == "dflash":
         kill_port(test.port)
         time.sleep(1)

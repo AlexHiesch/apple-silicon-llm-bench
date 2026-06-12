@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,short,1,12564.9,17298010.2,1.5,512,19,12.56,3.4,0,417,12432.9,20188.1,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,short,2,12352.4,17929797.9,1.5,512,19,12.35,3.4,0,417,12432.9,20188.1,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,short,3,12295.6,18277407.9,1.5,512,19,12.3,3.4,0,417,12432.9,20188.1,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,long,1,18973.6,16243860.4,4.4,512,83,18.97,3.4,0,383,18825.3,20275.0,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,long,2,18804.3,19622901.2,4.4,512,83,18.8,3.4,0,383,18825.3,20275.4,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,long,3,18719.4,16483869.3,4.4,512,83,18.72,3.4,0,383,18825.3,20275.4,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,code,1,18921.2,18088506.9,16.2,512,306,18.92,3.4,0,379,18956.8,21055.9,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,code,2,18959.3,16243349.5,16.1,512,306,18.96,3.4,0,379,18956.8,21056.1,0.0,,,
+DG_DIFF_Q4,DiffusionGemma diffusion-cli Q4_K_M,DiffusionGemma,diffusion-cli,GGUF,Q4_K_M,default,code,3,18845.5,18250012.8,16.2,512,306,18.85,3.4,0,379,18956.8,21056.1,0.0,,,

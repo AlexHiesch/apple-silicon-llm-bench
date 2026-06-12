@@ -16,9 +16,9 @@ NUMERIC = {"ttft_ms", "decode_tps", "prefill_tps", "completion_tokens", "prompt_
 
 MODEL_MAP = {
     "Qwen3.5":          "Qwen3.5-35B-A3B",
-    "Coder":            "Qwen3-Coder-Next",
-    "Qwen3-Coder-Next": "Qwen3-Coder-Next",
-    "Qwen3-Coder":      "Qwen3-Coder-Next",
+    "Coder":            "Qwen3-Coder-480B-A35B",
+    "Qwen3-Coder-Next": "Qwen3-Coder-480B-A35B",
+    "Qwen3-Coder":      "Qwen3-Coder-480B-A35B",
     "Qwen3-32B":        "Qwen3-32B",
     "Gemma3-27B":       "Gemma3-27B",
     "Gemma4-26B":       "Gemma4-26B-A4B",
@@ -31,6 +31,15 @@ MODEL_MAP = {
     "Qwen3.6-35B":      "Qwen3.6-35B",
     "Qwen3.6-35B-A3B":  "Qwen3.6-35B-A3B",
     "Qwen3.6":          "Qwen3.6-35B",
+    "DiffusionGemma":   "DiffusionGemma-26B-A4B",
+    "NorthCode":        "NorthCode-1.0",
+    "Holo3.1":          "Holo3.1-8B",
+    "MistralSmall4":    "MistralSmall4-119B-A22B",
+    "Devstral2":        "Devstral2-24B",
+    "Phi-mini-MoE":     "Phi-MoE-14B-A2.4B",
+    "Gemma4-E4B":       "Gemma4-E4B-it",
+    "Gemma4-E2B":       "Gemma4-E2B-it",
+    "Qwen3-Coder-Next": "Qwen3-Coder-480B-A35B",
     "LFM2.5-8B":        "LFM2.5-8B",
     "LFM2-24B":         "LFM2-24B",
     "Nemotron-Nano":    "Nemotron-Nano-30B",
@@ -42,16 +51,16 @@ MODEL_MAP = {
     "GLM":              "GLM-4.7-Flash",
     "Granite-4.1":      "Granite-4.1-8B",
     "GR41":             "Granite-4.1-8B",
-    "Phi-mini-MoE":     "Phi-mini-MoE",
-    "PHIM":             "Phi-mini-MoE",
+    "Phi-mini-MoE":     "Phi-MoE-14B-A2.4B",
+    "PHIM":             "Phi-MoE-14B-A2.4B",
     "Reka-Flash":       "Reka-Flash-3.1",
     "REKA":             "Reka-Flash-3.1",
     "Falcon3":          "Falcon3-10B",
     "FAL3":             "Falcon3-10B",
     "Laguna":           "Laguna-XS.2",
     "LAG":              "Laguna-XS.2",
-    "North-Mini-Code":  "North-Mini-Code",
-    "NMC":              "North-Mini-Code",
+    "North-Mini-Code":  "NorthMiniCode-1.0",
+    "NMC":              "NorthMiniCode-1.0",
 }
 
 def extract_model(test_name):
@@ -126,6 +135,7 @@ BACKEND_LABELS = {
     "omlx-0.3.4": "omlx",
     "dflash": "DFlash",
     "dflash-0.1.0": "DFlash",
+    "diffusion-cli": "llama-diffusion",
     "unsloth-studio": "Unsloth Studio",
 }
 
@@ -133,36 +143,36 @@ MODEL_META = {
     "Qwen3-32B":        {"elo": 1342, "aa": 14.5, "released": "2025-04-28", "provider": "Alibaba"},
     "Qwen3.5":          {"elo": 1321, "aa": 30.7, "released": "2026-02-24", "provider": "Alibaba"},
     "Qwen3.5-35B-A3B":  {"elo": 1321, "aa": 30.7, "released": "2026-02-24", "provider": "Alibaba"},
-    "Qwen3-Coder-Next": {"elo": 1354, "aa": 28.3, "released": "2026-02-03", "provider": "Alibaba"},
+    "Qwen3-Coder-480B-A35B": {"elo": 1354, "aa": 28.3, "released": "2026-02-03", "provider": "Alibaba"},
     "Coder":            {"elo": 1354, "aa": 28.3, "released": "2026-02-03", "provider": "Alibaba"},
     "Gemma3-27B":       {"elo": 1358, "aa": 10.3, "released": "2025-03-12", "provider": "Google"},
     "Gemma4-12B":       {"elo": 1335, "aa": 19.5, "released": "2026-06-03", "provider": "Google"},
     "Gemma4-26B-A4B":   {"elo": None, "aa": 27.1, "released": "2026-04-02", "provider": "Google"},
     "Gemma4-31B":       {"elo": None, "aa": 32.3, "released": "2026-04-02", "provider": "Google"},
-    "Gemma4-E4B":       {"elo": 1307, "aa": 14.8, "released": "2026-04-03", "provider": "Google"},
-    "Gemma4-E2B":       {"elo": None, "aa": 12.1, "released": "2026-04-02", "provider": "Google"},
+    "Gemma4-E4B-it":    {"elo": 1307, "aa": 14.8, "released": "2026-04-03", "provider": "Google"},
+    "Gemma4-E2B-it":    {"elo": None, "aa": 12.1, "released": "2026-04-02", "provider": "Google"},
     "Llama3.3-70B":     {"elo": 1278, "aa": 14.5, "released": "2024-12-06", "provider": "Meta"},
     "Qwen3.6-27B":      {"elo": None, "aa": 37.1, "released": "2026-04-22", "provider": "Alibaba"},
     "Qwen3.6-35B":      {"elo": None, "aa": 31.5, "released": "2026-04-16", "provider": "Alibaba"},
     "Qwen3.6-35B-A3B":  {"elo": None, "aa": 31.5, "released": "2026-04-16", "provider": "Alibaba"},
-    "DiffusionGemma":   {"elo": None, "aa": None,  "released": None, "provider": "Google"},
-    "NorthCode":        {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
-    "Holo3.1":          {"elo": None, "aa": None,  "released": None, "provider": "Holocene"},
+    "DiffusionGemma-26B-A4B": {"elo": None, "aa": None, "released": "2025-07-31", "provider": "Google"},
+    "NorthCode-1.0":    {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
+    "Holo3.1-8B":       {"elo": None, "aa": None,  "released": "2026-05-16", "provider": "Holocene"},
     "Qwen3.5-27B":      {"elo": 1321, "aa": 37.1, "released": "2026-02-24", "provider": "Alibaba"},
     "Qwen3.5-122B":     {"elo": None, "aa": 35.9, "released": "2026-02-24", "provider": "Alibaba"},
-    "MistralSmall4":    {"elo": 1341, "aa": 27.8, "released": "2026-03-16", "provider": "Mistral"},
-    "Devstral2":        {"elo": None, "aa": 22.0, "released": "2025-12-09", "provider": "Mistral"},
+    "MistralSmall4-119B-A22B": {"elo": 1341, "aa": 27.8, "released": "2026-03-16", "provider": "Mistral"},
+    "Devstral2-24B":    {"elo": None, "aa": 22.0, "released": "2025-12-09", "provider": "Mistral"},
     "LFM2.5-8B":        {"elo": None, "aa": None,  "released": "2026-05-24", "provider": "Liquid AI"},
     "LFM2-24B":         {"elo": None, "aa": None,  "released": "2026-02-17", "provider": "Liquid AI"},
     "Nemotron-Nano-30B":     {"elo": None, "aa": 28.5, "released": "2026-05-19", "provider": "NVIDIA"},
     "Nemotron-Cascade2-30B": {"elo": None, "aa": None,  "released": "2026-05-19", "provider": "NVIDIA"},
     "GLM-4.7-Flash":         {"elo": None, "aa": None,  "released": "2026-04-30", "provider": "Zhipu AI"},
     "Granite-4.1-8B":        {"elo": None, "aa": None,  "released": "2026-05-28", "provider": "IBM"},
-    "Phi-mini-MoE":          {"elo": None, "aa": None,  "released": "2025-08-12", "provider": "Microsoft"},
+    "Phi-MoE-14B-A2.4B":     {"elo": None, "aa": None,  "released": "2025-08-12", "provider": "Microsoft"},
     "Reka-Flash-3.1":        {"elo": None, "aa": None,  "released": "2026-04-15", "provider": "Reka"},
     "Falcon3-10B":           {"elo": None, "aa": None,  "released": "2024-12-12", "provider": "TII"},
     "Laguna-XS.2":           {"elo": None, "aa": None,  "released": "2026-05-07", "provider": "Poolside"},
-    "North-Mini-Code":       {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
+    "NorthMiniCode-1.0":     {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
 }
 
 def _parse_bench_date(source_filename):
@@ -176,7 +186,8 @@ def build_json_rows(rows):
     json_rows = []
     for r in rows:
         raw_backend = r.get("backend", "")
-        model = r.get("model", "") or extract_model(r.get("test_name", ""))
+        raw_model = r.get("model", "") or extract_model(r.get("test_name", ""))
+        model = MODEL_MAP.get(raw_model, raw_model)
         meta = MODEL_META.get(model, {})
         json_rows.append({
             "id": r.get("test_id", ""),

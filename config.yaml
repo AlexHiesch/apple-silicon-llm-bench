@@ -2522,11 +2522,13 @@ tests:
   # GGUF: unsloth/diffusiongemma-26B-A4B-it-GGUF (Q4_K_M, Q5_K_M, Q6_K, Q8_0)
   # Backend support:
   #   mlx-vlm 0.6.0+ — supports diffusion_gemma model type (block diffusion decoding)
+  #   Unsloth Studio — OpenAI-compat API with native diffusion decoding (uses llama.cpp internally)
   #   vLLM (GPU) — supports diffusion decoding via OpenAI-compat API
   #   llama.cpp — DRAFT PR #24423 only, no server mode yet (llama-diffusion-cli only)
   #   Ollama — NOT supported (depends on llama.cpp merge)
   # NOTE: llama.cpp GGUF quants exist but standard llama-server cannot run them
   #   with diffusion decoding. Only llama-diffusion-cli (from PR #24423) works.
+  #   Unsloth Studio wraps llama.cpp with its own diffusion path — use DG_US_* configs.
   # ══════════════════════════════════════════════════════════════════════════════
 
   - id: DG_Q4_1
@@ -2636,6 +2638,18 @@ tests:
     quant: 4bit
     kv_cache: ssd-paged
     temperature: 0.7
+
+  # ── llama-diffusion-cli (PR #24423 branch build) via diffusion_server.py ─────
+  - id: DG_DIFF_Q4
+    model: "DiffusionGemma"
+    group: "DG — DiffusionGemma 26B-A4B (Block Diffusion)"
+    backend: diffusion-cli
+    model_id: "hf:unsloth/diffusiongemma-26B-A4B-it-GGUF:diffusiongemma-26B-A4B-it-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+    temperature: 0.7
+    server_timeout: 30
 
   # ── Ollama — NOT supported (standard llama.cpp has no diffusion decoding) ───
   - id: DG_OLL_1
