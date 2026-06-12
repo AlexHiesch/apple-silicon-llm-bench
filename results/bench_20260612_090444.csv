@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,short,1,36.5,169.8,629.4,510,23,3.03,8.1,455,0,83.1,6552.0,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,short,2,29.6,171.9,777.6,510,23,2.99,8.1,455,0,83.1,6552.0,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,short,3,30.0,171.2,765.8,510,23,3.0,8.1,455,0,83.1,6552.1,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,long,1,28.7,181.8,4768.3,541,137,3.0,8.1,541,0,162.1,6564.0,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,long,2,27.9,182.6,4917.1,541,137,2.98,8.1,541,0,162.1,6564.1,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,long,3,28.5,178.3,4812.8,541,137,3.06,8.1,541,0,162.1,6564.1,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,code,1,27.6,216.0,27190.9,654,751,3.05,8.1,654,0,332.5,6574.9,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,code,2,29.4,212.3,25561.9,654,751,3.11,8.1,654,0,332.5,6574.9,0.0,b9590,,
+LFM25_LC_Q4KM,LFM2.5-8B llama.cpp Q4_K_M,LFM2.5-8B,llama-server,GGUF,Q4_K_M,default,code,3,29.6,216.0,25399.0,654,751,3.05,8.1,654,0,332.5,6575.0,0.0,b9590,,

@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,short,1,31.9,141.6,721.9,510,23,3.63,13.3,495,0,92.4,10116.6,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,short,2,3386.6,140.1,6.8,510,23,7.02,13.3,495,0,92.4,10116.6,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,short,3,31.6,139.3,728.8,510,23,3.69,13.3,495,0,92.4,10116.7,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,long,1,32.4,152.0,4234.1,558,137,3.7,13.3,558,0,99.3,10128.3,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,long,2,31.8,152.1,4313.8,558,137,3.69,13.3,558,0,99.3,10128.3,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,long,3,31.8,150.5,4307.7,558,137,3.73,13.3,558,0,99.3,10128.3,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,code,1,38.7,157.1,19399.8,606,751,3.89,13.3,606,0,365.1,10137.5,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,code,2,35.0,145.4,21478.1,606,751,4.19,13.3,606,0,365.1,10137.6,0.0,b9590,,
+LFM25_LC_Q8,LFM2.5-8B llama.cpp Q8_0,LFM2.5-8B,llama-server,GGUF,Q8_0,default,code,3,38.2,154.9,19670.6,606,751,3.94,13.3,606,0,365.1,10139.2,0.0,b9590,,
