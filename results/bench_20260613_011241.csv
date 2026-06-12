@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,short,1,72.9,16.7,315.3,512,23,30.73,13.3,0,375,179.5,33657.7,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,short,2,67.4,16.2,341.2,512,23,31.66,13.3,0,375,179.5,33657.7,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,short,3,76.8,16.6,299.6,512,23,30.91,13.3,0,375,179.5,33657.7,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,long,1,71.0,19.2,1930.8,605,137,31.59,13.3,0,370,492.3,33671.8,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,long,2,72.4,19.4,1891.7,605,137,31.2,13.3,0,370,492.3,33671.8,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,long,3,64.7,19.4,2117.0,605,137,31.17,13.3,0,370,492.3,33671.8,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,code,1,66.2,20.9,11350.8,661,751,31.66,13.3,0,386,2620.6,33619.2,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,code,2,70.6,21.2,10641.7,661,751,31.15,13.3,0,386,2620.6,33619.2,0.0,b9610,,
+REKA_LC_Q8,Reka-Flash-3.1 llama.cpp Q8_0,Reka-Flash-3.1,llama-server,GGUF,Q8_0,default,code,3,64.9,21.3,11565.0,661,751,31.11,13.3,0,386,2620.6,33619.2,0.0,b9610,,

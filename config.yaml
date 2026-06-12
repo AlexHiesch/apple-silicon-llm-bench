@@ -3435,6 +3435,7 @@ tests:
     fmt: GGUF
     quant: Q4_K_M
     kv_cache: default
+    enabled: false  # 'laguna' arch not supported in llama.cpp b9610
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group NMC — North-Mini-Code-1.0 (Cohere, ~30B MoE 128E/8A, Jun 2026, coding)
@@ -3457,6 +3458,8 @@ tests:
     fmt: GGUF
     quant: Q4_K
     kv_cache: default
+    server_timeout: 1200
+    enabled: false  # 'cohere2_moe' arch not supported in llama.cpp b9610
 
   # ══════════════════════════════════════════════════════════════════════════════
   # Group GOSS — GPT-OSS-20B (OpenAI, 20B dense, MXFP4 native, Jun 2025)

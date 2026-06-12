@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,short,1,167.1,69.2,137.7,512,23,7.55,15.3,0,278,323.8,29770.6,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,short,2,167.1,65.6,137.6,512,23,7.96,15.3,0,278,323.8,29770.6,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,short,3,154.7,67.7,148.7,512,23,7.7,15.3,0,278,323.8,29770.6,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,long,1,265.5,67.6,516.1,512,137,7.83,15.3,0,297,271.6,29876.7,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,long,2,266.5,68.0,514.0,512,137,7.78,15.3,0,297,271.6,29876.8,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,long,3,262.3,67.5,522.3,512,137,7.83,15.3,0,297,271.6,29876.9,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,code,1,57.6,80.2,13029.2,600,751,7.52,15.3,0,209,1051.3,29993.5,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,code,2,78.3,79.9,9596.0,600,751,7.58,15.3,0,209,1051.3,29993.5,0.0,b9590,,
+NEMC_LC_Q4KM,Nemotron-Cascade2-30B llama.cpp Q4_K_M,Nemotron-Cascade2-30B,llama-server,GGUF,Q4_K_M,default,code,3,66.4,80.2,11310.4,600,751,7.54,15.3,0,209,1051.3,29993.5,0.0,b9590,,

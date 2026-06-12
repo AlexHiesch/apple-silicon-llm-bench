@@ -423,6 +423,7 @@ class TestConfig:
     api_key: str = ""                         # API key for authenticated backends
     max_tokens: Optional[int] = None          # per-test override (None = use global)
     temperature: Optional[float] = None       # per-test override (None = use default 0.0/0.6)
+    server_timeout: Optional[int] = None      # per-test override (None = use global)
 
 
 @dataclass
@@ -498,19 +499,28 @@ def hf_model_cached(repo_id: str) -> bool:
     short = repo_id.split("/")[-1] if "/" in repo_id else repo_id
     p = HF_CACHE / f"models--{repo_id.replace('/', '--')}"
     if not p.exists():
-        # Try mlx-community prefix
         p2 = HF_CACHE / f"models--mlx-community--{short}"
         if not p2.exists():
             return False
         p = p2
-    total = sum(f.stat().st_size for f in p.rglob("*") if f.is_file())
-    return total > 1_000_000_000
+    # Fast check: snapshot dir exists and has at least one non-symlink file
+    snapshots = p / "snapshots"
+    if not snapshots.exists():
+        return False
+    for snap in snapshots.iterdir():
+        if any(True for f in snap.iterdir() if f.is_file() and not f.name.startswith(".")):
+            return True
+    return False
 
+
+_ollama_list_cache: str | None = None
 
 def ollama_has_model(tag: str) -> bool:
+    global _ollama_list_cache
     try:
-        out = subprocess.check_output(["ollama", "list"], text=True)
-        return tag in out
+        if _ollama_list_cache is None:
+            _ollama_list_cache = subprocess.check_output(["ollama", "list"], text=True)
+        return tag in _ollama_list_cache
     except Exception:
         return False
 
@@ -598,11 +608,18 @@ def lm_studio_running() -> bool:
         return False
 
 
+_dmr_list_cache: str | None = None
+
 def dmr_has_model(model_tag: str) -> bool:
+    global _dmr_list_cache
     try:
-        out = subprocess.check_output(["docker", "model", "list"], text=True, timeout=10)
-        return model_tag.lower().replace("ai/", "").split(":")[0] in out.lower()
+        if _dmr_list_cache is None:
+            _dmr_list_cache = subprocess.check_output(
+                ["docker", "model", "list"], text=True, timeout=5,
+                stderr=subprocess.DEVNULL)
+        return model_tag.lower().replace("ai/", "").split(":")[0] in _dmr_list_cache.lower()
     except Exception:
+        _dmr_list_cache = ""
         return False
 
 
@@ -777,6 +794,7 @@ def build_tests(cfg: dict, bench_port: int) -> list[TestConfig]:
             api_key=entry.get("api_key", ""),
             max_tokens=entry.get("max_tokens"),
             temperature=entry.get("temperature"),
+            server_timeout=entry.get("server_timeout"),
         ))
 
     return tests
@@ -886,11 +904,23 @@ def start_server(test: TestConfig, server_timeout: int):
             parts = test.model_id[3:].split(":", 1)
             repo = parts[0]
             filename = parts[1] if len(parts) > 1 else ""
-            cmd = [binary, "--hf-repo", repo]
-            if filename:
-                cmd += ["--hf-file", filename]
-            cmd += ["--port", str(test.port), "--host", "127.0.0.1",
-                    "-ngl", "99"] + test.extra_args
+            # Prefer cached file via hf_hub_download (fast); fall back to --hf-repo (slow built-in download)
+            cached_path = None
+            try:
+                from huggingface_hub import hf_hub_download
+                cached_path = hf_hub_download(repo_id=repo, filename=filename, local_files_only=True)
+            except Exception:
+                pass
+            if cached_path:
+                cmd = [binary, "-m", cached_path,
+                       "--port", str(test.port), "--host", "127.0.0.1",
+                       "-ngl", "99"] + test.extra_args
+            else:
+                cmd = [binary, "--hf-repo", repo]
+                if filename:
+                    cmd += ["--hf-file", filename]
+                cmd += ["--port", str(test.port), "--host", "127.0.0.1",
+                        "-ngl", "99"] + test.extra_args
         else:
             cmd = [binary, "-m", str(Path(test.model_id).expanduser()),
                    "--port", str(test.port), "--host", "127.0.0.1",
@@ -2178,7 +2208,8 @@ def main():
 
         if test.backend not in ("ollama", "lm-studio", "docker-model-runner"):
             info("Waiting for server...")
-            timeout = server_timeout * 4 if test.backend == "unsloth-studio" else server_timeout
+            effective_timeout = test.server_timeout if test.server_timeout is not None else server_timeout
+            timeout = effective_timeout * 4 if test.backend == "unsloth-studio" else effective_timeout
             if not wait_for_server(test.port, timeout,
                                    api_key=test.api_key,
                                    require_model=(test.backend == "unsloth-studio")):
