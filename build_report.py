@@ -202,7 +202,7 @@ def build_json_rows(rows):
             "prompt": r.get("prompt_type", ""),
             "ttft": round(r.get("ttft_ms", 0), 1),
             "cold": round(r.get("cold_ttft_ms", 0), 1),
-            "decode": round(r.get("decode_tps", 0), 1),
+            "decode": round(min(r.get("decode_tps", 0), r.get("completion_tokens", 0) / max(r.get("total_time_s", 0.01), 0.01)), 1) if r.get("decode_tps", 0) > 100000 else round(r.get("decode_tps", 0), 1),
             "prefill": round(r.get("prefill_tps", 0), 1),
             "tokens": int(r.get("completion_tokens", 0)),
             "total": round(r.get("total_time_s", 0), 2),
