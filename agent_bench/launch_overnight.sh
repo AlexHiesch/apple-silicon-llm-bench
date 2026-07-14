@@ -130,11 +130,9 @@ smoke_tests() {
   echo >> "$LOG"
 
   if [[ -x "$(command -v claude)" && -f "$CLAUDE_SETTINGS" ]]; then
-    log "Smoke claude --settings (45s cap) ..."
-    timeout 45 claude -p "Reply with exactly: OK" \
-      --settings "$CLAUDE_SETTINGS" \
-      --dangerously-skip-permissions 2>&1 | head -c 200 >> "$LOG" || log "Claude smoke timed out or failed (non-fatal)"
-    echo >> "$LOG"
+    log "Smoke claude --settings (skip if busy; non-fatal) ..."
+    # macOS has no GNU timeout; skip interactive smoke — api_smoke covers Kevlar
+    log "Claude CLI smoke skipped (orchestrator runs full agent_claude-code)"
   fi
 }
 
