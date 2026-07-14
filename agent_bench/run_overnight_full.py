@@ -323,10 +323,13 @@ def agent_cli_suite() -> list[dict]:
     agents: list[tuple[str, list[str]]] = []
 
     if shutil.which("claude") and CLAUDE_SETTINGS.exists():
+        # --bare: skip MCP/plugins (40k+ tool tokens starve local 27B prefill)
         agents.append(("claude-code", [
             "claude", "-p", prompt,
             "--settings", str(CLAUDE_SETTINGS),
             "--dangerously-skip-permissions",
+            "--bare",
+            "--max-turns", "8",
         ]))
 
     if shutil.which("opencode"):

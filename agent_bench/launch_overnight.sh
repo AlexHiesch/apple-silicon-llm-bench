@@ -27,6 +27,9 @@ echo "shim_port=$SHIM_PORT" >> "$STATUS"
 PY="$ROOT/.venv/bin/python"
 [[ -x "$PY" ]] || PY="$(command -v python3)"
 
+KEVLAR_BIN="${KEVLAR_BIN:-$HOME/Projects/Work/Kevlar/.venv/bin/kevlar}"
+[[ -x "$KEVLAR_BIN" ]] || KEVLAR_BIN="$(command -v kevlar || true)"
+
 kevlar_healthy() {
   if curl -sf --max-time 20 "$KEVLAR_BASE/v1/status" 2>/dev/null | grep -q '"model_loaded":true'; then
     return 0
@@ -43,13 +46,17 @@ ensure_kevlar() {
     log "Kevlar ThinkingCap on :$KEVLAR_PORT"
     return 0
   fi
-  log "Starting Kevlar on :$KEVLAR_PORT ..."
+  if [[ -z "$KEVLAR_BIN" || ! -x "$KEVLAR_BIN" ]]; then
+    log "FATAL: kevlar binary not found (set KEVLAR_BIN)"
+    return 1
+  fi
+  log "Starting Kevlar on :$KEVLAR_PORT via $KEVLAR_BIN ..."
   if command -v tmux >/dev/null 2>&1; then
-    tmux -f /exec-daemon/tmux.portal.conf has-session -t thinkingcap-kevlar 2>/dev/null \
-      || tmux -f /exec-daemon/tmux.portal.conf new-session -d -s thinkingcap-kevlar \
-        "caffeinate -ims kevlar serve --model '$MODEL' --port $KEVLAR_PORT 2>&1 | tee /tmp/llm-model.log"
+    tmux has-session -t thinkingcap-kevlar 2>/dev/null && tmux kill-session -t thinkingcap-kevlar 2>/dev/null || true
+    tmux new-session -d -s thinkingcap-kevlar \
+      "caffeinate -ims '$KEVLAR_BIN' serve --model '$MODEL' --port $KEVLAR_PORT 2>&1 | tee /tmp/llm-model.log"
   else
-    nohup caffeinate -ims kevlar serve --model "$MODEL" --port "$KEVLAR_PORT" \
+    nohup caffeinate -ims "$KEVLAR_BIN" serve --model "$MODEL" --port "$KEVLAR_PORT" \
       > /tmp/llm-model.log 2>&1 &
   fi
 }
