@@ -24,17 +24,33 @@ Shared config:
 ## Quick start
 
 ```bash
-# Serve ThinkingCap (once)
+# Unit tests (no GPU / no Docker required)
+python -m pytest agent_bench/tests -q
+
+# Serve ThinkingCap on host (Apple Silicon / MLX)
 python -m mlx_lm.server --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --port 8080
 
 # Readiness dashboard
 python -m agent_bench detect
-# or
 python -m agent_bench --list
 
-# Emit smoke plan (all selected agents × Tier-1 suites @ ThinkingCap)
+# Emit smoke plan (agents × Tier-1 suites @ ThinkingCap)
 python -m agent_bench run --profile smoke --plan-only
-python -m agent_bench run --agent opencode aider goose --suite deepswe --plan-only
+```
+
+## Clean Docker setups
+
+MLX ThinkingCap stays on the **host**. Containers talk to it via `host.docker.internal:8080`.
+For networking / image smoke without loading 27B weights, use the Compose `smoke` profile
+(mock OpenAI-compatible LLM):
+
+```bash
+# Docker-only smoke (mock LLM inside Compose)
+docker compose -f agent_bench/docker-compose.yml --profile smoke up --build --abort-on-container-exit
+
+# Real host ThinkingCap + clean sandbox container
+python -m mlx_lm.server --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --port 8080
+docker compose -f agent_bench/docker-compose.yml --profile host run --rm sandbox
 ```
 
 ## Profiles
