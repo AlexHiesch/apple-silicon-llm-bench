@@ -350,7 +350,7 @@ def agent_cli_suite() -> list[dict]:
             "--model", f"openai/{MODEL}",
             "--openai-api-base", SHIM_BASE,
             "--openai-api-key", "local",
-            "--yes", "--no-git",
+            "--yes", "--no-git", "--no-stream",
             "--message", prompt,
         ]))
 

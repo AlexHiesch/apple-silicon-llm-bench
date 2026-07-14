@@ -125,19 +125,7 @@ class ShimHandler(BaseHTTPRequestHandler):
         else:
             self._send_json(404, {"detail": "Not Found"})
 
-    def do_POST(self) -> None:
-        path = self.path.split("?", 1)[0]
-        if path != "/v1/chat/completions":
-            self._send_json(404, {"detail": "Not Found"})
-            return
-
-        length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
-
-        if body.get("stream"):
-            self._send_json(400, {"error": {"message": "streaming not supported", "type": "invalid_request_error"}})
-            return
-
+    def _call_anthropic(self, body: dict) -> tuple[int, dict]:
         model = body.get("model") or self.default_model
         system, messages = oai_messages_to_anthropic(body.get("messages", []))
         anthropic_req: dict = {
@@ -177,16 +165,72 @@ class ShimHandler(BaseHTTPRequestHandler):
         try:
             with urllib_request.urlopen(req, timeout=600) as resp:
                 anthropic_data = json.loads(resp.read().decode())
-            self._send_json(200, anthropic_to_oai(anthropic_data, model))
+            return 200, anthropic_to_oai(anthropic_data, model)
         except urllib_error.HTTPError as e:
             raw = e.read().decode()
             try:
                 payload = json.loads(raw)
             except json.JSONDecodeError:
                 payload = {"error": {"message": raw, "type": "api_error"}}
-            self._send_json(e.code, payload)
+            return e.code, payload
         except Exception as e:
-            self._send_json(502, {"error": {"message": str(e), "type": "shim_error"}})
+            return 502, {"error": {"message": str(e), "type": "shim_error"}}
+
+    def _send_sse_completion(self, oai: dict) -> None:
+        """Emit a one-shot OpenAI SSE stream after a full upstream completion."""
+        cid = oai.get("id", f"chatcmpl-{uuid.uuid4().hex[:12]}")
+        model = oai.get("model", self.default_model)
+        msg = (oai.get("choices") or [{}])[0].get("message") or {}
+        content = msg.get("content") or ""
+        finish = (oai.get("choices") or [{}])[0].get("finish_reason") or "stop"
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self.end_headers()
+        # role chunk
+        role_chunk = {
+            "id": cid, "object": "chat.completion.chunk", "model": model,
+            "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
+        }
+        self.wfile.write(f"data: {json.dumps(role_chunk)}\n\n".encode())
+        # content in ~40-char pieces (helps clients that expect progressive deltas)
+        step = 40
+        for i in range(0, max(len(content), 1), step):
+            piece = content[i:i + step] if content else ""
+            chunk = {
+                "id": cid, "object": "chat.completion.chunk", "model": model,
+                "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
+            }
+            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
+        # final
+        done = {
+            "id": cid, "object": "chat.completion.chunk", "model": model,
+            "choices": [{"index": 0, "delta": {}, "finish_reason": finish}],
+            "usage": oai.get("usage"),
+        }
+        self.wfile.write(f"data: {json.dumps(done)}\n\n".encode())
+        self.wfile.write(b"data: [DONE]\n\n")
+        self.wfile.flush()
+
+    def do_POST(self) -> None:
+        path = self.path.split("?", 1)[0]
+        if path != "/v1/chat/completions":
+            self._send_json(404, {"detail": "Not Found"})
+            return
+
+        length = int(self.headers.get("Content-Length", 0))
+        body = json.loads(self.rfile.read(length))
+        want_stream = bool(body.get("stream"))
+
+        code, payload = self._call_anthropic(body)
+        if code != 200:
+            self._send_json(code, payload)
+            return
+        if want_stream:
+            self._send_sse_completion(payload)
+        else:
+            self._send_json(200, payload)
 
 
 def main() -> None:
