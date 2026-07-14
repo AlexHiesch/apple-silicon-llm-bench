@@ -1,0 +1,371 @@
+# Complete coding-agent CLI registry for agent_bench.
+# default_model for all harnesses: ThinkingCap-Qwen3.6-27B-MLX-4bit (models.yaml).
+
+default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+default_base_url: http://localhost:8080/v1
+
+agents:
+  # ── Group 1 — Frontier lab CLIs ───────────────────────────────────────────
+  - id: claude-code
+    group: frontier-lab
+    vendor: anthropic
+    binary: claude
+    pier_agent: claude-code
+    harness_tier: A
+    bench_enabled: true
+    headless: "claude -p"
+    model_routing: anthropic_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []  # local ThinkingCap via ANTHROPIC_BASE_URL
+    install: "npm i -g @anthropic-ai/claude-code"
+    notes: "Route through localhost:8080 (Kevlar/LiteLLM) so Claude Code hits ThinkingCap"
+
+  - id: codex
+    group: frontier-lab
+    vendor: openai
+    binary: codex
+    pier_agent: codex
+    harness_tier: A
+    bench_enabled: true
+    headless: "codex -p"
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+    install: "npm i -g @openai/codex"
+
+  - id: cursor-cli
+    group: frontier-lab
+    vendor: cursor
+    binary: cursor-agent
+    pier_agent: cursor-cli
+    harness_tier: A
+    bench_enabled: true
+    headless: "cursor-agent -p"
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+    install: "curl https://cursor.com/install | bash"
+
+  - id: opencode
+    group: frontier-lab
+    vendor: anomaly
+    binary: opencode
+    pier_agent: opencode
+    harness_tier: A
+    bench_enabled: true
+    headless: "opencode"
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+    install: "npm i -g opencode"
+
+  - id: grok-build
+    group: frontier-lab
+    vendor: xai
+    binary: grok
+    harness_tier: B
+    bench_enabled: true
+    headless: "grok -p"
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: [XAI_API_KEY]
+    install: "curl -fsSL https://x.ai/cli/install.sh | bash"
+
+  - id: antigravity
+    group: frontier-lab
+    vendor: google
+    binary: agy
+    harness_tier: B
+    bench_enabled: true
+    headless: TBD
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: [GOOGLE_AI_API_KEY]
+
+  - id: copilot-cli
+    group: frontier-lab
+    vendor: github
+    binary: copilot
+    harness_tier: B
+    bench_enabled: true
+    headless: "copilot -p"
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: [GITHUB_COPILOT_TOKEN]
+    install: "npm i -g @github/copilot"
+
+  - id: mimo-code
+    group: frontier-lab
+    vendor: xiaomi
+    binary: mimo
+    harness_tier: B
+    bench_enabled: true
+    headless: TBD
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+
+  - id: amazon-q
+    group: frontier-lab
+    vendor: aws
+    binary: q
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+
+  - id: poolside
+    group: frontier-lab
+    vendor: poolside
+    binary: pool
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+
+  - id: qwen-code
+    group: frontier-lab
+    vendor: alibaba
+    binary: qwen
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+
+  - id: kimi-cli
+    group: frontier-lab
+    vendor: moonshot
+    binary: kimi
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+
+  - id: gemini-cli
+    group: frontier-lab
+    vendor: google
+    binary: gemini
+    pier_agent: gemini-cli
+    harness_tier: A
+    bench_enabled: false
+    deprecated: "2026-06-18; use antigravity"
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  # ── Group 2 — OpenRouter-trendy / model-agnostic ──────────────────────────
+  - id: hermes-agent
+    group: openrouter-trendy
+    binary: hermes
+    openrouter_rank: 1
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: []
+
+  - id: kilocode
+    group: openrouter-trendy
+    binary: kilocode
+    openrouter_rank: 2
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    install: "npm i -g @kilocode/cli"
+
+  - id: cline
+    group: openrouter-trendy
+    binary: cline
+    openrouter_rank: 5
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    install: "npm i -g cline"
+
+  - id: openhands
+    group: openrouter-trendy
+    binary: openhands
+    openrouter_rank: 17
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: codebuff
+    group: openrouter-trendy
+    binary: codebuff
+    openrouter_rank: 18
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: crush
+    group: openrouter-trendy
+    binary: crush
+    openrouter_rank: 27
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: aider
+    group: openrouter-trendy
+    binary: aider
+    openrouter_rank: 49
+    harness_tier: C
+    bench_enabled: true
+    headless: "aider --message"
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    install: "pip install aider-chat"
+
+  - id: or-code
+    group: openrouter-trendy
+    binary: or-code
+    harness_tier: B
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    prereqs: [OPENROUTER_API_KEY]
+    install: "npm i -g @edofendy/or-code"
+
+  - id: openrouter-cli
+    group: openrouter-trendy
+    binary: orc
+    harness_tier: D
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    install: "npm i -g openrouter-cli-v2"
+
+  - id: orcli
+    group: openrouter-trendy
+    binary: orcli
+    harness_tier: D
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: slate-agent
+    group: openrouter-trendy
+    binary: slate
+    openrouter_rank: 35
+    harness_tier: D
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  # ── Group 3 — Established OSS ───────────────────────────────────────────────
+  - id: goose
+    group: oss
+    binary: goose
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: continue
+    group: oss
+    binary: cn
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    install: "npm i -g @continuedev/cli"
+
+  - id: pi
+    group: oss
+    binary: pi
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: forge
+    group: oss
+    binary: forge
+    harness_tier: C
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: letta-code
+    group: oss
+    binary: letta
+    harness_tier: A
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    notes: "Native Letta Context-Bench harness"
+
+  - id: amp
+    group: oss
+    binary: amp
+    harness_tier: D
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    install: "npm i -g @sourcegraph/amp"
+
+  - id: plandex
+    group: oss
+    binary: plandex
+    harness_tier: D
+    bench_enabled: true
+    model_routing: openai_compatible
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: mini-swe-agent
+    group: control
+    binary: null
+    pier_agent: mini-swe-agent
+    harness_tier: A
+    bench_enabled: true
+    model_routing: pier_mini_swe_agent
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    notes: "Control harness for fair model comparison — always ThinkingCap"
+
+  - id: warp
+    group: oss
+    binary: warp
+    harness_tier: D
+    bench_enabled: false
+    skip_reason: "meta-terminal; spawns other CLIs"
+
+  - id: maestro
+    group: oss
+    binary: maestro
+    harness_tier: D
+    bench_enabled: false
+    skip_reason: "meta-harness orchestrator, not a single agent"
+
+  # ── Group 4 — registry only ─────────────────────────────────────────────────
+  - id: windsurf
+    group: registry-only
+    bench_enabled: false
+    skip_reason: "IDE-only; no standalone terminal agent"
+
+  - id: devin
+    group: registry-only
+    bench_enabled: false
+    skip_reason: "cloud-only proprietary API"
+
+  - id: jules
+    group: registry-only
+    bench_enabled: false
+    skip_reason: "Google cloud agent, no local CLI"
+
+  - id: augment
+    group: registry-only
+    bench_enabled: false
+    skip_reason: "IDE Context Engine; limited headless CLI"
+
+  - id: roo-code
+    group: registry-only
+    bench_enabled: false
+    skip_reason: "Archived May 2026; migrated to Kilo Code"

@@ -1,0 +1,172 @@
+# Benchmark catalog for agent_bench.
+# All suites use default_model from models.yaml (ThinkingCap-Qwen3.6-27B-MLX-4bit)
+# unless a lab-locked agent cannot route to local backends.
+
+default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+composites:
+  aa_coding_index_v1_1:
+    formula: avg(deepswe, terminal-bench-v2, swe-atlas-qna)
+    source: https://artificialanalysis.ai/methodology/coding-agents-benchmarking
+  llm_bench_coding_core:
+    formula: avg(swebench-verified, terminal-bench-v2, letta-context-fs)
+  llm_bench_full_agent_stack:
+    formula: weighted_avg(tier1, tier2, tier3)
+
+profiles:
+  smoke:
+    suites: [deepswe, terminal-bench-v2, swe-atlas-qna]
+    n_tasks: 3
+    repeats: 1
+  coding-core:
+    suites: [deepswe, terminal-bench-v2, swe-atlas-qna, letta-context-fs, swebench-verified]
+    n_tasks:
+      swebench-verified: 50
+    repeats: 1
+  aa-index:
+    suites: [deepswe, terminal-bench-v2, swe-atlas-qna]
+    repeats: 3
+  extended:
+    suites: [deepswe, terminal-bench-v2, swe-atlas-qna, swebench-verified,
+             swe-atlas-tw, swe-atlas-rf, letta-context-fs, letta-context-skills,
+             skillsbench, bfcl-v3, claw-eval]
+  full:
+    suites: all
+
+benchmarks:
+  - id: deepswe
+    tier: 1
+    tasks: 113
+    harness: pier
+    dataset: deep-swe/tasks
+    metric: pass_at_1
+    repeats: 3
+    composites: [aa_coding_index_v1_1]
+    phase: 1
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: terminal-bench-v2
+    tier: 1
+    tasks: 84
+    harness: harbor
+    dataset: terminal-bench@2.0
+    metric: pass_at_1
+    repeats: 3
+    composites: [aa_coding_index_v1_1, llm_bench_coding_core]
+    phase: 1
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: swe-atlas-qna
+    tier: 1
+    tasks: 124
+    harness: harbor
+    dataset: swe-atlas/data/qa
+    metric: pass_at_1
+    repeats: 3
+    composites: [aa_coding_index_v1_1]
+    phase: 1
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: swebench-verified
+    tier: 2
+    tasks: 500
+    harness: pier
+    agent_mode: installed
+    metric: resolved_pct
+    composites: [llm_bench_coding_core]
+    phase: 1
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: swebench-lite
+    tier: 2
+    tasks: 300
+    harness: pier
+    metric: resolved_pct
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: swe-atlas-tw
+    tier: 2
+    tasks: 90
+    harness: harbor
+    dataset: swe-atlas/data/tw
+    metric: pass_at_1
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: swe-atlas-rf
+    tier: 2
+    tasks: 70
+    harness: harbor
+    dataset: swe-atlas/data/rf
+    metric: pass_at_1
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: letta-context-fs
+    tier: 3
+    tasks: 100
+    harness: letta-evals
+    suite: filesystem-agent/filesystem_code.yaml
+    metric: accuracy
+    composites: [llm_bench_coding_core]
+    phase: 1
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: letta-context-skills
+    tier: 3
+    harness: letta-evals
+    suite: skills-suite/suite_skill_select_use.yaml
+    metric: accuracy
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: skillsbench
+    tier: 3
+    tasks: 86
+    harness: benchflow
+    metric: skills_delta
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: bfcl-v3
+    tier: 3
+    harness: local
+    wrapper: eval_bfcl.py
+    metric: accuracy
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: niah
+    tier: 3
+    harness: local
+    wrapper: eval_context_degradation.py
+    metric: recall
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: claw-eval
+    tier: 4
+    tasks: 300
+    harness: claw-eval
+    metric: pass_cubed
+    trials: 3
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: terminal-bench-v2-1
+    tier: 4
+    tasks: 89
+    harness: harbor
+    dataset: terminal-bench/terminal-bench-2-1
+    metric: pass_at_1
+    phase: 2
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: arxiv-contextbench
+    tier: 4
+    tasks: 1136
+    harness: context-bench
+    metric: gold_context_recall
+    phase: 3
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit

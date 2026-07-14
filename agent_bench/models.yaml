@@ -1,0 +1,35 @@
+# agent_bench/models.yaml — shared backend for all agent CLI harnesses
+#
+# Fair comparison: BYOK / OpenAI-compatible agents and mini-swe-agent control
+# runs all use ThinkingCap so harness quality is the variable, not the model.
+
+default:
+  id: thinkingcap-mlx-4bit
+  model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  alias: thinkingcap
+  short: ThinkingCap-Qwen3.6-27B-MLX-4bit
+  format: MLX
+  quant: 4bit
+  base_url: http://localhost:8080/v1
+  anthropic_base_url: http://localhost:8080
+  api_key: local
+  hf_cache: ~/.cache/huggingface/hub/models--t-prazak--ThinkingCap-Qwen3.6-27B-MLX-4bit
+  notes: >
+    Downloaded ThinkingCap finetune of Qwen3.6-27B. Use for every Pier/Harbor/Letta
+    harness and every model-agnostic agent CLI unless --model overrides.
+
+# How agents should consume the default model
+routing:
+  openai_compatible:
+    env: [OPENAI_BASE_URL, OPENAI_API_KEY, LLM_MODEL]
+    model_field: model
+  anthropic_compatible:
+    env: [ANTHROPIC_BASE_URL, ANTHROPIC_API_KEY]
+    model_field: model  # often ignored; gateway maps aliases → ThinkingCap
+  pier_mini_swe_agent:
+    flag: --model
+    value: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  openrouter_byok:
+    # When routing via OpenRouter, still prefer local ThinkingCap if available
+    prefer_local: true
+    fallback_openrouter_id: null
