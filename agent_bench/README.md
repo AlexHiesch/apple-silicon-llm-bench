@@ -34,7 +34,8 @@ python -m agent_bench.run_matrix --matrix --plan-only
 |---------|------|--------------|
 | Claude Code, Codex, OpenCode, Goose, Hermes, Cursor | core coding agents | Docker/host green (Cursor via OpenAI BYOK+tunnel) |
 | Kilo, Mimo | OpenCode-family | Host green |
-| Cline, Pi, Oh-my-pi (`omp`), Command Code (`cmd`), Peezy, OpenHands, OpenClaw, OpenSquilla, Poolside | shortlist newcomers / OR-trendy | registry + install paths; smoke next |
+| Cline, OpenSquilla, OpenHands | shortlist newcomers | **3/3 PASS** via `matrix_host_smoke.sh` (Jul 15) |
+| Pi, Oh-my-pi (`omp`), Peezy, OpenClaw, Command Code (`cmd`), Poolside | shortlist newcomers | installed; smoke wiring partial — see matrix scorecard |
 | Lemonade, GDevelop, Zed, Portkey | platform / editor / gateway | included for breadth; different smoke shape |
 
 **Skip:** Roo Code (EOL — community fork Zoo Code is watch-only), Ito.
@@ -97,6 +98,19 @@ bash agent_bench/scripts/host_skip_smoke.sh
 ```
 
 Latest host result: **4/4 PASS** (Kilo/Mimo/agy against local ThinkingCap; Cursor CLI after login — catalog by default).
+
+**Matrix host smoke** (newcomers on macOS; Kevlar + shim required):
+
+```bash
+# Ensure Kevlar :8080 + shim :8091 (script can auto-start Kevlar via tmux)
+bash agent_bench/scripts/matrix_host_smoke.sh
+# → results/agent_bench/matrix_host_smoke/REPORT.txt
+
+# Subset:
+ONLY_CLIS=cline,openhands,opensquilla bash agent_bench/scripts/matrix_host_smoke.sh
+```
+
+Latest matrix host result (Jul 15): **cline, opensquilla, openhands PASS**; pi/omp hang or need `models.yml`; peezy needs Codex on PATH; openclaw slow (~90s/turn); cmd/poolside skipped (catalog-only / no `pool` binary).
 
 **Cursor → ThinkingCap (custom OpenAI endpoint):** Cursor supports Bring-Your-Own OpenAI and Bedrock endpoints in Settings → Models. Local ThinkingCap is OpenAI-shaped via `:8091`, so use **Override OpenAI Base URL** (not Bedrock). Cursor’s servers call your URL, so `localhost` is blocked — tunnel first:
 
