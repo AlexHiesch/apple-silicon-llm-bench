@@ -43,6 +43,7 @@ for name in ("opencode-thinkingcap.json", "kilo-thinkingcap.json", "mimo-thinkin
         opts["baseURL"] = "http://host.docker.internal:8091/v1"
         opts["apiKey"] = "local"
     if "opencode" in name:
+        d.setdefault("permission", {})["external_directory"] = "deny"
         (home / ".config/opencode").mkdir(parents=True, exist_ok=True)
         (home / ".config/opencode/config.json").write_text(json.dumps(d, indent=2))
         (home / ".config/opencode/opencode.json").write_text(json.dumps(d, indent=2))
