@@ -213,6 +213,80 @@ def oai_to_responses(oai: dict, model: str) -> dict:
     }
 
 
+def responses_sse_events(resp: dict) -> list[tuple[str, dict]]:
+    """Minimal Responses SSE sequence ending in response.completed (Codex)."""
+    rid = resp.get("id") or f"resp-{uuid.uuid4().hex[:12]}"
+    events: list[tuple[str, dict]] = [
+        ("response.created", {
+            "type": "response.created",
+            "response": {**resp, "status": "in_progress", "output": []},
+        }),
+        ("response.in_progress", {
+            "type": "response.in_progress",
+            "response": {**resp, "status": "in_progress", "output": []},
+        }),
+    ]
+    for idx, item in enumerate(resp.get("output") or []):
+        events.append(("response.output_item.added", {
+            "type": "response.output_item.added",
+            "output_index": idx,
+            "item": {**item, "status": "in_progress"} if item.get("type") == "message" else item,
+        }))
+        if item.get("type") == "message":
+            for part in item.get("content") or []:
+                if part.get("type") != "output_text":
+                    continue
+                text = part.get("text") or ""
+                events.append(("response.content_part.added", {
+                    "type": "response.content_part.added",
+                    "output_index": idx,
+                    "content_index": 0,
+                    "part": {"type": "output_text", "text": ""},
+                }))
+                step = 40
+                for i in range(0, max(len(text), 1 if text else 0), step):
+                    events.append(("response.output_text.delta", {
+                        "type": "response.output_text.delta",
+                        "output_index": idx,
+                        "content_index": 0,
+                        "delta": text[i:i + step],
+                    }))
+                events.append(("response.output_text.done", {
+                    "type": "response.output_text.done",
+                    "output_index": idx,
+                    "content_index": 0,
+                    "text": text,
+                }))
+                events.append(("response.content_part.done", {
+                    "type": "response.content_part.done",
+                    "output_index": idx,
+                    "content_index": 0,
+                    "part": part,
+                }))
+        elif item.get("type") == "function_call":
+            args = item.get("arguments") or "{}"
+            events.append(("response.function_call_arguments.delta", {
+                "type": "response.function_call_arguments.delta",
+                "output_index": idx,
+                "delta": args if isinstance(args, str) else json.dumps(args),
+            }))
+            events.append(("response.function_call_arguments.done", {
+                "type": "response.function_call_arguments.done",
+                "output_index": idx,
+                "arguments": args if isinstance(args, str) else json.dumps(args),
+            }))
+        events.append(("response.output_item.done", {
+            "type": "response.output_item.done",
+            "output_index": idx,
+            "item": item,
+        }))
+    events.append(("response.completed", {
+        "type": "response.completed",
+        "response": {**resp, "id": rid, "status": "completed"},
+    }))
+    return events
+
+
 class ShimHandler(BaseHTTPRequestHandler):
     upstream: str = "http://127.0.0.1:8080"
     default_model: str = "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"
@@ -333,6 +407,16 @@ class ShimHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"data: [DONE]\n\n")
         self.wfile.flush()
 
+    def _send_sse_responses(self, resp: dict) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream")
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "keep-alive")
+        self.end_headers()
+        for event, payload in responses_sse_events(resp):
+            self.wfile.write(f"event: {event}\ndata: {json.dumps(payload)}\n\n".encode())
+        self.wfile.flush()
+
     def _responses_to_chat_body(self, body: dict) -> dict:
         messages = body.get("messages")
         if not messages:
@@ -400,7 +484,12 @@ class ShimHandler(BaseHTTPRequestHandler):
             if code != 200:
                 self._send_json(code, payload)
                 return
-            self._send_json(200, oai_to_responses(payload, chat_body.get("model") or self.default_model))
+            resp = oai_to_responses(payload, chat_body.get("model") or self.default_model)
+            # Codex always streams Responses and requires response.completed
+            if chat_body.get("stream") or "text/event-stream" in (self.headers.get("Accept") or ""):
+                self._send_sse_responses(resp)
+            else:
+                self._send_json(200, resp)
             return
 
         if path not in ("/v1/chat/completions", "/chat/completions"):

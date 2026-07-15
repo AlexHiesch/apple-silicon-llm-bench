@@ -78,7 +78,7 @@ run_one() {
   echo "\$ $*" | tee -a "$REPORT"
   (
     cd "$ws"
-    "$@" >"$ws/run.log" 2>&1 &
+    "$@" </dev/null >"$ws/run.log" 2>&1 &
     local pid=$!
     local i=0
     while kill -0 "$pid" 2>/dev/null; do
@@ -201,7 +201,8 @@ else
   skip hermes "not in image"
 fi
 
-# Codex — force local ThinkingCap; Responses tools need shim normalize_tools
+# Codex — Responses SSE required; ThinkingCap needs an explicit exec_command prompt
+# (generic prompts cause the model to echo Codex's huge tool schemas as text).
 if command -v codex >/dev/null; then
   run_one codex env OPENAI_API_KEY=local \
     codex exec --skip-git-repo-check \
@@ -209,7 +210,10 @@ if command -v codex >/dev/null; then
     -c 'model_provider="thinkingcap"' \
     -c "model=\"$MODEL\"" \
     -c 'model_providers.thinkingcap={name="ThinkingCap", base_url="http://host.docker.internal:8091/v1", env_key="OPENAI_API_KEY"}' \
-    "$PROMPT"
+    -c 'model_reasoning_effort="none"' \
+    "Call the exec_command tool now with cmd set to exactly:
+printf \"%s\\n\" \"print(\\\"ThinkingCap-OK\\\")\" > hello_tc.py
+Do not describe tools. Do not output JSON schemas. One tool call only."
 else
   skip codex "not in image"
 fi
@@ -229,10 +233,16 @@ import json, re
 from pathlib import Path
 report = Path("/results/docker_cli_smoke/REPORT.txt")
 rows = []
+seen = set()
 for line in report.read_text().splitlines():
-    m = re.match(r'^(PASS|FAIL|SKIP) (\S+)(?: — (.*))?$', line)
-    if m:
-        rows.append({"status": m.group(1).lower(), "name": m.group(2), "detail": m.group(3) or ""})
+    m = re.match(r'^(PASS|FAIL|SKIP) (\S+)(?:\s+(?:—\s*)?(.*))?$', line)
+    if not m:
+        continue
+    key = (m.group(1), m.group(2))
+    if key in seen:
+        continue
+    seen.add(key)
+    rows.append({"status": m.group(1).lower(), "name": m.group(2), "detail": (m.group(3) or "").strip()})
 Path("/results/docker_cli_smoke/summary.json").write_text(json.dumps({
     "results": rows,
     "pass": sum(1 for r in rows if r["status"]=="pass"),

@@ -1,6 +1,11 @@
 """Shim tool-shape normalization for Chat Completions + Responses APIs."""
 
-from agent_bench.openai_anthropic_shim import normalize_tools, anthropic_to_oai, oai_to_responses
+from agent_bench.openai_anthropic_shim import (
+    normalize_tools,
+    anthropic_to_oai,
+    oai_to_responses,
+    responses_sse_events,
+)
 
 
 def test_normalize_responses_and_chat_tools():
@@ -28,3 +33,16 @@ def test_tool_use_maps_to_responses_function_call():
     assert oai["choices"][0]["finish_reason"] == "tool_calls"
     resp = oai_to_responses(oai, "m")
     assert any(x.get("type") == "function_call" and x.get("name") == "shell" for x in resp["output"])
+
+
+def test_responses_sse_ends_with_completed():
+    oai = {
+        "choices": [{"message": {"role": "assistant", "content": "OK"}, "finish_reason": "stop"}],
+        "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+    }
+    resp = oai_to_responses(oai, "m")
+    events = responses_sse_events(resp)
+    assert events[0][0] == "response.created"
+    assert events[-1][0] == "response.completed"
+    assert events[-1][1]["response"]["status"] == "completed"
+    assert any(e[0] == "response.output_text.delta" for e in events)
