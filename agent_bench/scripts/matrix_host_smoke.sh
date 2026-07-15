@@ -264,7 +264,9 @@ if want pi; then
   fi
 fi
 
-# --- Oh-my-pi / omp (same Anthropic → Kevlar path via -e fixture) ---
+# --- Oh-my-pi / omp (Anthropic → Kevlar; slim tool allowlist) ---
+# Default omp advertises ~20 tools (~22k prompt tokens) which starves/stalls
+# local MLX prefills. Mirror Pi: fixture + --tools=bash,write,read,edit.
 if want oh-my-pi; then
   if command -v omp >/dev/null; then
     ws="$OUT/workspaces/oh-my-pi"
@@ -276,7 +278,10 @@ if want oh-my-pi; then
       cd "$ws"
       env HOME="$OMP_HOME" OPENAI_API_KEY=local OPENAI_BASE_URL="$SHIM" \
         ANTHROPIC_API_KEY=local ANTHROPIC_BASE_URL="$KEVLAR" \
-        stdbuf -oL -eL omp -p --thinking=off --model local/thinkingcap \
+        stdbuf -oL -eL omp -p --no-extensions -e "$FIX/pi-local-models-thinkingcap.mjs" \
+          --thinking=off --provider local --model thinkingcap --auto-approve \
+          --no-skills --no-rules --no-lsp --no-pty \
+          --tools=bash,write,read,edit \
           "$BASH_PROMPT" \
         </dev/null >"$ws/run.log" 2>&1 &
       wait_artifact $! "$ws"
@@ -350,44 +355,75 @@ if want command-code; then
   fi
 fi
 
-# --- OpenClaw (local embedded agent; patch openclaw.json → shim) ---
+# --- OpenClaw (embedded agent → shim; slim tools + raised idle timeout) ---
+# Full default tool catalogs + AGENTS/SOUL bootstrap ≈ 15–20k tokens and can
+# ABRT Kevlar Metal. Restrict tools, point workspace at the smoke dir, raise
+# models.providers.openai.timeoutSeconds (also lifts LLM idle watchdog).
 if want openclaw; then
   if command -v openclaw >/dev/null; then
     ws="$OUT/workspaces/openclaw"
     rm -rf "$ws"; mkdir -p "$ws"
+    oc_ws="$ws"
+    oc_prev_ws="$(openclaw config get agents.defaults.workspace 2>/dev/null | tr -d '"' || true)"
+    [[ -z "$oc_prev_ws" ]] && oc_prev_ws="$HOME/.openclaw/workspace"
+    # Tiny bootstrap stubs so injection stays cheap even if files are recreated
+    for f in AGENTS.md SOUL.md TOOLS.md IDENTITY.md USER.md HEARTBEAT.md BOOTSTRAP.md; do
+      printf '# %s\n' "$f" >"$ws/$f"
+    done
     openclaw config set gateway.mode local >/dev/null 2>&1 || true
     openclaw config set agents.defaults.model.primary "openai/$MODEL" >/dev/null 2>&1 || true
+    openclaw config set agents.defaults.workspace "$ws" >/dev/null 2>&1 || true
+    openclaw config set agents.defaults.bootstrapMaxChars 120 --strict-json >/dev/null 2>&1 || true
+    openclaw config set agents.defaults.bootstrapTotalMaxChars 500 --strict-json >/dev/null 2>&1 || true
+    openclaw config set agents.defaults.bootstrapPromptTruncationWarning off >/dev/null 2>&1 || true
     openclaw config patch --stdin >/dev/null 2>&1 <<JSON || true
-{"models":{"providers":{"openai":{"baseUrl":"$SHIM","apiKey":"local"}}}}
+{
+  "models": {
+    "providers": {
+      "openai": {
+        "baseUrl": "$SHIM",
+        "apiKey": "local",
+        "api": "openai-completions",
+        "timeoutSeconds": 600
+      }
+    }
+  },
+  "tools": {
+    "allow": ["write", "edit", "read", "exec"],
+    "exec": { "security": "full", "ask": "off", "host": "gateway" }
+  }
+}
 JSON
     echo "" | tee -a "$REPORT"
     echo "=== openclaw ===" | tee -a "$REPORT"
-    oc_ws="${OPENCLAW_WORKSPACE:-$HOME/.openclaw/workspace}"
-    rm -f "$oc_ws/hello_tc.py" 2>/dev/null || true
+    rm -f "$ws/hello_tc.py" 2>/dev/null || true
     (
       cd "$ws"
-      openclaw agent --local --session-id "tc-matrix-$(date +%s)" -m "$PROMPT" \
+      openclaw agent --local --thinking off --timeout "$WALL_OPENCLAW" \
+        --session-id "tc-matrix-$(date +%s)" \
+        -m "In this workspace, create hello_tc.py that prints ThinkingCap-OK. Prefer the write tool (path=hello_tc.py, content=print('ThinkingCap-OK')). Or exec: printf '%s\n' \"print('ThinkingCap-OK')\" > hello_tc.py. Then stop." \
         </dev/null >"$ws/run.log" 2>&1 &
       pid=$!
       i=0
       while kill -0 "$pid" 2>/dev/null; do
         i=$((i + 1))
-        if artifact_ok "$ws" || [[ -f "$oc_ws/hello_tc.py" ]] && grep -q ThinkingCap-OK "$oc_ws/hello_tc.py" 2>/dev/null; then
+        if artifact_ok "$ws"; then
           kill "$pid" 2>/dev/null || true
           break
         fi
         if (( i > WALL_OPENCLAW )); then
           kill -9 "$pid" 2>/dev/null || true
+          echo "killed after ${WALL_OPENCLAW}s" >>"$ws/run.log"
           break
         fi
         sleep 1
       done
       wait "$pid" 2>/dev/null || true
     )
+    # Restore caller's workspace path
+    openclaw config set agents.defaults.workspace "$oc_prev_ws" >/dev/null 2>&1 || true
     if artifact_ok "$ws"; then
       pass "openclaw ($(tr -d '\n' <"$ws/hello_tc.py" | head -c 80))"
-    elif [[ -f "$oc_ws/hello_tc.py" ]] && grep -q ThinkingCap-OK "$oc_ws/hello_tc.py"; then
-      pass "openclaw (artifact in $oc_ws)"
     else
       fail openclaw "$(tail -5 "$ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
     fi

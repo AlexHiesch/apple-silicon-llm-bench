@@ -119,6 +119,62 @@ def normalize_tools(tools: list) -> list[dict]:
     return out
 
 
+def completion_sse_lines(oai: dict, default_model: str = "model") -> list[str]:
+    """OpenAI chat.completion → SSE data lines (incl. trailing [DONE]).
+
+    Tool-call deltas include required streaming ``index`` so clients like
+    OpenClaw can assemble function calls from the stream.
+    """
+    cid = oai.get("id", f"chatcmpl-{uuid.uuid4().hex[:12]}")
+    model = oai.get("model", default_model)
+    msg = (oai.get("choices") or [{}])[0].get("message") or {}
+    content = msg.get("content") or ""
+    finish = (oai.get("choices") or [{}])[0].get("finish_reason") or "stop"
+    lines: list[str] = []
+
+    def emit(chunk: dict) -> None:
+        lines.append(f"data: {json.dumps(chunk)}\n\n")
+
+    emit({
+        "id": cid, "object": "chat.completion.chunk", "model": model,
+        "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
+    })
+    for i, tc in enumerate(msg.get("tool_calls") or []):
+        fn = tc.get("function") or {}
+        emit({
+            "id": cid, "object": "chat.completion.chunk", "model": model,
+            "choices": [{
+                "index": 0,
+                "delta": {
+                    "tool_calls": [{
+                        "index": i,
+                        "id": tc.get("id") or f"call_{uuid.uuid4().hex[:8]}",
+                        "type": "function",
+                        "function": {
+                            "name": fn.get("name") or "tool",
+                            "arguments": fn.get("arguments") or "{}",
+                        },
+                    }],
+                },
+                "finish_reason": None,
+            }],
+        })
+    step = 40
+    for i in range(0, max(len(content), 1 if content else 0), step):
+        piece = content[i:i + step]
+        emit({
+            "id": cid, "object": "chat.completion.chunk", "model": model,
+            "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
+        })
+    emit({
+        "id": cid, "object": "chat.completion.chunk", "model": model,
+        "choices": [{"index": 0, "delta": {}, "finish_reason": finish}],
+        "usage": oai.get("usage"),
+    })
+    lines.append("data: [DONE]\n\n")
+    return lines
+
+
 def anthropic_to_oai(data: dict, model: str) -> dict:
     content_blocks = data.get("content", [])
     text = "".join(b.get("text", "") for b in content_blocks if b.get("type") == "text")
@@ -418,48 +474,17 @@ class ShimHandler(BaseHTTPRequestHandler):
             return 502, {"error": {"message": str(e), "type": "shim_error"}}
 
     def _send_sse_completion(self, oai: dict) -> None:
-        cid = oai.get("id", f"chatcmpl-{uuid.uuid4().hex[:12]}")
-        model = oai.get("model", self.default_model)
-        msg = (oai.get("choices") or [{}])[0].get("message") or {}
-        content = msg.get("content") or ""
-        finish = (oai.get("choices") or [{}])[0].get("finish_reason") or "stop"
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Connection", "keep-alive")
         self.end_headers()
-        role_chunk = {
-            "id": cid, "object": "chat.completion.chunk", "model": model,
-            "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
-        }
-        self.wfile.write(f"data: {json.dumps(role_chunk)}\n\n".encode())
-        # tool_calls (single chunk)
-        if msg.get("tool_calls"):
-            chunk = {
-                "id": cid, "object": "chat.completion.chunk", "model": model,
-                "choices": [{
-                    "index": 0,
-                    "delta": {"tool_calls": msg["tool_calls"]},
-                    "finish_reason": None,
-                }],
-            }
-            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
-        step = 40
-        for i in range(0, max(len(content), 1 if content else 0), step):
-            piece = content[i:i + step]
-            chunk = {
-                "id": cid, "object": "chat.completion.chunk", "model": model,
-                "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
-            }
-            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
-        done = {
-            "id": cid, "object": "chat.completion.chunk", "model": model,
-            "choices": [{"index": 0, "delta": {}, "finish_reason": finish}],
-            "usage": oai.get("usage"),
-        }
-        self.wfile.write(f"data: {json.dumps(done)}\n\n".encode())
-        self.wfile.write(b"data: [DONE]\n\n")
-        self.wfile.flush()
+        try:
+            for line in completion_sse_lines(oai, self.default_model):
+                self.wfile.write(line.encode())
+            self.wfile.flush()
+        except BrokenPipeError:
+            return
 
     def _send_sse_responses(self, resp: dict) -> None:
         self.send_response(200)

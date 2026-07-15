@@ -1,10 +1,13 @@
 """Shim tool-shape normalization for Chat Completions + Responses APIs."""
 
+import json
+
 from agent_bench.openai_anthropic_shim import (
     normalize_tools,
     anthropic_to_oai,
     oai_to_responses,
     responses_sse_events,
+    completion_sse_lines,
 )
 
 
@@ -46,3 +49,32 @@ def test_responses_sse_ends_with_completed():
     assert events[-1][0] == "response.completed"
     assert events[-1][1]["response"]["status"] == "completed"
     assert any(e[0] == "response.output_text.delta" for e in events)
+
+
+def test_completion_sse_tool_calls_include_stream_index():
+    oai = {
+        "id": "chatcmpl-t",
+        "choices": [{
+            "message": {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [{
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {"name": "write", "arguments": "{\"path\":\"a\"}"},
+                }],
+            },
+            "finish_reason": "tool_calls",
+        }],
+        "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+    }
+    lines = completion_sse_lines(oai, "m")
+    assert lines[-1] == "data: [DONE]\n\n"
+    payloads = [json.loads(line[6:]) for line in lines if line.startswith("data: {")]
+    tool_deltas = [
+        c["choices"][0]["delta"]["tool_calls"][0]
+        for c in payloads
+        if c["choices"][0].get("delta", {}).get("tool_calls")
+    ]
+    assert tool_deltas and tool_deltas[0]["index"] == 0
+    assert tool_deltas[0]["function"]["name"] == "write"
