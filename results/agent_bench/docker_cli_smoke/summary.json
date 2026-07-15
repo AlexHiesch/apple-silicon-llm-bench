@@ -1,0 +1,57 @@
+{
+  "results": [
+    {
+      "status": "pass",
+      "name": "claude-code",
+      "detail": "(print(\"ThinkingCap-OK\"))"
+    },
+    {
+      "status": "pass",
+      "name": "aider",
+      "detail": "(print('ThinkingCap-OK'))"
+    },
+    {
+      "status": "pass",
+      "name": "opencode",
+      "detail": "(print(\"ThinkingCap-OK\"))"
+    },
+    {
+      "status": "pass",
+      "name": "goose",
+      "detail": "(print('ThinkingCap-OK'))"
+    },
+    {
+      "status": "pass",
+      "name": "hermes",
+      "detail": "(print('ThinkingCap-OK'))"
+    },
+    {
+      "status": "pass",
+      "name": "codex",
+      "detail": "(print(\"ThinkingCap-OK\"))"
+    },
+    {
+      "status": "skip",
+      "name": "mimo-code",
+      "detail": "host-only / not packaged for this linux image"
+    },
+    {
+      "status": "skip",
+      "name": "kilocode",
+      "detail": "host-only / install TBD"
+    },
+    {
+      "status": "skip",
+      "name": "antigravity",
+      "detail": "macOS agy binary"
+    },
+    {
+      "status": "skip",
+      "name": "cursor-cli",
+      "detail": "requires Cursor login on host"
+    }
+  ],
+  "pass": 6,
+  "fail": 0,
+  "skip": 4
+}

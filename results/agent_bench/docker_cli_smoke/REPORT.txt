@@ -1,0 +1,46 @@
+docker_cli_smoke model=t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit shim=http://host.docker.internal:8091/v1 kevlar=http://host.docker.internal:8080
+-- reachability --
+shim ok http://host.docker.internal:8091/v1
+kevlar ok http://host.docker.internal:8080
+
+=== claude-code ===
+$ claude -p In this empty project, create a file named hello_tc.py that prints 'ThinkingCap-OK' and nothing else. Then exit. --settings /home/bench/.claude/settings.tc.json --dangerously-skip-permissions --bare --max-turns 8
+PASS claude-code (print("ThinkingCap-OK"))
+
+=== aider ===
+$ aider --model openai/t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --openai-api-base http://host.docker.internal:8091/v1 --openai-api-key local --yes --no-git --no-stream --message In this empty project, create a file named hello_tc.py that prints 'ThinkingCap-OK' and nothing else. Then exit.
+PASS aider (print('ThinkingCap-OK'))
+
+=== opencode ===
+$ opencode run --pure --dir /results/docker_cli_smoke/workspaces/opencode (shell overwrite hello_tc.py)
+PASS opencode (print("ThinkingCap-OK"))
+
+=== goose ===
+$ goose run -t Use the developer shell tools. In the current directory, create hello_tc.py containing exactly: print('ThinkingCap-OK') then stop. Do not only describe the file — write it with a tool. --no-session --no-profile --max-turns 16 --with-builtin developer
+PASS goose (print('ThinkingCap-OK'))
+
+=== hermes ===
+$ hermes -z In this empty project, create a file named hello_tc.py that prints 'ThinkingCap-OK' and nothing else. Then exit. -m t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --provider thinkingcap --yolo --ignore-user-config
+PASS hermes (print('ThinkingCap-OK'))
+
+=== codex ===
+$ env OPENAI_API_KEY=local codex exec --skip-git-repo-check --sandbox danger-full-access -c approval_policy="never" -c model_provider="thinkingcap" -c model="t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit" -c model_providers.thinkingcap={name="ThinkingCap", base_url="http://host.docker.internal:8091/v1", env_key="OPENAI_API_KEY"} -c model_reasoning_effort="none" Call the exec_command tool now with cmd set to exactly:
+printf "%s\n" "print(\"ThinkingCap-OK\")" > hello_tc.py
+Do not describe tools. Do not output JSON schemas. One tool call only.
+PASS codex (print("ThinkingCap-OK"))
+SKIP mimo-code — host-only / not packaged for this linux image
+SKIP kilocode — host-only / install TBD
+SKIP antigravity — macOS agy binary
+SKIP cursor-cli — requires Cursor login on host
+
+==== SUMMARY ====
+PASS claude-code (print("ThinkingCap-OK"))
+PASS aider (print('ThinkingCap-OK'))
+PASS opencode (print("ThinkingCap-OK"))
+PASS goose (print('ThinkingCap-OK'))
+PASS hermes (print('ThinkingCap-OK'))
+PASS codex (print("ThinkingCap-OK"))
+SKIP mimo-code — host-only / not packaged for this linux image
+SKIP kilocode — host-only / install TBD
+SKIP antigravity — macOS agy binary
+SKIP cursor-cli — requires Cursor login on host

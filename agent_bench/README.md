@@ -61,6 +61,15 @@ docker compose -f agent_bench/docker-compose.yml --profile host run --rm sandbox
 
 **Why Docker for CLIs:** native Goose/OpenCode/etc. can popup on macOS or fight your interactive sessions. The `cli` profile runs headless Linux binaries as user `bench` (uid 1000).
 
+**Latest Docker micro-smoke scorecard** (`hello_tc.py` artifact gate → host ThinkingCap):
+
+| Status | CLIs |
+|--------|------|
+| PASS (6) | Claude Code, Aider, OpenCode, Goose, Hermes, Codex |
+| SKIP (4) | Mimo, Kilo (not in Linux image), Antigravity (macOS), Cursor CLI (login) |
+
+Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. OpenCode needs `--dir` + deny `external_directory` (model invents absolute paths). Keep Kevlar up for the whole matrix — a dead `:8080` shows up as shim `502`.
+
 ## Profiles
 
 | Profile | Scope |
