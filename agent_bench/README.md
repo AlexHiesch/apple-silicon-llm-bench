@@ -18,8 +18,26 @@ Shared config:
 |------|------|
 | [`../harness_model.py`](../harness_model.py) | `DEFAULT_MODEL`, `agent_env()` |
 | [`models.yaml`](models.yaml) | Model + base URL + routing hints |
-| [`agent_clis.yaml`](agent_clis.yaml) | ~40 CLIs, each with `default_model` |
+| [`agent_clis.yaml`](agent_clis.yaml) | CLI registry + curated `thinkingcap_matrix` shortlist |
 | [`benchmarks.yaml`](benchmarks.yaml) | Suites, profiles, composites |
+
+## ThinkingCap matrix shortlist (Jul 2026)
+
+Curated include/skip lives in `agent_clis.yaml` (`matrix: include|skip|out`). List with:
+
+```bash
+python -m agent_bench.run_matrix --list --matrix
+python -m agent_bench.run_matrix --matrix --plan-only
+```
+
+| Include | Role | Smoke so far |
+|---------|------|--------------|
+| Claude Code, Codex, OpenCode, Goose, Hermes, Cursor | core coding agents | Docker/host green (Cursor via OpenAI BYOK+tunnel) |
+| Kilo, Mimo | OpenCode-family | Host green |
+| Cline, Pi, Oh-my-pi (`omp`), Command Code (`cmd`), Peezy, OpenHands, OpenClaw, OpenSquilla, Poolside | shortlist newcomers / OR-trendy | registry + install paths; smoke next |
+| Lemonade, GDevelop, Zed, Portkey | platform / editor / gateway | included for breadth; different smoke shape |
+
+**Skip:** Roo Code (EOL — community fork Zoo Code is watch-only), Ito.
 
 ## Quick start
 
@@ -33,9 +51,11 @@ python -m mlx_lm.server --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --port
 # Readiness dashboard
 python -m agent_bench detect
 python -m agent_bench --list
+python -m agent_bench.run_matrix --list --matrix   # curated shortlist only
 
 # Emit smoke plan (agents × Tier-1 suites @ ThinkingCap)
 python -m agent_bench run --profile smoke --plan-only
+python -m agent_bench.run_matrix --matrix --plan-only
 ```
 
 ## Clean Docker setups

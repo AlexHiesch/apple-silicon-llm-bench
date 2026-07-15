@@ -78,14 +78,29 @@ def test_smoke_profile_selects_tier1():
     assert {s["id"] for s in suites} == {"deepswe", "terminal-bench-v2", "swe-atlas-qna"}
 
 
-def test_plan_runs_use_thinkingcap():
+def test_thinkingcap_matrix_include_set():
+    cfg = load_yaml(AGENTS)
+    meta = cfg["thinkingcap_matrix"]
+    include = set(meta["include"])
+    agents = {a["id"]: a for a in cfg["agents"]}
+    assert include == {a["id"] for a in cfg["agents"] if a.get("matrix") == "include"}
+    for aid in include:
+        assert agents[aid]["bench_enabled"] is True
+        assert agents[aid]["default_model"] == DEFAULT_MODEL
+    for aid in meta["skip"]:
+        assert agents[aid]["matrix"] == "skip"
+        assert agents[aid]["bench_enabled"] is False
+    # Roo EOL / Ito out; Zoo Code is watch-only
+    assert agents["roo-code"]["matrix"] == "skip"
+    assert agents["ito"]["matrix"] == "skip"
+    assert agents["zoocode"]["bench_enabled"] is False
+
+
+def test_select_agents_matrix_only():
     agents_cfg = load_yaml(AGENTS)
-    bench_cfg = load_yaml(BENCH)
-    agents = select_agents(agents_cfg, ["opencode", "mini-swe-agent"], skip_unavailable=False)
-    suites = select_suites(bench_cfg, "smoke", None)
-    runs = plan_runs(agents, suites, DEFAULT_MODEL)
-    assert len(runs) == 2 * 3
-    assert all(r["model"] == DEFAULT_MODEL for r in runs)
+    agents = select_agents(agents_cfg, None, skip_unavailable=False, matrix_only=True)
+    assert {a["id"] for a in agents} == set(agents_cfg["thinkingcap_matrix"]["include"])
+    assert all(a.get("matrix") == "include" for a in agents)
 
 
 def test_resolve_model_override():

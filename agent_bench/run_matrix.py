@@ -33,8 +33,18 @@ def resolve_model(cli_model: str | None) -> str:
     return cli_model or DEFAULT_MODEL
 
 
-def select_agents(cfg: dict, ids: list[str] | None, skip_unavailable: bool) -> list[dict]:
-    agents = [a for a in cfg.get("agents", []) if a.get("bench_enabled", False)]
+def select_agents(
+    cfg: dict,
+    ids: list[str] | None,
+    skip_unavailable: bool,
+    *,
+    matrix_only: bool = False,
+) -> list[dict]:
+    agents = list(cfg.get("agents", []))
+    if matrix_only:
+        agents = [a for a in agents if a.get("matrix") == "include"]
+    else:
+        agents = [a for a in agents if a.get("bench_enabled", False)]
     if ids:
         want = set(ids)
         agents = [a for a in agents if a["id"] in want]
@@ -99,6 +109,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="agent_bench matrix orchestrator")
     parser.add_argument("--list", action="store_true", help="Show agents + readiness")
     parser.add_argument("--agent", nargs="+", metavar="ID", help="Agent IDs to run")
+    parser.add_argument(
+        "--matrix",
+        action="store_true",
+        help="Only curated ThinkingCap shortlist (agents with matrix: include)",
+    )
     parser.add_argument("--suite", metavar="ID", help="Single benchmark suite")
     parser.add_argument("--profile", choices=["smoke", "coding-core", "aa-index",
                                               "extended", "full"],
@@ -110,13 +125,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.list:
-        print_report()
+        print_report(matrix_only=args.matrix)
         return 0
 
     model = resolve_model(args.model)
     agents_cfg = load_yaml(AGENTS_YAML)
     bench_cfg = load_yaml(BENCH_YAML)
-    agents = select_agents(agents_cfg, args.agent, args.skip_unavailable)
+    agents = select_agents(
+        agents_cfg,
+        args.agent,
+        args.skip_unavailable,
+        matrix_only=args.matrix,
+    )
     suites = select_suites(bench_cfg, args.profile or "smoke", args.suite)
 
     if not agents:

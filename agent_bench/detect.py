@@ -61,6 +61,7 @@ def detect_agent(agent: dict) -> dict:
     return {
         "id": agent["id"],
         "group": agent.get("group"),
+        "matrix": agent.get("matrix", "out"),
         "bench_enabled": agent.get("bench_enabled", False),
         "harness_tier": agent.get("harness_tier"),
         "default_model": agent.get("default_model", DEFAULT_MODEL),
@@ -93,29 +94,36 @@ def list_readiness() -> dict:
     }
 
 
-def print_report(data: dict | None = None) -> None:
+def print_report(data: dict | None = None, *, matrix_only: bool = False) -> None:
     data = data or list_readiness()
     print("=" * 72)
-    print("agent_bench readiness")
+    print("agent_bench readiness" + (" (ThinkingCap matrix)" if matrix_only else ""))
     print("=" * 72)
     print(f"default_model:  {data['default_model']}")
     print(f"default_base:   {data['default_base_url']}")
     print(f"docker:         {'OK' if data['docker_ok'] else 'MISSING'}")
     print(f"model server:   {'OK' if data['model_server_ok'] else 'DOWN'} ({data['default_base_url']})")
-    print(f"agents ready:   {data['ready_count']} / {data['enabled_count']} enabled "
-          f"({len(data['agents'])} registered)")
+    agents = data["agents"]
+    if matrix_only:
+        agents = [a for a in agents if a.get("matrix") == "include"]
+        print(f"matrix include: {len(agents)}")
+    else:
+        print(f"agents ready:   {data['ready_count']} / {data['enabled_count']} enabled "
+              f"({len(data['agents'])} registered)")
     print()
-    print(f"{'ID':<18} {'Tier':<4} {'Bin':<6} {'Ready':<6} {'Model'}")
+    print(f"{'ID':<18} {'Mx':<7} {'Tier':<4} {'Bin':<6} {'Ready':<6} {'Model'}")
     print("-" * 72)
-    for a in data["agents"]:
-        if not a["bench_enabled"]:
+    for a in agents:
+        if not matrix_only and not a["bench_enabled"]:
             continue
         bin_ok = "OK" if a["binary_ok"] else "MISS"
         ready = "YES" if a["ready"] else "no"
         model = (a["default_model"] or "").split("/")[-1][:32]
-        print(f"{a['id']:<18} {str(a.get('harness_tier') or '-'):<4} {bin_ok:<6} {ready:<6} {model}")
+        mx = (a.get("matrix") or "-")[:7]
+        print(f"{a['id']:<18} {mx:<7} {str(a.get('harness_tier') or '-'):<4} {bin_ok:<6} {ready:<6} {model}")
     print()
     print("All enabled agents default to ThinkingCap-Qwen3.6-27B-MLX-4bit.")
+    print("Curated shortlist: python -m agent_bench.run_matrix --list --matrix")
     print("Start server:  python -m mlx_lm.server --model "
           f"{data['default_model']} --port 8080")
 

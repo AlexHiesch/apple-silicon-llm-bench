@@ -27,6 +27,22 @@ docker compose -f agent_bench/docker-compose.yml --profile cli run --rm --user 1
 
 Pass rule is not exit 0. It is: did you create `hello_tc.py` that prints `ThinkingCap-OK`?
 
+## Curated matrix (what we’re chasing)
+
+Shortlist in `agent_clis.yaml` (`thinkingcap_matrix` / `matrix: include`). Roo Code and Ito are **skip**. Zoo Code (Roo’s community fork) is watch-only — not primary.
+
+| Include | Status on ThinkingCap |
+|---------|------------------------|
+| Claude Code, OpenCode, Goose, Hermes, Codex | Docker **pass** |
+| Kilo, Mimo | Host **pass** |
+| Cursor | Host **pass** (catalog default; ThinkingCap via OpenAI override + tunnel) |
+| Cline, Pi, Oh-my-pi, Command Code, Peezy, OpenHands, OpenClaw, OpenSquilla, Poolside | registered — smoke TBD |
+| Lemonade, GDevelop, Zed, Portkey | platform/editor/gateway — smoke TBD (not plain agent CLIs) |
+
+```bash
+python -m agent_bench.run_matrix --list --matrix
+```
+
 ## Docker agent scorecard (headless Linux → host ThinkingCap)
 
 | CLI | Result | Note |
