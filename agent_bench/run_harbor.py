@@ -17,8 +17,14 @@ RESULTS = REPO / "results" / "agent_bench"
 MAP_PATH = ROOT / "agent_harbor_map.yaml"
 
 # Inside Docker containers, host ThinkingCap is reached via host.docker.internal
-HOST_SHIM = os.environ.get("HARBOR_OPENAI_BASE", "http://host.docker.internal:8091/v1")
-HOST_KEVLAR = os.environ.get("HARBOR_ANTHROPIC_BASE", "http://host.docker.internal:8080")
+HOST_SHIM = os.environ.get(
+    "HARBOR_OPENAI_BASE",
+    "http://host.docker.internal:8091/v1",
+)
+HOST_KEVLAR = os.environ.get(
+    "HARBOR_ANTHROPIC_BASE",
+    "http://host.docker.internal:8080",
+)
 MODEL = os.environ.get(
     "LLM_MODEL",
     "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit",
@@ -98,7 +104,6 @@ def ensure_harbor() -> str:
 
 def agent_env_flags(model: str) -> list[str]:
     """Pass OpenAI + Anthropic routes into the agent container."""
-    no_proxy = "localhost,127.0.0.1,host.docker.internal"
     pairs = {
         "OPENAI_API_KEY": "local",
         "OPENAI_BASE_URL": HOST_SHIM,
@@ -109,8 +114,6 @@ def agent_env_flags(model: str) -> list[str]:
         "AWS_BEARER_TOKEN_BEDROCK": "",
         "LLM_MODEL": model,
         "MODEL": model,
-        "NO_PROXY": no_proxy,
-        "no_proxy": no_proxy,
     }
     flags: list[str] = []
     for k, v in pairs.items():

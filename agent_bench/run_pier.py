@@ -17,8 +17,14 @@ RESULTS = REPO / "results" / "agent_bench"
 MAP_PATH = ROOT / "agent_harbor_map.yaml"
 DEFAULT_TASKS = REPO / "results" / "agent_bench" / "datasets" / "deep-swe" / "tasks"
 
-HOST_SHIM = os.environ.get("PIER_OPENAI_BASE", "http://host.docker.internal:8091/v1")
-HOST_KEVLAR = os.environ.get("PIER_ANTHROPIC_BASE", "http://host.docker.internal:8080")
+HOST_SHIM = os.environ.get(
+    "PIER_OPENAI_BASE",
+    "http://host.docker.internal:8091/v1",
+)
+HOST_KEVLAR = os.environ.get(
+    "PIER_ANTHROPIC_BASE",
+    "http://host.docker.internal:8080",
+)
 MODEL = os.environ.get(
     "LLM_MODEL",
     "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit",
@@ -84,9 +90,8 @@ def resolve_tasks_path(explicit: Path | None = None) -> Path:
 
 
 def agent_env_flags(model: str) -> list[str]:
-    # NO_PROXY must include host.docker.internal so agent→Kevlar/shim bypasses
-    # Pier's Squid egress proxy (Safe_ports only 80/443; our ports are 8080/8091).
-    no_proxy = "localhost,127.0.0.1,host.docker.internal"
+    # Pier agents sit on an internal network and reach ThinkingCap via Squid.
+    # Safe_ports + dns_v4_first are patched by scripts/patch_pier_egress.py.
     pairs = {
         "OPENAI_API_KEY": "local",
         "OPENAI_BASE_URL": HOST_SHIM,
@@ -98,8 +103,6 @@ def agent_env_flags(model: str) -> list[str]:
         "AWS_BEARER_TOKEN_BEDROCK": "",
         "LLM_MODEL": model,
         "MODEL": model,
-        "NO_PROXY": no_proxy,
-        "no_proxy": no_proxy,
     }
     flags: list[str] = []
     for k, v in pairs.items():
