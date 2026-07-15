@@ -424,8 +424,13 @@ JSON
       done
       wait "$pid" 2>/dev/null || true
     )
-    # Restore caller's workspace path
+    # Restore caller's workspace path + drop smoke-only tool/bootstrap pins
     openclaw config set agents.defaults.workspace "$oc_prev_ws" >/dev/null 2>&1 || true
+    openclaw config unset tools.allow >/dev/null 2>&1 || true
+    openclaw config unset tools.profile >/dev/null 2>&1 || true
+    openclaw config unset agents.defaults.bootstrapMaxChars >/dev/null 2>&1 || true
+    openclaw config unset agents.defaults.bootstrapTotalMaxChars >/dev/null 2>&1 || true
+    openclaw config unset agents.defaults.bootstrapPromptTruncationWarning >/dev/null 2>&1 || true
     if artifact_ok "$ws"; then
       pass "openclaw ($(tr -d '\n' <"$ws/hello_tc.py" | head -c 80))"
     else
