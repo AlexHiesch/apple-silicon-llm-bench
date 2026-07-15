@@ -37,17 +37,20 @@ Pass rule is not exit 0. It is: did you create `hello_tc.py` that prints `Thinki
 | Goose | **pass** | Headless Linux binary (avoids macOS GUI popup) |
 | Hermes | **pass** | `--provider thinkingcap --ignore-user-config` |
 | Codex | **pass** | Needs Responses SSE + explicit `exec_command` prompt (generic prompt → dumps tool JSON as text) |
-| Mimo / Kilo | **skip** | not packaged in this Linux image |
-| Antigravity (`agy`) | **skip** | macOS binary |
-| Cursor agent CLI | **skip** | requires Cursor login / `CURSOR_API_KEY` |
+| Mimo / Kilo / Antigravity / Cursor | **host** | See host skip smoke below |
 
-Artifact that landed (representative):
+### Host skip smoke (macOS-native)
 
-```python
-print('ThinkingCap-OK')
-```
+`bash agent_bench/scripts/host_skip_smoke.sh` → `results/agent_bench/host_skip_smoke/`.
 
-Honest Docker result: **6 PASS / 0 FAIL / 4 SKIP** among the targets that were in scope. Pier/Harbor full suites remain plan-only wrappers (not run).
+| CLI | Result | Note |
+|-----|--------|------|
+| Kilo Code | **pass** | Same OpenCode-family path fix; local ThinkingCap |
+| mimocode | **pass** | Local ThinkingCap |
+| Antigravity (`agy`) | **pass** | Anthropic → Kevlar ThinkingCap |
+| Cursor CLI | **pass** | After `cursor-agent login` — **Cursor catalog model**, not ThinkingCap BYOK |
+
+Combined runnable scorecard: **10 PASS** (6 Docker ThinkingCap + 3 host ThinkingCap + 1 Cursor-cloud).
 
 ### What burned time before those greens
 
@@ -106,7 +109,8 @@ Orchestrator reported `ok=7 failed=16`. Agent smoke + speed were real. Quality p
 
 ## Numbers to paste if you only take one table
 
-**Docker agent microbench (local ThinkingCap):** Claude ✓ · Aider ✓ · OpenCode ✓ · Goose ✓ · Hermes ✓ · Codex ✓ · 4 skip  
+**Docker agent microbench (local ThinkingCap):** Claude ✓ · Aider ✓ · OpenCode ✓ · Goose ✓ · Hermes ✓ · Codex ✓  
+**Host skips:** Kilo ✓ · Mimo ✓ · agy ✓ · Cursor ✓ (Cursor catalog, not ThinkingCap) 
 
 **Decode (mlx-lm 4bit, warm):** ~20–22 t/s · **vllm-mlx:** ~23 t/s · **64k warm TTFT:** ~0.5 s · **think short TTFT:** ~48 s  
 

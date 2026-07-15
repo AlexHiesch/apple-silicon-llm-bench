@@ -1,0 +1,27 @@
+{
+  "results": [
+    {
+      "status": "pass",
+      "name": "kilocode",
+      "detail": "(print(\"ThinkingCap-OK\"))"
+    },
+    {
+      "status": "pass",
+      "name": "mimo-code",
+      "detail": "(print(\"ThinkingCap-OK\"))"
+    },
+    {
+      "status": "pass",
+      "name": "antigravity",
+      "detail": "(print('ThinkingCap-OK'))"
+    },
+    {
+      "status": "pass",
+      "name": "cursor-cli",
+      "detail": "(print('ThinkingCap-OK'))"
+    }
+  ],
+  "pass": 4,
+  "fail": 0,
+  "skip": 0
+}

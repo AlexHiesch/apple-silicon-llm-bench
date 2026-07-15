@@ -1,0 +1,25 @@
+host_skip_smoke model=t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit shim=http://127.0.0.1:8091/v1 kevlar=http://127.0.0.1:8080
+kevlar ok http://127.0.0.1:8080
+
+=== kilocode ===
+$ /opt/homebrew/bin/kilocode run --pure --dir /Users/HIESCHA/Projects/Work/llm-bench/results/agent_bench/host_skip_smoke/workspaces/kilocode ...
+PASS kilocode (print("ThinkingCap-OK"))
+
+=== mimo-code ===
+$ mimo run --pure --dir /Users/HIESCHA/Projects/Work/llm-bench/results/agent_bench/host_skip_smoke/workspaces/mimo-code ...
+PASS mimo-code (print("ThinkingCap-OK"))
+
+=== antigravity ===
+$ agy --print ... --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+PASS antigravity (print('ThinkingCap-OK'))
+✓ Logged in as alexhiesch@ymail.com
+
+=== cursor-cli ===
+$ cursor-agent -p ... --model auto --force
+PASS cursor-cli (print('ThinkingCap-OK'))
+
+==== SUMMARY ====
+PASS kilocode (print("ThinkingCap-OK"))
+PASS mimo-code (print("ThinkingCap-OK"))
+PASS antigravity (print('ThinkingCap-OK'))
+PASS cursor-cli (print('ThinkingCap-OK'))

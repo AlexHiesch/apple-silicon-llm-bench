@@ -218,11 +218,11 @@ else
   skip codex "not in image"
 fi
 
-# Mac-only / auth-walled — document skips
-skip mimo-code "host-only / not packaged for this linux image"
-skip kilocode "host-only / install TBD"
-skip antigravity "macOS agy binary"
-skip cursor-cli "requires Cursor login on host"
+# Mac-only / auth-walled — host fallback: bash agent_bench/scripts/host_skip_smoke.sh
+skip mimo-code "host-only arm64 — run host_skip_smoke.sh"
+skip kilocode "prefer host_skip_smoke.sh (or add @kilocode/cli to image)"
+skip antigravity "macOS agy — run host_skip_smoke.sh"
+skip cursor-cli "Cursor login on host — run host_skip_smoke.sh"
 
 echo "" | tee -a "$REPORT"
 echo "==== SUMMARY ====" | tee -a "$REPORT"

@@ -66,9 +66,19 @@ docker compose -f agent_bench/docker-compose.yml --profile host run --rm sandbox
 | Status | CLIs |
 |--------|------|
 | PASS (6) | Claude Code, Aider, OpenCode, Goose, Hermes, Codex |
-| SKIP (4) | Mimo, Kilo (not in Linux image), Antigravity (macOS), Cursor CLI (login) |
+| Host fallback (4) | Kilo, Mimo, Antigravity (`agy`), Cursor CLI — `bash agent_bench/scripts/host_skip_smoke.sh` |
 
-Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. OpenCode needs `--dir` + deny `external_directory` (model invents absolute paths). Keep Kevlar up for the whole matrix — a dead `:8080` shows up as shim `502`.
+**Host skip smoke** (macOS-native; Cursor needs `cursor-agent login`):
+
+```bash
+# Requires Kevlar :8080 + shim :8091; Cursor already logged in on this Mac
+bash agent_bench/scripts/host_skip_smoke.sh
+# → results/agent_bench/host_skip_smoke/REPORT.txt
+```
+
+Latest host result: **4/4 PASS** (Kilo/Mimo/agy against local ThinkingCap; Cursor CLI after login — uses Cursor catalog models, not ThinkingCap BYOK).
+
+Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. OpenCode/Kilo/Mimo need `--dir` + deny `external_directory` (model invents absolute paths). Keep Kevlar up for the whole matrix — a dead `:8080` shows up as shim `502`.
 
 ## Profiles
 
