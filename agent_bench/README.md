@@ -32,8 +32,8 @@ python -m agent_bench.run_matrix --matrix --plan-only
 
 | Include | Role | Smoke so far |
 |---------|------|--------------|
-| Claude Code, Codex, OpenCode, Goose, Hermes, Cursor | core coding agents | Docker/host green (Cursor via OpenAI BYOK+tunnel) |
-| Kilo, Mimo | OpenCode-family | Host green |
+| Claude Code, Codex, OpenCode, Goose, Hermes, **Aider**, Cursor | core coding agents | Docker/host green (Cursor via OpenAI BYOK+tunnel) |
+| Kilo, Mimo, **Antigravity** | OpenCode-family / host agents | Host green |
 | Cline, OpenSquilla, OpenHands, **Pi**, **Peezy**, **Command Code**, **Oh-my-pi**, **OpenClaw** | shortlist newcomers | **PASS** via `matrix_host_smoke.sh` |
 | Poolside | shortlist newcomers | no `pool` binary (npm poolside ≠ agent CLI) |
 | Lemonade, GDevelop, Zed, Portkey | platform / editor / gateway | included for breadth; different smoke shape |

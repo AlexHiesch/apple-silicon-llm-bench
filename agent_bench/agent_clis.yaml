@@ -89,7 +89,7 @@ agents:
   default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
   prereqs:
   - GOOGLE_AI_API_KEY
-  matrix: out
+  matrix: include
 - id: copilot-cli
   group: frontier-lab
   vendor: github
@@ -231,7 +231,7 @@ agents:
   model_routing: openai_compatible
   default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
   install: pip install aider-chat
-  matrix: out
+  matrix: include
 - id: or-code
   group: openrouter-trendy
   binary: or-code
@@ -512,6 +512,8 @@ agents:
 thinkingcap_matrix:
   description: Curated agents for ThinkingCap-Qwen3.6-27B-MLX-4bit comparison (user shortlist Jul 2026)
   include:
+  - aider
+  - antigravity
   - claude-code
   - cline
   - codex
@@ -540,5 +542,5 @@ thinkingcap_matrix:
   - Roo Code EOL → skip; Zoo Code is the community fork (watch-only, not primary).
   - Ito explicitly skipped.
   - Lemonade / GDevelop / Zed / Portkey are platforms/editors/gateways — included for breadth, smoke differs.
-  - 'Already green on ThinkingCap smoke: claude-code, opencode, goose, hermes-agent, codex, kilocode,
-    mimo-code, cursor-cli (BYOK).'
+  - 'Smoke-green on ThinkingCap: aider, antigravity, claude-code, cline, codex, command-code, cursor-cli,
+    goose, hermes-agent, kilocode, mimo-code, oh-my-pi, openclaw, opencode, openhands, opensquilla, peezy, pi.'
