@@ -136,31 +136,35 @@ else
   skip aider "not in image"
 fi
 
-# OpenCode
+# OpenCode — must pin --dir to workspace; model otherwise invents /home/user
 if command -v opencode >/dev/null; then
-  run_one opencode opencode run --pure --model local/thinkingcap --auto "$PROMPT"
+  run_one opencode opencode run --pure --dir . --model local/thinkingcap --auto \
+    "Working directory is the current project root. Create ./hello_tc.py that prints 'ThinkingCap-OK' and nothing else. Write only under this directory (relative path hello_tc.py). Then exit."
 else
   skip opencode "not in image"
 fi
 
-# Goose (headless — no macOS popup)
+# Goose (headless — no macOS popup). Explicit shell instruction; no --quiet so tools log.
 if command -v goose >/dev/null; then
-  run_one goose goose run -t "$PROMPT" --no-session --no-profile --max-turns 12 --quiet \
+  run_one goose goose run \
+    -t "Use the developer shell tools. In the current directory, create hello_tc.py containing exactly: print('ThinkingCap-OK') then stop. Do not only describe the file — write it with a tool." \
+    --no-session --no-profile --max-turns 16 \
     --with-builtin developer
 else
   skip goose "not in image"
 fi
 
-# Hermes
+# Hermes — ThinkingCap chat provider (ignore-user-config so fixture wins)
 if command -v hermes >/dev/null; then
-  run_one hermes hermes -z "$PROMPT" -m "$MODEL" --provider thinkingcap --yolo --safe-mode
+  run_one hermes hermes -z "$PROMPT" -m "$MODEL" --provider thinkingcap --yolo --ignore-user-config
 else
   skip hermes "not in image"
 fi
 
-# Codex
+# Codex — force local ThinkingCap; Responses tools need shim normalize_tools
 if command -v codex >/dev/null; then
-  run_one codex codex exec --skip-git-repo-check \
+  run_one codex env OPENAI_API_KEY=local \
+    codex exec --skip-git-repo-check \
     --sandbox danger-full-access -c 'approval_policy="never"' \
     -c 'model_provider="thinkingcap"' \
     -c "model=\"$MODEL\"" \

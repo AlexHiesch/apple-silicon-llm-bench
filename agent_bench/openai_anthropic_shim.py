@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""OpenAI-compatible HTTP shim → Anthropic /v1/messages (Kevlar ThinkingCap)."""
+"""OpenAI-compatible HTTP shim → Anthropic /v1/messages (Kevlar ThinkingCap).
+
+Supports:
+  POST /v1/chat/completions  (JSON + SSE stream)
+  POST /v1/responses         (Codex / Responses API)
+  GET  /v1/models, /health
+"""
 
 from __future__ import annotations
 
@@ -12,8 +18,13 @@ from urllib import request as urllib_request
 
 
 def strip_thinking(text: str) -> str:
+    if not text:
+        return ""
     if "</think>" in text:
         return text.split("</think>", 1)[-1].strip()
+    # bare thinking without close tag — drop if clearly thinking dump
+    if text.lstrip().startswith("<think>"):
+        return ""
     return text.strip()
 
 
@@ -24,11 +35,46 @@ def oai_messages_to_anthropic(messages: list) -> tuple[str | None, list]:
         role = m.get("role", "user")
         content = m.get("content", "")
         if isinstance(content, list):
-            content = "\n".join(
-                p.get("text", "")
-                for p in content
-                if isinstance(p, dict) and p.get("type") == "text"
-            )
+            parts = []
+            for p in content:
+                if isinstance(p, dict):
+                    if p.get("type") in ("text", "output_text", "input_text"):
+                        parts.append(p.get("text") or "")
+                    elif p.get("type") == "tool_result":
+                        out.append({
+                            "role": "user",
+                            "content": [{
+                                "type": "tool_result",
+                                "tool_use_id": p.get("tool_use_id") or p.get("tool_call_id") or "tool",
+                                "content": str(p.get("content") or ""),
+                            }],
+                        })
+                else:
+                    parts.append(str(p))
+            content = "\n".join(parts)
+        # Chat Completions tool_calls → anthropic tool_use
+        if role == "assistant" and m.get("tool_calls"):
+            blocks = []
+            if content:
+                blocks.append({"type": "text", "text": str(content)})
+            for tc in m["tool_calls"]:
+                fn = tc.get("function") or {}
+                args = fn.get("arguments") or "{}"
+                if isinstance(args, str):
+                    try:
+                        args_obj = json.loads(args)
+                    except json.JSONDecodeError:
+                        args_obj = {"raw": args}
+                else:
+                    args_obj = args
+                blocks.append({
+                    "type": "tool_use",
+                    "id": tc.get("id") or f"call_{uuid.uuid4().hex[:8]}",
+                    "name": fn.get("name") or "tool",
+                    "input": args_obj,
+                })
+            out.append({"role": "assistant", "content": blocks})
+            continue
         if role == "system":
             system_parts.append(str(content))
         elif role == "assistant":
@@ -48,6 +94,31 @@ def oai_messages_to_anthropic(messages: list) -> tuple[str | None, list]:
     return system, out
 
 
+def normalize_tools(tools: list) -> list[dict]:
+    """Chat Completions + Responses tool shapes → Anthropic tools."""
+    out: list[dict] = []
+    for t in tools or []:
+        if not isinstance(t, dict):
+            continue
+        fn = t.get("function") if isinstance(t.get("function"), dict) else {}
+        name = fn.get("name") or t.get("name")
+        if not name or not isinstance(name, str):
+            continue
+        description = fn.get("description") or t.get("description") or ""
+        params = (
+            fn.get("parameters")
+            or t.get("parameters")
+            or t.get("input_schema")
+            or {"type": "object", "properties": {}}
+        )
+        out.append({
+            "name": name,
+            "description": description,
+            "input_schema": params,
+        })
+    return out
+
+
 def anthropic_to_oai(data: dict, model: str) -> dict:
     content_blocks = data.get("content", [])
     text = "".join(b.get("text", "") for b in content_blocks if b.get("type") == "text")
@@ -60,22 +131,25 @@ def anthropic_to_oai(data: dict, model: str) -> dict:
                 "id": b.get("id", f"call_{uuid.uuid4().hex[:8]}"),
                 "type": "function",
                 "function": {
-                    "name": b["name"],
+                    "name": b.get("name") or "tool",
                     "arguments": json.dumps(b.get("input", {})),
                 },
             })
 
-    msg: dict = {"role": "assistant", "content": text or None}
+    msg: dict = {"role": "assistant", "content": text if text else (None if tool_calls else "")}
     if tool_calls:
         msg["tool_calls"] = tool_calls
-        if not text:
-            msg["content"] = None
 
     usage = data.get("usage", {})
     in_tok = usage.get("input_tokens", 0)
     out_tok = usage.get("output_tokens", 0)
     stop = data.get("stop_reason", "end_turn")
-    finish = "stop" if stop in ("end_turn", "stop_sequence") else stop
+    if tool_calls:
+        finish = "tool_calls"
+    elif stop in ("end_turn", "stop_sequence"):
+        finish = "stop"
+    else:
+        finish = stop or "stop"
 
     return {
         "id": f"chatcmpl-{uuid.uuid4().hex[:12]}",
@@ -90,6 +164,51 @@ def anthropic_to_oai(data: dict, model: str) -> dict:
             "prompt_tokens": in_tok,
             "completion_tokens": out_tok,
             "total_tokens": in_tok + out_tok,
+        },
+    }
+
+
+def oai_to_responses(oai: dict, model: str) -> dict:
+    msg = (oai.get("choices") or [{}])[0].get("message") or {}
+    text = msg.get("content") or ""
+    output: list[dict] = []
+    if text:
+        output.append({
+            "type": "message",
+            "id": f"msg-{uuid.uuid4().hex[:8]}",
+            "role": "assistant",
+            "status": "completed",
+            "content": [{"type": "output_text", "text": text}],
+        })
+    for tc in msg.get("tool_calls") or []:
+        fn = tc.get("function") or {}
+        args = fn.get("arguments") or "{}"
+        output.append({
+            "type": "function_call",
+            "id": tc.get("id") or f"fc_{uuid.uuid4().hex[:8]}",
+            "call_id": tc.get("id") or f"call_{uuid.uuid4().hex[:8]}",
+            "name": fn.get("name") or "tool",
+            "arguments": args if isinstance(args, str) else json.dumps(args),
+        })
+    if not output:
+        # Never return a completely empty response — clients treat that as failure.
+        output.append({
+            "type": "message",
+            "id": f"msg-{uuid.uuid4().hex[:8]}",
+            "role": "assistant",
+            "status": "completed",
+            "content": [{"type": "output_text", "text": ""}],
+        })
+    return {
+        "id": f"resp-{uuid.uuid4().hex[:12]}",
+        "object": "response",
+        "status": "completed",
+        "model": model,
+        "output": output,
+        "usage": {
+            "input_tokens": (oai.get("usage") or {}).get("prompt_tokens", 0),
+            "output_tokens": (oai.get("usage") or {}).get("completion_tokens", 0),
+            "total_tokens": (oai.get("usage") or {}).get("total_tokens", 0),
         },
     }
 
@@ -113,7 +232,7 @@ class ShimHandler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
         if path in ("/health", "/v1/health"):
             self._send_json(200, {"status": "ok"})
-        elif path == "/v1/models":
+        elif path in ("/v1/models", "/models"):
             self._send_json(200, {
                 "object": "list",
                 "data": [{
@@ -128,9 +247,11 @@ class ShimHandler(BaseHTTPRequestHandler):
     def _call_anthropic(self, body: dict) -> tuple[int, dict]:
         model = body.get("model") or self.default_model
         system, messages = oai_messages_to_anthropic(body.get("messages", []))
+        if not messages:
+            messages = [{"role": "user", "content": "hello"}]
         anthropic_req: dict = {
             "model": model,
-            "max_tokens": body.get("max_tokens", 4096),
+            "max_tokens": int(body.get("max_tokens") or body.get("max_output_tokens") or 4096),
             "messages": messages,
         }
         if system:
@@ -138,17 +259,9 @@ class ShimHandler(BaseHTTPRequestHandler):
         if body.get("temperature") is not None:
             anthropic_req["temperature"] = body["temperature"]
 
-        tools = body.get("tools")
+        tools = normalize_tools(body.get("tools") or [])
         if tools:
-            anthropic_tools = []
-            for t in tools:
-                fn = t.get("function", {})
-                anthropic_tools.append({
-                    "name": fn.get("name"),
-                    "description": fn.get("description", ""),
-                    "input_schema": fn.get("parameters", {"type": "object", "properties": {}}),
-                })
-            anthropic_req["tools"] = anthropic_tools
+            anthropic_req["tools"] = tools
             anthropic_req["tool_choice"] = {"type": "auto"}
 
         url = f"{self.upstream.rstrip('/')}/v1/messages"
@@ -177,7 +290,6 @@ class ShimHandler(BaseHTTPRequestHandler):
             return 502, {"error": {"message": str(e), "type": "shim_error"}}
 
     def _send_sse_completion(self, oai: dict) -> None:
-        """Emit a one-shot OpenAI SSE stream after a full upstream completion."""
         cid = oai.get("id", f"chatcmpl-{uuid.uuid4().hex[:12]}")
         model = oai.get("model", self.default_model)
         msg = (oai.get("choices") or [{}])[0].get("message") or {}
@@ -188,22 +300,30 @@ class ShimHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Connection", "keep-alive")
         self.end_headers()
-        # role chunk
         role_chunk = {
             "id": cid, "object": "chat.completion.chunk", "model": model,
             "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
         }
         self.wfile.write(f"data: {json.dumps(role_chunk)}\n\n".encode())
-        # content in ~40-char pieces (helps clients that expect progressive deltas)
+        # tool_calls (single chunk)
+        if msg.get("tool_calls"):
+            chunk = {
+                "id": cid, "object": "chat.completion.chunk", "model": model,
+                "choices": [{
+                    "index": 0,
+                    "delta": {"tool_calls": msg["tool_calls"]},
+                    "finish_reason": None,
+                }],
+            }
+            self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
         step = 40
-        for i in range(0, max(len(content), 1), step):
-            piece = content[i:i + step] if content else ""
+        for i in range(0, max(len(content), 1 if content else 0), step):
+            piece = content[i:i + step]
             chunk = {
                 "id": cid, "object": "chat.completion.chunk", "model": model,
                 "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
             }
             self.wfile.write(f"data: {json.dumps(chunk)}\n\n".encode())
-        # final
         done = {
             "id": cid, "object": "chat.completion.chunk", "model": model,
             "choices": [{"index": 0, "delta": {}, "finish_reason": finish}],
@@ -214,7 +334,6 @@ class ShimHandler(BaseHTTPRequestHandler):
         self.wfile.flush()
 
     def _responses_to_chat_body(self, body: dict) -> dict:
-        """Map OpenAI Responses API request → chat.completions body."""
         messages = body.get("messages")
         if not messages:
             inp = body.get("input")
@@ -226,6 +345,28 @@ class ShimHandler(BaseHTTPRequestHandler):
                     if isinstance(item, str):
                         messages.append({"role": "user", "content": item})
                     elif isinstance(item, dict):
+                        typ = item.get("type")
+                        if typ == "function_call_output":
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": item.get("call_id") or item.get("id") or "tool",
+                                "content": item.get("output") or item.get("content") or "",
+                            })
+                            continue
+                        if typ == "function_call":
+                            messages.append({
+                                "role": "assistant",
+                                "content": "",
+                                "tool_calls": [{
+                                    "id": item.get("call_id") or item.get("id") or f"call_{uuid.uuid4().hex[:8]}",
+                                    "type": "function",
+                                    "function": {
+                                        "name": item.get("name") or "tool",
+                                        "arguments": item.get("arguments") or "{}",
+                                    },
+                                }],
+                            })
+                            continue
                         role = item.get("role") or "user"
                         content = item.get("content") or item.get("text") or ""
                         if isinstance(content, list):
@@ -245,30 +386,8 @@ class ShimHandler(BaseHTTPRequestHandler):
         if body.get("temperature") is not None:
             out["temperature"] = body["temperature"]
         if body.get("tools"):
-            # Responses tools may already be Chat-shaped; pass through best-effort
             out["tools"] = body["tools"]
         return out
-
-    def _chat_to_responses(self, oai: dict) -> dict:
-        msg = (oai.get("choices") or [{}])[0].get("message") or {}
-        text = msg.get("content") or ""
-        return {
-            "id": f"resp-{uuid.uuid4().hex[:12]}",
-            "object": "response",
-            "status": "completed",
-            "model": oai.get("model") or self.default_model,
-            "output": [{
-                "type": "message",
-                "id": f"msg-{uuid.uuid4().hex[:8]}",
-                "role": "assistant",
-                "content": [{"type": "output_text", "text": text}],
-            }],
-            "usage": {
-                "input_tokens": (oai.get("usage") or {}).get("prompt_tokens", 0),
-                "output_tokens": (oai.get("usage") or {}).get("completion_tokens", 0),
-                "total_tokens": (oai.get("usage") or {}).get("total_tokens", 0),
-            },
-        }
 
     def do_POST(self) -> None:
         path = self.path.split("?", 1)[0]
@@ -281,12 +400,7 @@ class ShimHandler(BaseHTTPRequestHandler):
             if code != 200:
                 self._send_json(code, payload)
                 return
-            # Codex expects non-stream responses object for many paths
-            if chat_body.get("stream"):
-                # minimal: still return JSON responses object (not SSE)
-                self._send_json(200, self._chat_to_responses(payload))
-            else:
-                self._send_json(200, self._chat_to_responses(payload))
+            self._send_json(200, oai_to_responses(payload, chat_body.get("model") or self.default_model))
             return
 
         if path not in ("/v1/chat/completions", "/chat/completions"):
@@ -305,7 +419,7 @@ class ShimHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="OpenAI chat shim → Kevlar Anthropic API")
+    parser = argparse.ArgumentParser(description="OpenAI chat/responses shim → Kevlar Anthropic API")
     parser.add_argument("--port", type=int, default=8091)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--upstream", default="http://127.0.0.1:8080")

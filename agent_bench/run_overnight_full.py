@@ -346,7 +346,7 @@ def agent_cli_suite_native() -> list[dict]:
 
     if shutil.which("opencode"):
         agents.append(("opencode", [
-            "opencode", "run", "--pure", "--model", "local/thinkingcap", "--auto", prompt,
+            "opencode", "run", "--pure", "--dir", ".", "--model", "local/thinkingcap", "--auto", prompt,
         ]))
 
     if shutil.which("mimo"):
