@@ -34,8 +34,8 @@ python -m agent_bench.run_matrix --matrix --plan-only
 |---------|------|--------------|
 | Claude Code, Codex, OpenCode, Goose, Hermes, Cursor | core coding agents | Docker/host green (Cursor via OpenAI BYOK+tunnel) |
 | Kilo, Mimo | OpenCode-family | Host green |
-| Cline, OpenSquilla, OpenHands | shortlist newcomers | **3/3 PASS** via `matrix_host_smoke.sh` (Jul 15) |
-| Pi, Oh-my-pi (`omp`), Peezy, OpenClaw, Command Code (`cmd`), Poolside | shortlist newcomers | installed; smoke wiring partial — see matrix scorecard |
+| Cline, OpenSquilla, OpenHands, **Pi**, **Peezy**, **Command Code** | shortlist newcomers | **PASS** via `matrix_host_smoke.sh` |
+| Oh-my-pi (`omp`), OpenClaw, Poolside | shortlist newcomers | omp same fixture as Pi (retry); OpenClaw slow; Poolside no `pool` binary |
 | Lemonade, GDevelop, Zed, Portkey | platform / editor / gateway | included for breadth; different smoke shape |
 
 **Skip:** Roo Code (EOL — community fork Zoo Code is watch-only), Ito.
@@ -110,7 +110,12 @@ bash agent_bench/scripts/matrix_host_smoke.sh
 ONLY_CLIS=cline,openhands,opensquilla bash agent_bench/scripts/matrix_host_smoke.sh
 ```
 
-Latest matrix host result (Jul 15): **cline, opensquilla, openhands PASS**; pi/omp hang or need `models.yml`; peezy needs Codex on PATH; openclaw slow (~90s/turn); cmd/poolside skipped (catalog-only / no `pool` binary).
+Latest matrix host result (Jul 15): **cline, opensquilla, openhands, pi, peezy, command-code PASS**.
+
+- **Pi**: `--provider local --model thinkingcap --thinking off` (Anthropic → Kevlar) + fixture extension
+- **Peezy**: `--provider openai` (responses wireApi) + Codex vendor binary + `danger-full-access`
+- **Command Code**: `COMMAND_CODE_API_KEY=local COMMANDCODE_SANDBOX=true COMMANDCODE_API_URL=http://127.0.0.1:8091` — shim bridges `/alpha/generate` → ThinkingCap (catalog model id is remapped)
+
 
 **Cursor → ThinkingCap (custom OpenAI endpoint):** Cursor supports Bring-Your-Own OpenAI and Bedrock endpoints in Settings → Models. Local ThinkingCap is OpenAI-shaped via `:8091`, so use **Override OpenAI Base URL** (not Bedrock). Cursor’s servers call your URL, so `localhost` is blocked — tunnel first:
 

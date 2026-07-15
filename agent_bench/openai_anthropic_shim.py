@@ -213,6 +213,49 @@ def oai_to_responses(oai: dict, model: str) -> dict:
     }
 
 
+def cmd_alpha_events_from_oai(oai: dict) -> list[dict]:
+    """Map an OpenAI chat.completion into Command Code /alpha/generate NDJSON events."""
+    msg = (oai.get("choices") or [{}])[0].get("message") or {}
+    usage = oai.get("usage") or {}
+    events: list[dict] = []
+    text = msg.get("content") or ""
+    if text:
+        step = 48
+        for i in range(0, len(text), step):
+            events.append({"type": "text-delta", "text": text[i:i + step]})
+    for tc in msg.get("tool_calls") or []:
+        fn = tc.get("function") or {}
+        args = fn.get("arguments") or "{}"
+        if isinstance(args, str):
+            try:
+                inp = json.loads(args)
+            except json.JSONDecodeError:
+                inp = {"raw": args}
+        else:
+            inp = args
+        events.append({
+            "type": "tool-call",
+            "toolCallId": tc.get("id") or f"call_{uuid.uuid4().hex[:8]}",
+            "toolName": fn.get("name") or "tool",
+            "input": inp,
+        })
+    finish = (oai.get("choices") or [{}])[0].get("finish_reason") or "stop"
+    events.append({
+        "type": "finish",
+        "finishReason": "tool-calls" if finish == "tool_calls" else finish,
+        "rawFinishReason": finish,
+        "totalUsage": {
+            "inputTokens": usage.get("prompt_tokens", 0),
+            "outputTokens": usage.get("completion_tokens", 0),
+            "inputTokenDetails": {
+                "cacheReadTokens": 0,
+                "cacheWriteTokens": 0,
+            },
+        },
+    })
+    return events
+
+
 def responses_sse_events(resp: dict) -> list[tuple[str, dict]]:
     """Minimal Responses SSE sequence ending in response.completed (Codex)."""
     rid = resp.get("id") or f"resp-{uuid.uuid4().hex[:12]}"
@@ -306,7 +349,11 @@ class ShimHandler(BaseHTTPRequestHandler):
         path = self.path.split("?", 1)[0]
         if path in ("/health", "/v1/health"):
             self._send_json(200, {"status": "ok"})
-        elif path in ("/v1/models", "/models"):
+        elif path in (
+            "/v1/models",
+            "/models",
+            "/provider/v1/models",  # Command Code sandbox API shape
+        ):
             self._send_json(200, {
                 "object": "list",
                 "data": [{
@@ -314,6 +361,13 @@ class ShimHandler(BaseHTTPRequestHandler):
                     "object": "model",
                     "owned_by": "kevlar-shim",
                 }],
+            })
+        elif path in ("/alpha/whoami", "/whoami"):
+            # Minimal stub so Command Code sandbox mode can start against this shim.
+            self._send_json(200, {
+                "user": {"id": "local", "userName": "local", "email": "local@localhost"},
+                "org": None,
+                "plan": "local",
             })
         else:
             self._send_json(404, {"detail": "Not Found"})
@@ -411,11 +465,14 @@ class ShimHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
-        self.send_header("Connection", "keep-alive")
+        self.send_header("Connection", "close")
         self.end_headers()
-        for event, payload in responses_sse_events(resp):
-            self.wfile.write(f"event: {event}\ndata: {json.dumps(payload)}\n\n".encode())
-        self.wfile.flush()
+        try:
+            for event, payload in responses_sse_events(resp):
+                self.wfile.write(f"event: {event}\ndata: {json.dumps(payload)}\n\n".encode())
+            self.wfile.flush()
+        except BrokenPipeError:
+            return
 
     def _responses_to_chat_body(self, body: dict) -> dict:
         messages = body.get("messages")
@@ -473,10 +530,86 @@ class ShimHandler(BaseHTTPRequestHandler):
             out["tools"] = body["tools"]
         return out
 
+    def _extract_cmd_generate_body(self, body: dict) -> dict:
+        """Command Code posts {params:{model,messages,tools,...}, ...} to /alpha/generate."""
+        params = body.get("params") if isinstance(body.get("params"), dict) else {}
+        merged = {**params}
+        # Flatten top-level overrides if present
+        for key in ("model", "messages", "tools", "system", "max_tokens", "stream", "temperature"):
+            if key in body and body[key] is not None and key not in merged:
+                merged[key] = body[key]
+        # Always force ThinkingCap for local sandbox routing
+        merged["model"] = self.default_model
+        # Cap tokens — Command Code defaults to 64k which hurts local MLX latency
+        mt = int(merged.get("max_tokens") or 4096)
+        merged["max_tokens"] = min(mt, 4096)
+        if merged.get("system") and isinstance(merged.get("messages"), list):
+            messages = list(merged["messages"])
+            messages.insert(0, {"role": "system", "content": merged["system"]})
+            merged["messages"] = messages
+        return merged
+
+    def _send_cmd_alpha_ndjson(self, oai: dict) -> None:
+        payload = "".join(json.dumps(event) + "\n" for event in cmd_alpha_events_from_oai(oai)).encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        self.wfile.write(payload)
+        self.wfile.flush()
+
     def do_POST(self) -> None:
         path = self.path.split("?", 1)[0]
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length) or b"{}")
+
+        # Command Code sandbox stubs / agent generate bridge
+        if path in (
+            "/alpha/lifecycle-events",
+            "/alpha/fingerprint/record",
+            "/alpha/conversions/track",
+            "/alpha/consent/set",
+        ):
+            self._send_json(200, {"ok": True})
+            return
+
+        if path in ("/alpha/generate", "/alpha/agent/generate"):
+            chat_body = self._extract_cmd_generate_body(body)
+            code, payload = self._call_anthropic(chat_body)
+            if code != 200:
+                self._send_json(code, payload)
+                return
+            self._send_cmd_alpha_ndjson(payload)
+            return
+
+        if path in ("/provider/v1/messages", "/v1/messages"):
+            # Anthropic-shaped path — pass through almost as OpenAI chat via conversion
+            # by packaging as chat.completions-like body.
+            msgs = body.get("messages") or []
+            if body.get("system"):
+                msgs = [{"role": "system", "content": body["system"]}, *msgs]
+            chat_body = {
+                "model": self.default_model,
+                "messages": msgs,
+                "max_tokens": min(int(body.get("max_tokens") or 4096), 4096),
+                "tools": body.get("tools") or [],
+            }
+            code, payload = self._call_anthropic(chat_body)
+            self._send_json(code, payload if code != 200 else {
+                "id": payload.get("id"),
+                "type": "message",
+                "role": "assistant",
+                "model": self.default_model,
+                "content": [{"type": "text", "text": ((payload.get("choices") or [{}])[0].get("message") or {}).get("content") or ""}],
+                "stop_reason": "end_turn",
+                "usage": {
+                    "input_tokens": (payload.get("usage") or {}).get("prompt_tokens", 0),
+                    "output_tokens": (payload.get("usage") or {}).get("completion_tokens", 0),
+                },
+            })
+            return
 
         if path in ("/v1/responses", "/responses"):
             chat_body = self._responses_to_chat_body(body)
@@ -492,11 +625,18 @@ class ShimHandler(BaseHTTPRequestHandler):
                 self._send_json(200, resp)
             return
 
-        if path not in ("/v1/chat/completions", "/chat/completions"):
+        if path not in (
+            "/v1/chat/completions",
+            "/chat/completions",
+            "/provider/v1/chat/completions",  # Command Code sandbox
+        ):
             self._send_json(404, {"detail": "Not Found"})
             return
 
         want_stream = bool(body.get("stream"))
+        # Prefer configured ThinkingCap when client sends a catalog/OSS model id
+        if not (body.get("model") or "").startswith("t-prazak/"):
+            body = {**body, "model": self.default_model}
         code, payload = self._call_anthropic(body)
         if code != 200:
             self._send_json(code, payload)

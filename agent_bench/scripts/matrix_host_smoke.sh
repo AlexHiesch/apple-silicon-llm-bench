@@ -49,16 +49,26 @@ wait_artifact() {
     i=$((i + 1))
     if grep -q 'ThinkingCap-OK' "$ws/hello_tc.py" 2>/dev/null; then
       kill "$pid" 2>/dev/null || true
+      # also stop children of agent wrappers (e.g. peezy → Codex)
+      pkill -P "$pid" 2>/dev/null || true
       break
     fi
     if (( i > WALL )); then
       kill -9 "$pid" 2>/dev/null || true
+      pkill -9 -P "$pid" 2>/dev/null || true
       echo "killed after ${WALL}s" >>"$ws/run.log"
       break
     fi
     sleep 1
   done
   wait "$pid" 2>/dev/null || true
+  # Codex/Peezy sometimes flush the sandbox after the parent exits
+  local j=0
+  while (( j < 15 )); do
+    grep -q 'ThinkingCap-OK' "$ws/hello_tc.py" 2>/dev/null && return 0
+    sleep 1
+    j=$((j + 1))
+  done
 }
 
 artifact_ok() {
@@ -98,17 +108,51 @@ ensure_kevlar() {
 setup_pi_home() {
   # $1 = destination home (e.g. $OUT/pi-home)
   local home="$1"
-  mkdir -p "$home/.pi/agent"
+  mkdir -p "$home/.pi/agent" "$home/.omp/agent"
   cp "$FIX/pi-local-models-thinkingcap.mjs" "$home/.pi/local-models.mjs"
+  cp "$FIX/omp-models-thinkingcap.yml" "$home/.omp/agent/models.yml"
+  # rewrite base URLs for this run's SHIM/KEVLAR
+  python3 - "$home/.omp/agent/models.yml" "$SHIM" "$KEVLAR" <<'PY'
+import sys
+from pathlib import Path
+p, shim, kevlar = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+text = p.read_text()
+text = text.replace("http://127.0.0.1:8091/v1", shim.rstrip("/"))
+text = text.replace("http://127.0.0.1:8080", kevlar.rstrip("/"))
+p.write_text(text)
+PY
   cat >"$home/.pi/agent/settings.json" <<JSON
 {
-  "defaultProvider": "local-ai",
+  "defaultProvider": "local",
   "defaultModel": "thinkingcap",
-  "enabledModels": ["local-ai/thinkingcap", "local/thinkingcap"],
-  "extensions": ["$home/.pi/local-models.mjs"]
+  "enabledModels": ["local/thinkingcap", "local-ai/thinkingcap"],
+  "extensions": ["$home/.pi/local-models.mjs"],
+  "defaultThinkingLevel": "off"
 }
 JSON
   echo "$home"
+}
+
+# Peezy embeds Codex SDK which expects vendor/.../codex/codex under
+# @openai/codex-darwin-arm64. Incomplete npm installs leave that empty;
+# symlink Homebrew's Codex binary when available.
+ensure_peezy_codex() {
+  local vendor_root arch_root brew_bin
+  vendor_root="$(npm root -g 2>/dev/null)/@p0systems/peezy/node_modules/@openai/codex-darwin-arm64/vendor"
+  [[ -d "$vendor_root" ]] || vendor_root="$HOME/.npm-global/lib/node_modules/@p0systems/peezy/node_modules/@openai/codex-darwin-arm64/vendor"
+  arch_root="$vendor_root/aarch64-apple-darwin"
+  brew_bin="/opt/homebrew/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex"
+  if [[ -x "${arch_root}/codex/codex" ]]; then
+    return 0
+  fi
+  if [[ -x "$brew_bin" ]]; then
+    mkdir -p "${arch_root}/codex"
+    ln -sfn "$brew_bin" "${arch_root}/codex/codex"
+    echo "peezy: linked Codex binary → ${arch_root}/codex/codex" | tee -a "$REPORT"
+    return 0
+  fi
+  echo "WARN: peezy Codex vendor binary missing (install brew codex or reinstall @openai/codex)" | tee -a "$REPORT"
+  return 1
 }
 
 if ! curl -sf --max-time 10 "$SHIM/models" >/dev/null; then
@@ -190,7 +234,9 @@ if want openhands; then
   fi
 fi
 
-# --- Pi (isolated HOME + local-ai/thinkingcap → shim) ---
+# --- Pi (Anthropic → Kevlar; --thinking off; fixture extension) ---
+# Note: OpenAI-completions path against the shim often stalls on tool turns.
+# Anthropic Messages via Kevlar with thinking off is the reliable local route.
 if want pi; then
   if command -v pi >/dev/null; then
     ws="$OUT/workspaces/pi"
@@ -200,8 +246,11 @@ if want pi; then
     echo "=== pi ===" | tee -a "$REPORT"
     (
       cd "$ws"
-      env HOME="$PI_HOME" OPENAI_API_KEY=local OPENAI_BASE_URL="$SHIM" ANTHROPIC_BASE_URL="$KEVLAR" \
-        pi -p -e "$FIX/pi-local-models-thinkingcap.mjs" --provider local-ai --model thinkingcap "$BASH_PROMPT" \
+      env HOME="$PI_HOME" OPENAI_API_KEY=local OPENAI_BASE_URL="$SHIM" \
+        ANTHROPIC_API_KEY=local ANTHROPIC_BASE_URL="$KEVLAR" \
+        stdbuf -oL -eL pi -p -ne -e "$FIX/pi-local-models-thinkingcap.mjs" \
+          --thinking off --provider local --model thinkingcap --verbose \
+          "$BASH_PROMPT" \
         </dev/null >"$ws/run.log" 2>&1 &
       wait_artifact $! "$ws"
     )
@@ -215,7 +264,7 @@ if want pi; then
   fi
 fi
 
-# --- Oh-my-pi / omp (Pi fork; same isolated HOME pattern) ---
+# --- Oh-my-pi / omp (same Anthropic → Kevlar path via -e fixture) ---
 if want oh-my-pi; then
   if command -v omp >/dev/null; then
     ws="$OUT/workspaces/oh-my-pi"
@@ -226,7 +275,9 @@ if want oh-my-pi; then
     (
       cd "$ws"
       env HOME="$OMP_HOME" OPENAI_API_KEY=local OPENAI_BASE_URL="$SHIM" \
-        omp -p -e "$FIX/pi-local-models-thinkingcap.mjs" --model local-ai/thinkingcap "$BASH_PROMPT" \
+        ANTHROPIC_API_KEY=local ANTHROPIC_BASE_URL="$KEVLAR" \
+        stdbuf -oL -eL omp -p --thinking=off --model local/thinkingcap \
+          "$BASH_PROMPT" \
         </dev/null >"$ws/run.log" 2>&1 &
       wait_artifact $! "$ws"
     )
@@ -240,9 +291,12 @@ if want oh-my-pi; then
   fi
 fi
 
-# --- Peezy (needs git repo; OpenAI shim) ---
+# --- Peezy (Codex SDK → openai provider with responses wireApi → shim) ---
+# Requires a complete @openai/codex-darwin-arm64 vendor binary (see ensure_peezy_codex).
+# Do NOT use --provider local (wireApi=chat — Codex rejects it).
 if want peezy; then
   if command -v peezy >/dev/null; then
+    ensure_peezy_codex || true
     ws="$OUT/workspaces/peezy"
     rm -rf "$ws"; mkdir -p "$ws"
     git -C "$ws" init -q
@@ -250,25 +304,47 @@ if want peezy; then
     echo "=== peezy ===" | tee -a "$REPORT"
     (
       cd "$ws"
-      peezy --print --base-url "$SHIM" --model "$MODEL" --provider openai \
-        --approval never --sandbox workspace-write --skip-git-repo-check "$PROMPT" \
+      env OPENAI_API_KEY=local \
+        peezy --print --verbose --provider openai --base-url "$SHIM" --model "$MODEL" \
+          --approval never --sandbox danger-full-access --skip-git-repo-check \
+          "$BASH_PROMPT" \
         </dev/null >"$ws/run.log" 2>&1 &
       wait_artifact $! "$ws"
     )
     if artifact_ok "$ws"; then
       pass "peezy ($(tr -d '\n' <"$ws/hello_tc.py" | head -c 80))"
     else
-      fail peezy "$(tail -3 "$ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
+      fail peezy "$(tail -5 "$ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
     fi
   else
     skip peezy "binary not on PATH"
   fi
 fi
 
-# --- Command Code (vendor model catalog only — no custom OpenAI base URL in CLI) ---
+# --- Command Code (COMMAND_CODE_API_KEY + sandbox → shim /alpha/generate) ---
 if want command-code; then
   if command -v cmd >/dev/null; then
-    skip command-code "CLI uses vendor catalog only; custom ThinkingCap id rejected (needs upstream BYOK path)"
+    ws="$OUT/workspaces/command-code"
+    rm -rf "$ws"; mkdir -p "$ws"
+    echo "" | tee -a "$REPORT"
+    echo "=== command-code ===" | tee -a "$REPORT"
+    # Catalog rejects ThinkingCap id — use any OSS catalog model; shim remaps to ThinkingCap.
+    CMD_MODEL="${CMD_MODEL:-Qwen/Qwen3.6-Plus}"
+    (
+      cd "$ws"
+      env COMMAND_CODE_API_KEY="${COMMAND_CODE_API_KEY:-local}" \
+        COMMANDCODE_SANDBOX=true \
+        COMMANDCODE_API_URL="${COMMANDCODE_API_URL:-http://127.0.0.1:8091}" \
+        cmd -p --skip-onboarding --yolo --trust --max-turns 25 -m "$CMD_MODEL" \
+          "$BASH_PROMPT" \
+        </dev/null >"$ws/run.log" 2>&1 &
+      wait_artifact $! "$ws"
+    )
+    if artifact_ok "$ws"; then
+      pass "command-code ($(tr -d '\n' <"$ws/hello_tc.py" | head -c 80))"
+    else
+      fail command-code "$(tail -5 "$ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
+    fi
   else
     skip command-code "cmd not on PATH"
   fi
