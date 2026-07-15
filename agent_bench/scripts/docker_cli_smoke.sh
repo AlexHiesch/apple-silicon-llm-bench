@@ -136,10 +136,49 @@ else
   skip aider "not in image"
 fi
 
-# OpenCode — must pin --dir to workspace; model otherwise invents /home/user
+# OpenCode — ThinkingCap invents absolute paths; seed file + force shell write + deny external_directory
 if command -v opencode >/dev/null; then
-  run_one opencode opencode run --pure --dir . --model local/thinkingcap --auto \
-    "Working directory is the current project root. Create ./hello_tc.py that prints 'ThinkingCap-OK' and nothing else. Write only under this directory (relative path hello_tc.py). Then exit."
+  if want opencode; then
+    _oc_ws="$OUT/workspaces/opencode"
+    rm -rf "$_oc_ws"; mkdir -p "$_oc_ws"
+    printf 'PLACEHOLDER\n' > "$_oc_ws/hello_tc.py"
+    echo "" | tee -a "$REPORT"
+    echo "=== opencode ===" | tee -a "$REPORT"
+    echo "\$ opencode run --pure --dir $_oc_ws (shell overwrite hello_tc.py)" | tee -a "$REPORT"
+    (
+      cd "$_oc_ws"
+      opencode run --pure --dir "$_oc_ws" --model local/thinkingcap --auto \
+        "Use the bash/shell tool exactly once with this command and then stop:
+printf \"%s\\n\" \"print(\\\"ThinkingCap-OK\\\")\" > hello_tc.py
+Do not invent absolute paths. Do not use the Write tool." \
+        >"$_oc_ws/run.log" 2>&1 &
+      pid=$!
+      i=0
+      while kill -0 "$pid" 2>/dev/null; do
+        i=$((i + 1))
+        if grep -q 'ThinkingCap-OK' "$_oc_ws/hello_tc.py" 2>/dev/null; then
+          kill "$pid" 2>/dev/null || true
+          break
+        fi
+        if (( i > WALL )); then
+          kill -9 "$pid" 2>/dev/null || true
+          echo "killed after ${WALL}s" >>"$_oc_ws/run.log"
+          break
+        fi
+        sleep 1
+      done
+      wait "$pid" 2>/dev/null || true
+    )
+    if grep -q 'ThinkingCap-OK' "$_oc_ws/hello_tc.py" 2>/dev/null; then
+      pass "opencode ($(tr -d '\n' <"$_oc_ws/hello_tc.py" | head -c 80))"
+    else
+      # remove placeholder so pass criteria stays honest if model never wrote
+      if grep -q PLACEHOLDER "$_oc_ws/hello_tc.py" 2>/dev/null; then
+        rm -f "$_oc_ws/hello_tc.py"
+      fi
+      fail opencode "no hello_tc.py; $(tail -3 "$_oc_ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
+    fi
+  fi
 else
   skip opencode "not in image"
 fi

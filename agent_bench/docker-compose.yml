@@ -72,6 +72,8 @@ services:
     volumes:
       - ../results/agent_bench:/results
       - ./fixtures:/fixtures:ro
+      # Always use host script so OpenCode --dir fixes apply without rebuild
+      - ./scripts/docker_cli_smoke.sh:/usr/local/bin/docker_cli_smoke.sh:ro
     # ENTRYPOINT is docker_cli_smoke.sh
 
   sandbox-smoke:
