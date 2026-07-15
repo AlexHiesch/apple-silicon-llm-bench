@@ -76,7 +76,19 @@ bash agent_bench/scripts/host_skip_smoke.sh
 # → results/agent_bench/host_skip_smoke/REPORT.txt
 ```
 
-Latest host result: **4/4 PASS** (Kilo/Mimo/agy against local ThinkingCap; Cursor CLI after login — uses Cursor catalog models, not ThinkingCap BYOK).
+Latest host result: **4/4 PASS** (Kilo/Mimo/agy against local ThinkingCap; Cursor CLI after login — catalog by default).
+
+**Cursor → ThinkingCap (custom OpenAI endpoint):** Cursor supports Bring-Your-Own OpenAI and Bedrock endpoints in Settings → Models. Local ThinkingCap is OpenAI-shaped via `:8091`, so use **Override OpenAI Base URL** (not Bedrock). Cursor’s servers call your URL, so `localhost` is blocked — tunnel first:
+
+```bash
+# Starts cloudflared → trycloudflare URL, probes shim, prints IDE steps
+# Optional: --write-settings updates openAIBaseUrl / userAddedModels in Cursor state
+bash agent_bench/scripts/cursor_byok_thinkingcap.sh --write-settings
+# Then in Cursor: set OpenAI API Key (e.g. local), select the ThinkingCap model
+# Optional host smoke with that model:
+CURSOR_BYOK=1 CURSOR_BYOK_MODEL=t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit \
+  bash agent_bench/scripts/host_skip_smoke.sh
+```
 
 Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. OpenCode/Kilo/Mimo need `--dir` + deny `external_directory` (model invents absolute paths). Keep Kevlar up for the whole matrix — a dead `:8080` shows up as shim `502`.
 

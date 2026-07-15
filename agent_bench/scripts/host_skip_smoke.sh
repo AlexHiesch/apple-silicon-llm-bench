@@ -182,7 +182,13 @@ if want antigravity; then
   fi
 fi
 
-# --- Cursor CLI (requires prior `cursor-agent login` / CURSOR_API_KEY) ---
+# --- Cursor CLI ---
+# Two supported modes:
+#   1) Catalog (default): cursor-agent login → Cursor cloud model (not ThinkingCap).
+#   2) BYOK ThinkingCap: Cursor Settings Override OpenAI Base URL → public HTTPS
+#      tunnel to :8091 (see agent_bench/scripts/cursor_byok_thinkingcap.sh). Then set
+#      CURSOR_BYOK_MODEL to the custom model id and CURSOR_BYOK=1.
+# Bedrock BYOK is also supported by Cursor, but this stack is OpenAI-shaped via the shim.
 if want cursor-cli; then
   CURSOR="$(command -v cursor-agent || true)"
   if [[ -z "$CURSOR" ]]; then
@@ -193,8 +199,6 @@ if want cursor-cli; then
     done
   fi
   if [[ -n "${CURSOR:-}" && -x "$CURSOR" ]]; then
-    # Keychain auth may not be visible from every shell; try smoke if login
-    # succeeded previously or CURSOR_API_KEY is set.
     status_out="$("$CURSOR" status 2>&1 || true)"
     echo "$status_out" | tee -a "$REPORT" >/dev/null
     if echo "$status_out" | grep -qi 'logged in'; then
@@ -212,19 +216,29 @@ if want cursor-cli; then
       rm -rf "$ws"; mkdir -p "$ws"
       echo "" | tee -a "$REPORT"
       echo "=== cursor-cli ===" | tee -a "$REPORT"
-      echo "\$ cursor-agent -p ... --model auto --force" | tee -a "$REPORT"
+      cursor_model="auto"
+      cursor_note="catalog"
+      if [[ "${CURSOR_BYOK:-}" == "1" ]]; then
+        cursor_model="${CURSOR_BYOK_MODEL:-$MODEL}"
+        cursor_note="BYOK OpenAI override → ThinkingCap"
+        echo "BYOK mode: --model $cursor_model (requires IDE Override OpenAI Base URL → tunnel /v1)" | tee -a "$REPORT"
+      fi
+      echo "\$ cursor-agent -p ... --model $cursor_model --force  # $cursor_note" | tee -a "$REPORT"
       (
         cd "$ws"
-        # Cursor CLI routes through Cursor backend; use a stock model id after login.
-        # Local ThinkingCap is not a Cursor catalog model — document that honestly.
-        "$CURSOR" -p "$PROMPT" --force \
-          </dev/null >"$ws/run.log" 2>&1 &
+        if [[ "$cursor_model" == "auto" ]]; then
+          "$CURSOR" -p "$PROMPT" --force \
+            </dev/null >"$ws/run.log" 2>&1 &
+        else
+          "$CURSOR" -p "$PROMPT" --model "$cursor_model" --force \
+            </dev/null >"$ws/run.log" 2>&1 &
+        fi
         wait_artifact $! "$ws"
       )
       if [[ -f "$ws/hello_tc.py" ]] && grep -q 'ThinkingCap-OK' "$ws/hello_tc.py"; then
-        pass "cursor-cli ($(tr -d '\n' <"$ws/hello_tc.py" | head -c 80))"
+        pass "cursor-cli/$cursor_note ($(tr -d '\n' <"$ws/hello_tc.py" | head -c 80))"
       else
-        fail cursor-cli "no hello_tc.py; $(tail -5 "$ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
+        fail cursor-cli "no hello_tc.py ($cursor_note); $(tail -5 "$ws/run.log" 2>/dev/null | tr '\n' ' ' | head -c 220)"
       fi
     fi
   else

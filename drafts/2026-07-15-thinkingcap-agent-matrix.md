@@ -48,9 +48,9 @@ Pass rule is not exit 0. It is: did you create `hello_tc.py` that prints `Thinki
 | Kilo Code | **pass** | Same OpenCode-family path fix; local ThinkingCap |
 | mimocode | **pass** | Local ThinkingCap |
 | Antigravity (`agy`) | **pass** | Anthropic → Kevlar ThinkingCap |
-| Cursor CLI | **pass** | After `cursor-agent login` — **Cursor catalog model**, not ThinkingCap BYOK |
+| Cursor CLI | **pass** | Catalog after login by default. **ThinkingCap via Cursor’s custom OpenAI endpoint** (Settings → Override OpenAI Base URL → HTTPS tunnel to `:8091/v1`); Bedrock BYOK exists but this stack is OpenAI-shaped. Helper: `bash agent_bench/scripts/cursor_byok_thinkingcap.sh` |
 
-Combined runnable scorecard: **10 PASS** (6 Docker ThinkingCap + 3 host ThinkingCap + 1 Cursor-cloud).
+Combined runnable scorecard: **10 PASS** (6 Docker ThinkingCap + 3 host ThinkingCap + 1 Cursor). Cursor→ThinkingCap is BYOK OpenAI override + tunnel, not a second catalog id.
 
 ### What burned time before those greens
 
@@ -92,6 +92,16 @@ On M3 Max 64GB: ThinkingCap-27B-4bit is a ~20–23 tok/s local coding model with
 
 Orchestrator reported `ok=7 failed=16`. Agent smoke + speed were real. Quality percentages are **not** publishable ThinkingCap IQ from that window: the speed bench spun its own `mlx_lm.server`, Kevlar/shim degraded mid-eval, BFCL data was not staged, HumanEval hit a 3h wall with no usable completions, context-bench saw 502s to `:8091`.
 
+## Cursor custom endpoints (OpenAI / Bedrock)
+
+Cursor exposes BYOK for **OpenAI-compatible** base URLs and **AWS Bedrock** in Settings → Models. Requests still go through Cursor’s managed agent layer: the cloud builds the prompt, then calls *your* endpoint. That means:
+
+- `http://127.0.0.1:8091/v1` is rejected (servers cannot reach your loopback).
+- Use an HTTPS tunnel (`cloudflared` quick tunnel is enough) to `:8091`, then **Override OpenAI Base URL** = `https://…/v1`.
+- This ThinkingCap bench is OpenAI-shaped via the shim — prefer OpenAI override over Bedrock unless you add a Bedrock-fronted proxy.
+
+Helper: `bash agent_bench/scripts/cursor_byok_thinkingcap.sh --write-settings`.
+
 ## What is actually new
 
 1. **One ThinkingCap MLX process** serving Anthropic-shaped and OpenAI-shaped agent CLIs (including Codex Responses SSE).
@@ -110,7 +120,7 @@ Orchestrator reported `ok=7 failed=16`. Agent smoke + speed were real. Quality p
 ## Numbers to paste if you only take one table
 
 **Docker agent microbench (local ThinkingCap):** Claude ✓ · Aider ✓ · OpenCode ✓ · Goose ✓ · Hermes ✓ · Codex ✓  
-**Host skips:** Kilo ✓ · Mimo ✓ · agy ✓ · Cursor ✓ (Cursor catalog, not ThinkingCap) 
+**Host skips:** Kilo ✓ · Mimo ✓ · agy ✓ · Cursor ✓ (catalog default; ThinkingCap via OpenAI override + tunnel) 
 
 **Decode (mlx-lm 4bit, warm):** ~20–22 t/s · **vllm-mlx:** ~23 t/s · **64k warm TTFT:** ~0.5 s · **think short TTFT:** ~48 s  
 
