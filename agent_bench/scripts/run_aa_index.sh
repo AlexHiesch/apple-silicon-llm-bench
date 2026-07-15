@@ -6,8 +6,17 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 export PATH="${HOME}/.local/bin:${HOME}/.npm-global/bin:${PATH}"
 export OPENAI_API_KEY="${OPENAI_API_KEY:-local}"
-export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-local}"
+# Claude Code requires sk-ant-* prefix; Kevlar accepts any key.
+export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-sk-ant-local}"
+if [[ "$ANTHROPIC_API_KEY" == "local" ]]; then
+  export ANTHROPIC_API_KEY="sk-ant-local"
+fi
 export LLM_MODEL="${LLM_MODEL:-t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit}"
+# Host Bedrock tokens make Pier/Claude Code skip local ANTHROPIC_BASE_URL.
+unset AWS_BEARER_TOKEN_BEDROCK ANTHROPIC_BEDROCK_BASE_URL AWS_PROFILE || true
+export CLAUDE_CODE_USE_BEDROCK=0
+export NO_PROXY="${NO_PROXY:+$NO_PROXY,}localhost,127.0.0.1,host.docker.internal"
+export no_proxy="$NO_PROXY"
 
 cd "$ROOT"
 mkdir -p results/agent_bench/aa_index

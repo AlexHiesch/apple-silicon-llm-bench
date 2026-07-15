@@ -24,6 +24,24 @@ MODEL = os.environ.get(
     "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit",
 )
 
+_BEDROCK_ENV_CLEAR = (
+    "AWS_BEARER_TOKEN_BEDROCK",
+    "ANTHROPIC_BEDROCK_BASE_URL",
+    "CLAUDE_CODE_USE_BEDROCK",
+    "AWS_PROFILE",
+)
+
+
+def clean_runner_env() -> dict[str, str]:
+    env = os.environ.copy()
+    for key in _BEDROCK_ENV_CLEAR:
+        env.pop(key, None)
+    env["CLAUDE_CODE_USE_BEDROCK"] = "0"
+    env["ANTHROPIC_API_KEY"] = env.get("ANTHROPIC_API_KEY") or "sk-ant-local"
+    if env["ANTHROPIC_API_KEY"] == "local":
+        env["ANTHROPIC_API_KEY"] = "sk-ant-local"
+    return env
+
 SUITE_DATASETS = {
     "terminal-bench-v2": {
         "registry": "terminal-bench@2.0",
@@ -80,14 +98,19 @@ def ensure_harbor() -> str:
 
 def agent_env_flags(model: str) -> list[str]:
     """Pass OpenAI + Anthropic routes into the agent container."""
+    no_proxy = "localhost,127.0.0.1,host.docker.internal"
     pairs = {
         "OPENAI_API_KEY": "local",
         "OPENAI_BASE_URL": HOST_SHIM,
         "OPENAI_API_BASE": HOST_SHIM,
-        "ANTHROPIC_API_KEY": "local",
+        "ANTHROPIC_API_KEY": "sk-ant-local",
         "ANTHROPIC_BASE_URL": HOST_KEVLAR,
+        "CLAUDE_CODE_USE_BEDROCK": "0",
+        "AWS_BEARER_TOKEN_BEDROCK": "",
         "LLM_MODEL": model,
         "MODEL": model,
+        "NO_PROXY": no_proxy,
+        "no_proxy": no_proxy,
     }
     flags: list[str] = []
     for k, v in pairs.items():
@@ -159,7 +182,13 @@ def run_suite(
     with log_path.open("w") as log:
         log.write("$ " + " ".join(cmd) + "\n\n")
         log.flush()
-        proc = subprocess.run(cmd, stdout=log, stderr=subprocess.STDOUT, text=True)
+        proc = subprocess.run(
+            cmd,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            text=True,
+            env=clean_runner_env(),
+        )
     elapsed = round(time.time() - t0, 1)
     result = {
         "status": "ok" if proc.returncode == 0 else "exit_" + str(proc.returncode),
