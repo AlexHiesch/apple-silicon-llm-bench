@@ -110,6 +110,24 @@ def agent_env_flags(model: str) -> list[str]:
     return flags
 
 
+def discover_touched_task_names(agent_id: str) -> list[str]:
+    """Task base names that already have ≥1 trial result under aa_index/deepswe/<agent>."""
+    root = RESULTS / "aa_index" / "deepswe" / agent_id
+    if not root.is_dir():
+        return []
+    names: set[str] = set()
+    for result in root.glob("*/*/result.json"):
+        # …/<job>/<task>__<id>/result.json
+        trial = result.parent.name
+        if trial.startswith("deepswe__"):
+            continue
+        if "__" in trial:
+            names.add(trial.rsplit("__", 1)[0])
+        else:
+            names.add(trial)
+    return sorted(names)
+
+
 def run_suite(
     *,
     agent_id: str,
@@ -119,6 +137,8 @@ def run_suite(
     tasks_path: Path | None = None,
     jobs_dir: Path | None = None,
     yes: bool = True,
+    exclude_task_names: list[str] | None = None,
+    n_tasks: int | None = None,
 ) -> dict:
     pier_agent = pier_agent_name(agent_id)
     if not pier_agent:
@@ -151,6 +171,10 @@ def run_suite(
         "--env", "docker",
         *agent_env_flags(model),
     ]
+    for name in exclude_task_names or []:
+        cmd.extend(["-x", name])
+    if n_tasks is not None:
+        cmd.extend(["-l", str(n_tasks)])
     if yes:
         cmd.append("-y")
 
