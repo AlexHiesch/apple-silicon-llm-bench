@@ -74,7 +74,10 @@ def test_completion_sse_tool_calls_include_stream_index():
     tool_deltas = [
         c["choices"][0]["delta"]["tool_calls"][0]
         for c in payloads
-        if c["choices"][0].get("delta", {}).get("tool_calls")
+        if c.get("choices") and c["choices"] and c["choices"][0].get("delta", {}).get("tool_calls")
     ]
     assert tool_deltas and tool_deltas[0]["index"] == 0
     assert tool_deltas[0]["function"]["name"] == "write"
+    assert tool_deltas[0]["function"]["arguments"] == ""
+    assert any(d.get("function", {}).get("arguments", "").startswith("{") for d in tool_deltas[1:])
+    assert any(c.get("choices") == [] and c.get("usage") for c in payloads)

@@ -376,6 +376,10 @@ if want openclaw; then
     openclaw config set agents.defaults.bootstrapMaxChars 120 --strict-json >/dev/null 2>&1 || true
     openclaw config set agents.defaults.bootstrapTotalMaxChars 500 --strict-json >/dev/null 2>&1 || true
     openclaw config set agents.defaults.bootstrapPromptTruncationWarning off >/dev/null 2>&1 || true
+    # Clear prior exec/host pins that hang embedded --local without a gateway,
+    # then allow only filesystem tools so the model cannot pick exec→gateway.
+    openclaw config unset tools.exec >/dev/null 2>&1 || true
+    openclaw config unset tools.allow >/dev/null 2>&1 || true
     openclaw config patch --stdin >/dev/null 2>&1 <<JSON || true
 {
   "models": {
@@ -389,8 +393,8 @@ if want openclaw; then
     }
   },
   "tools": {
-    "allow": ["write", "edit", "read", "exec"],
-    "exec": { "security": "full", "ask": "off", "host": "gateway" }
+    "profile": "coding",
+    "allow": ["write", "edit", "read"]
   }
 }
 JSON
@@ -401,7 +405,7 @@ JSON
       cd "$ws"
       openclaw agent --local --thinking off --timeout "$WALL_OPENCLAW" \
         --session-id "tc-matrix-$(date +%s)" \
-        -m "In this workspace, create hello_tc.py that prints ThinkingCap-OK. Prefer the write tool (path=hello_tc.py, content=print('ThinkingCap-OK')). Or exec: printf '%s\n' \"print('ThinkingCap-OK')\" > hello_tc.py. Then stop." \
+        -m "Use the write tool exactly once: path=hello_tc.py content=print('ThinkingCap-OK'). Do not use exec/bash. Then stop." \
         </dev/null >"$ws/run.log" 2>&1 &
       pid=$!
       i=0

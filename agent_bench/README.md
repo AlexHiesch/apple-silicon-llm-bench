@@ -34,8 +34,8 @@ python -m agent_bench.run_matrix --matrix --plan-only
 |---------|------|--------------|
 | Claude Code, Codex, OpenCode, Goose, Hermes, Cursor | core coding agents | Docker/host green (Cursor via OpenAI BYOK+tunnel) |
 | Kilo, Mimo | OpenCode-family | Host green |
-| Cline, OpenSquilla, OpenHands, **Pi**, **Peezy**, **Command Code** | shortlist newcomers | **PASS** via `matrix_host_smoke.sh` |
-| Oh-my-pi (`omp`), OpenClaw, Poolside | shortlist newcomers | omp same fixture as Pi (retry); OpenClaw slow; Poolside no `pool` binary |
+| Cline, OpenSquilla, OpenHands, **Pi**, **Peezy**, **Command Code**, **Oh-my-pi**, **OpenClaw** | shortlist newcomers | **PASS** via `matrix_host_smoke.sh` |
+| Poolside | shortlist newcomers | no `pool` binary (npm poolside ≠ agent CLI) |
 | Lemonade, GDevelop, Zed, Portkey | platform / editor / gateway | included for breadth; different smoke shape |
 
 **Skip:** Roo Code (EOL — community fork Zoo Code is watch-only), Ito.
@@ -129,7 +129,7 @@ CURSOR_BYOK=1 CURSOR_BYOK_MODEL=t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit \
   bash agent_bench/scripts/host_skip_smoke.sh
 ```
 
-Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. OpenCode/Kilo/Mimo need `--dir` + deny `external_directory` (model invents absolute paths). Keep Kevlar up for the whole matrix — a dead `:8080` shows up as shim `502`.
+Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. OpenClaw needs chat-completions tool_call streams with `index` + empty-then-args deltas (handled by the shim). Oh-my-pi must use `--tools=bash,write,read,edit` — full omp tool catalogs (~20k tokens) stall local prefills. OpenCode/Kilo/Mimo need `--dir` + deny `external_directory`. Keep Kevlar up for the whole matrix — a dead `:8080` shows up as shim `502`.
 
 ## Profiles
 

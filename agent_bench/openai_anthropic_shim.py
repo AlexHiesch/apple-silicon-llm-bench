@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib import error as urllib_error
@@ -122,55 +123,72 @@ def normalize_tools(tools: list) -> list[dict]:
 def completion_sse_lines(oai: dict, default_model: str = "model") -> list[str]:
     """OpenAI chat.completion → SSE data lines (incl. trailing [DONE]).
 
-    Tool-call deltas include required streaming ``index`` so clients like
-    OpenClaw can assemble function calls from the stream.
+    Matches OpenClaw's expected incremental tool-call stream:
+    name+id with empty arguments, then argument fragments, then finish,
+    then a usage-only chunk.
     """
     cid = oai.get("id", f"chatcmpl-{uuid.uuid4().hex[:12]}")
     model = oai.get("model", default_model)
+    created = int(time.time())
     msg = (oai.get("choices") or [{}])[0].get("message") or {}
     content = msg.get("content") or ""
     finish = (oai.get("choices") or [{}])[0].get("finish_reason") or "stop"
     lines: list[str] = []
+    dumps = lambda obj: json.dumps(obj, separators=(",", ":"))
 
     def emit(chunk: dict) -> None:
-        lines.append(f"data: {json.dumps(chunk)}\n\n")
+        lines.append(f"data: {dumps(chunk)}\n\n")
 
     emit({
-        "id": cid, "object": "chat.completion.chunk", "model": model,
+        "id": cid, "object": "chat.completion.chunk", "created": created, "model": model,
         "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
     })
     for i, tc in enumerate(msg.get("tool_calls") or []):
         fn = tc.get("function") or {}
+        args = fn.get("arguments") or "{}"
+        if not isinstance(args, str):
+            args = json.dumps(args, separators=(",", ":"))
+        tid = tc.get("id") or f"call_{uuid.uuid4().hex[:8]}"
+        # OpenClaw writer: first chunk declares id/name with empty arguments
         emit({
-            "id": cid, "object": "chat.completion.chunk", "model": model,
+            "id": cid, "object": "chat.completion.chunk", "created": created, "model": model,
             "choices": [{
                 "index": 0,
-                "delta": {
-                    "tool_calls": [{
-                        "index": i,
-                        "id": tc.get("id") or f"call_{uuid.uuid4().hex[:8]}",
-                        "type": "function",
-                        "function": {
-                            "name": fn.get("name") or "tool",
-                            "arguments": fn.get("arguments") or "{}",
-                        },
-                    }],
-                },
+                "delta": {"tool_calls": [{
+                    "index": i, "id": tid, "type": "function",
+                    "function": {"name": fn.get("name") or "tool", "arguments": ""},
+                }]},
                 "finish_reason": None,
             }],
         })
+        step = 256
+        for j in range(0, max(len(args), 1), step):
+            piece = args[j:j + step]
+            emit({
+                "id": cid, "object": "chat.completion.chunk", "created": created, "model": model,
+                "choices": [{
+                    "index": 0,
+                    "delta": {"tool_calls": [{"index": i, "function": {"arguments": piece}}]},
+                    "finish_reason": None,
+                }],
+            })
     step = 40
     for i in range(0, max(len(content), 1 if content else 0), step):
         piece = content[i:i + step]
         emit({
-            "id": cid, "object": "chat.completion.chunk", "model": model,
+            "id": cid, "object": "chat.completion.chunk", "created": created, "model": model,
             "choices": [{"index": 0, "delta": {"content": piece}, "finish_reason": None}],
         })
     emit({
-        "id": cid, "object": "chat.completion.chunk", "model": model,
+        "id": cid, "object": "chat.completion.chunk", "created": created, "model": model,
         "choices": [{"index": 0, "delta": {}, "finish_reason": finish}],
-        "usage": oai.get("usage"),
     })
+    if oai.get("usage"):
+        emit({
+            "id": cid, "object": "chat.completion.chunk", "created": created, "model": model,
+            "choices": [],
+            "usage": oai.get("usage"),
+        })
     lines.append("data: [DONE]\n\n")
     return lines
 
@@ -477,7 +495,7 @@ class ShimHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
-        self.send_header("Connection", "keep-alive")
+        self.send_header("Connection", "close")
         self.end_headers()
         try:
             for line in completion_sse_lines(oai, self.default_model):
