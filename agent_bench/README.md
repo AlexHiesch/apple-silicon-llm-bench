@@ -40,18 +40,26 @@ python -m agent_bench run --profile smoke --plan-only
 
 ## Clean Docker setups
 
-MLX ThinkingCap stays on the **host**. Containers talk to it via `host.docker.internal:8080`.
-For networking / image smoke without loading 27B weights, use the Compose `smoke` profile
-(mock OpenAI-compatible LLM):
+MLX ThinkingCap stays on the **host**. Containers talk to it via `host.docker.internal`.
 
 ```bash
-# Docker-only smoke (mock LLM inside Compose)
+# Host: Kevlar Anthropic :8080 + OpenAI shim :8091
+#   kevlar serve --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --port 8080
+#   python -m agent_bench.openai_anthropic_shim --port 8091 --upstream http://127.0.0.1:8080
+
+# Agent CLI micro-smokes in Linux (does NOT touch host-native CLIs / GUI popups)
+docker compose -f agent_bench/docker-compose.yml --profile cli build cli-smoke
+docker compose -f agent_bench/docker-compose.yml --profile cli run --rm --user 1000:1000 cli-smoke
+# → results/agent_bench/docker_cli_smoke/REPORT.txt
+
+# Docker-only networking smoke (mock LLM, no GPU)
 docker compose -f agent_bench/docker-compose.yml --profile smoke up --build --abort-on-container-exit
 
-# Real host ThinkingCap + clean sandbox container
-python -m mlx_lm.server --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --port 8080
+# Minimal sandbox curl against host OpenAI shim
 docker compose -f agent_bench/docker-compose.yml --profile host run --rm sandbox
 ```
+
+**Why Docker for CLIs:** native Goose/OpenCode/etc. can popup on macOS or fight your interactive sessions. The `cli` profile runs headless Linux binaries as user `bench` (uid 1000).
 
 ## Profiles
 

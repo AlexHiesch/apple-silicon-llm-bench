@@ -213,16 +213,87 @@ class ShimHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"data: [DONE]\n\n")
         self.wfile.flush()
 
+    def _responses_to_chat_body(self, body: dict) -> dict:
+        """Map OpenAI Responses API request → chat.completions body."""
+        messages = body.get("messages")
+        if not messages:
+            inp = body.get("input")
+            if isinstance(inp, str):
+                messages = [{"role": "user", "content": inp}]
+            elif isinstance(inp, list):
+                messages = []
+                for item in inp:
+                    if isinstance(item, str):
+                        messages.append({"role": "user", "content": item})
+                    elif isinstance(item, dict):
+                        role = item.get("role") or "user"
+                        content = item.get("content") or item.get("text") or ""
+                        if isinstance(content, list):
+                            content = "".join(
+                                (c.get("text") or "") if isinstance(c, dict) else str(c)
+                                for c in content
+                            )
+                        messages.append({"role": role, "content": str(content)})
+            else:
+                messages = [{"role": "user", "content": "hello"}]
+        out = {
+            "model": body.get("model") or self.default_model,
+            "messages": messages,
+            "max_tokens": body.get("max_output_tokens") or body.get("max_tokens") or 4096,
+            "stream": bool(body.get("stream")),
+        }
+        if body.get("temperature") is not None:
+            out["temperature"] = body["temperature"]
+        if body.get("tools"):
+            # Responses tools may already be Chat-shaped; pass through best-effort
+            out["tools"] = body["tools"]
+        return out
+
+    def _chat_to_responses(self, oai: dict) -> dict:
+        msg = (oai.get("choices") or [{}])[0].get("message") or {}
+        text = msg.get("content") or ""
+        return {
+            "id": f"resp-{uuid.uuid4().hex[:12]}",
+            "object": "response",
+            "status": "completed",
+            "model": oai.get("model") or self.default_model,
+            "output": [{
+                "type": "message",
+                "id": f"msg-{uuid.uuid4().hex[:8]}",
+                "role": "assistant",
+                "content": [{"type": "output_text", "text": text}],
+            }],
+            "usage": {
+                "input_tokens": (oai.get("usage") or {}).get("prompt_tokens", 0),
+                "output_tokens": (oai.get("usage") or {}).get("completion_tokens", 0),
+                "total_tokens": (oai.get("usage") or {}).get("total_tokens", 0),
+            },
+        }
+
     def do_POST(self) -> None:
         path = self.path.split("?", 1)[0]
-        if path != "/v1/chat/completions":
+        length = int(self.headers.get("Content-Length", 0))
+        body = json.loads(self.rfile.read(length) or b"{}")
+
+        if path in ("/v1/responses", "/responses"):
+            chat_body = self._responses_to_chat_body(body)
+            code, payload = self._call_anthropic(chat_body)
+            if code != 200:
+                self._send_json(code, payload)
+                return
+            # Codex expects non-stream responses object for many paths
+            if chat_body.get("stream"):
+                # minimal: still return JSON responses object (not SSE)
+                self._send_json(200, self._chat_to_responses(payload))
+            else:
+                self._send_json(200, self._chat_to_responses(payload))
+            return
+
+        if path not in ("/v1/chat/completions", "/chat/completions"):
             self._send_json(404, {"detail": "Not Found"})
             return
 
-        length = int(self.headers.get("Content-Length", 0))
-        body = json.loads(self.rfile.read(length))
         want_stream = bool(body.get("stream"))
-
         code, payload = self._call_anthropic(body)
         if code != 200:
             self._send_json(code, payload)

@@ -1,0 +1,3 @@
+# Keep vendor downloads local for Docker builds — do not commit binaries.
+vendor/cli-bin/**
+!vendor/cli-bin/.gitkeep

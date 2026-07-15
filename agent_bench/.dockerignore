@@ -1,0 +1,6 @@
+vendor/cli-bin/*.tgz
+vendor/cli-bin/*-extract
+vendor/cli-bin/goose-extract
+vendor/cli-bin/opencode-extract
+**/__pycache__
+**/.pytest_cache

@@ -315,6 +315,18 @@ e.main()
 
 
 def agent_cli_suite() -> list[dict]:
+    """Prefer Docker CLI smokes so host-native CLIs/GUIs are not touched."""
+    if shutil.which("docker"):
+        print("[agent_cli_suite] using Docker profile=cli (host CLIs left alone)", flush=True)
+        return [run_step("agent_docker_cli_smoke", [
+            "docker", "compose", "-f", str(ROOT / "agent_bench" / "docker-compose.yml"),
+            "--profile", "cli", "run", "--rm", "--user", "1000:1000", "cli-smoke",
+        ], timeout=STEP_TIMEOUT)]
+    print("[agent_cli_suite] docker missing — falling back to native CLI suite", flush=True)
+    return agent_cli_suite_native()
+
+
+def agent_cli_suite_native() -> list[dict]:
     out: list[dict] = []
     prompt = (
         "In this empty project, create a file named hello_tc.py that prints "
@@ -334,14 +346,12 @@ def agent_cli_suite() -> list[dict]:
 
     if shutil.which("opencode"):
         agents.append(("opencode", [
-            "opencode", "run", prompt,
-            "--model", "local/thinkingcap",
+            "opencode", "run", "--pure", "--model", "local/thinkingcap", "--auto", prompt,
         ]))
 
     if shutil.which("mimo"):
         agents.append(("mimo-code", [
-            "mimo", "run", prompt,
-            "--model", "local/thinkingcap",
+            "mimo", "run", "--pure", "--model", "local/thinkingcap", "--auto", prompt,
         ]))
 
     if shutil.which("aider"):
@@ -355,28 +365,36 @@ def agent_cli_suite() -> list[dict]:
         ]))
 
     if shutil.which("goose"):
-        agents.append(("goose", ["goose", "run", "-t", prompt]))
+        agents.append(("goose", [
+            "goose", "run", "-t", prompt,
+            "--no-session", "--no-profile", "--max-turns", "12", "--quiet",
+            "--with-builtin", "developer",
+        ]))
 
     if shutil.which("hermes"):
         agents.append(("hermes", [
-            "hermes", "-z", prompt, "-m", MODEL, "--provider", "openai", "--yolo",
+            "hermes", "-z", prompt, "-m", MODEL, "--provider", "thinkingcap", "--yolo", "--safe-mode",
         ]))
 
     if shutil.which("kilocode") or shutil.which("kilo"):
         bin_ = shutil.which("kilocode") or shutil.which("kilo")
-        agents.append(("kilocode", [bin_, "run", prompt]))
+        agents.append(("kilocode", [bin_, "run", "--pure", "-m", "local/thinkingcap", "--auto", prompt]))
 
     if shutil.which("agy"):
         agents.append(("antigravity", [
-            "agy", "-p", prompt,
-            "--settings", str(CLAUDE_SETTINGS),
+            "agy", "--print", prompt,
             "--dangerously-skip-permissions",
+            "--print-timeout", "3m",
         ]))
 
     if shutil.which("codex"):
         agents.append(("codex", [
             "codex", "exec", "--skip-git-repo-check",
+            "--sandbox", "danger-full-access",
+            "-c", 'approval_policy="never"',
+            "-c", 'model_provider="thinkingcap"',
             "-c", f'model="{MODEL}"',
+            "-c", 'model_providers.thinkingcap={name="ThinkingCap", base_url="http://127.0.0.1:8091/v1", env_key="OPENAI_API_KEY"}',
             prompt,
         ]))
 
@@ -443,7 +461,11 @@ def write_summary(results: list[dict]) -> None:
 def exit_code(results: list[dict]) -> int:
     smoke_ok = any(r.get("name") == "api_smoke" and r.get("status") == "ok" for r in results)
     quality_ok = any(r.get("status") == "ok" and r.get("name") in QUALITY_STEPS for r in results)
-    agent_ok = any(r.get("status") == "ok" and str(r.get("name", "")).startswith("agent_") for r in results)
+    agent_ok = any(
+        r.get("status") == "ok"
+        and (str(r.get("name", "")).startswith("agent_") or r.get("name") == "agent_docker_cli_smoke")
+        for r in results
+    )
     if smoke_ok and (quality_ok or agent_ok):
         return 0
     return 2

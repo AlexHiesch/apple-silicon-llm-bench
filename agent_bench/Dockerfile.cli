@@ -1,0 +1,107 @@
+# Linux CLI sandbox — agent smokes against host ThinkingCap (MLX stays on Mac).
+# OpenAI agents → host.docker.internal:8091 (shim)
+# Anthropic agents → host.docker.internal:8080 (Kevlar)
+FROM python:3.12-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    CI=1 \
+    NO_COLOR=1 \
+    DISPLAY= \
+    HEADLESS=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl git bash jq nodejs npm build-essential xz-utils \
+      sudo gosu \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user (Claude Code refuses --dangerously-skip-permissions as root)
+RUN useradd -m -s /bin/bash -u 1000 bench \
+ && mkdir -p /workspaces /results /fixtures \
+ && chown -R bench:bench /workspaces /results
+
+# Tooling as root into /usr/local
+RUN pip install --no-cache-dir "aider-chat>=0.80" httpx requests pyyaml \
+ && npm install -g @anthropic-ai/claude-code @openai/codex \
+ && hermes_ok=0; \
+    pip install --no-cache-dir hermes-agent && hermes_ok=1 || true
+
+# Goose + OpenCode (pre-downloaded on host — corp SSL breaks curl in build)
+COPY vendor/cli-bin/goose-linux-arm64 /usr/local/bin/goose
+COPY vendor/cli-bin/opencode-linux-arm64 /usr/local/bin/opencode
+RUN chmod +x /usr/local/bin/goose /usr/local/bin/opencode \
+ && goose --version \
+ && opencode --version \
+ && claude --version \
+ && aider --version \
+ && codex --version
+
+COPY fixtures/ /fixtures/
+COPY scripts/docker_cli_smoke.sh /usr/local/bin/docker_cli_smoke.sh
+RUN chmod +x /usr/local/bin/docker_cli_smoke.sh
+
+# Home configs for bench user
+USER bench
+WORKDIR /home/bench
+ENV HOME=/home/bench \
+    PATH="/home/bench/.local/bin:/usr/local/bin:${PATH}" \
+    OPENAI_API_KEY=local
+
+RUN mkdir -p \
+      /home/bench/.config/opencode \
+      /home/bench/.config/goose \
+      /home/bench/.codex \
+      /home/bench/.claude \
+      /home/bench/.hermes \
+      /home/bench/.local/bin
+
+RUN cp /fixtures/opencode-thinkingcap.json /home/bench/.config/opencode/config.json \
+ && cp /fixtures/opencode-thinkingcap.json /home/bench/.config/opencode/opencode.json \
+ && printf '%s\n' \
+  'model_provider = "thinkingcap"' \
+  'model = "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"' \
+  '' \
+  '[model_providers.thinkingcap]' \
+  'name = "ThinkingCap local"' \
+  'base_url = "http://host.docker.internal:8091/v1"' \
+  'env_key = "OPENAI_API_KEY"' \
+  > /home/bench/.codex/thinkingcap.config.toml \
+ && cp /home/bench/.codex/thinkingcap.config.toml /home/bench/.codex/config.toml \
+ && printf '%s\n' \
+  'GOOSE_PROVIDER: openai' \
+  'GOOSE_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit' \
+  'GOOSE_MODE: auto' \
+  'OPENAI_API_KEY: local' \
+  'OPENAI_HOST: http://host.docker.internal:8091/v1' \
+  'OPENAI_BASE_PATH: chat/completions' \
+  'OPENAI_TIMEOUT: "600"' \
+  'tunnel_auto_start: false' \
+  'extensions:' \
+  '  developer:' \
+  '    enabled: true' \
+  '    name: developer' \
+  '    type: builtin' \
+  '    bundled: true' \
+  '    timeout: 300' \
+  > /home/bench/.config/goose/config.yaml \
+ && printf '%s\n' \
+  'model:' \
+  '  default: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit' \
+  '  provider: thinkingcap' \
+  '  base_url: http://host.docker.internal:8091/v1' \
+  'providers:' \
+  '  thinkingcap:' \
+  '    name: ThinkingCap local' \
+  '    base_url: http://host.docker.internal:8091/v1' \
+  '    api_key: local' \
+  '    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit' \
+  '    api_mode: chat' \
+  'agent:' \
+  '  max_turns: 12' \
+  'terminal:' \
+  '  backend: local' \
+  '  cwd: .' \
+  > /home/bench/.hermes/config.yaml
+
+WORKDIR /workspaces
+ENTRYPOINT ["/usr/local/bin/docker_cli_smoke.sh"]
