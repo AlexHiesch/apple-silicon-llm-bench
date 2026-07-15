@@ -2,7 +2,8 @@
 """Orchestrator for agent CLI × benchmark matrix.
 
 All harnesses default to ThinkingCap-Qwen3.6-27B-MLX-4bit (harness_model.py).
-Wrappers for Pier/Harbor/Letta are stubs until installed; --list / detect work now.
+AA Coding Agent Index (`--profile aa-index`) runs DeepSWE (Pier) + Terminal-Bench
+v2 + SWE-Atlas-QnA (Harbor), 3 attempts each.
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ import yaml
 from harness_model import DEFAULT_BASE_URL, DEFAULT_MODEL, agent_env
 
 from .detect import list_readiness, print_report
+from . import run_harbor, run_pier
 
 ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT.parent / "results" / "agent_bench"
@@ -68,10 +70,15 @@ def select_suites(bench_cfg: dict, profile: str | None, suite: str | None) -> li
             return suites
         idset = set(ids)
         return [s for s in suites if s["id"] in idset]
-    # default: smoke suite ids
     smoke = bench_cfg.get("profiles", {}).get("smoke", {})
     idset = set(smoke.get("suites", []))
     return [s for s in suites if s["id"] in idset] or suites[:3]
+
+
+def profile_attempts(bench_cfg: dict, profile: str | None) -> int:
+    if not profile:
+        return 1
+    return int(bench_cfg.get("profiles", {}).get(profile, {}).get("repeats", 1))
 
 
 def plan_runs(agents: list[dict], suites: list[dict], model: str) -> list[dict]:
@@ -89,20 +96,47 @@ def plan_runs(agents: list[dict], suites: list[dict], model: str) -> list[dict]:
     return runs
 
 
-def write_plan(runs: list[dict], model: str) -> Path:
+def write_plan(runs: list[dict], model: str, profile: str | None) -> Path:
     RESULTS.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d_%H%M%S")
     path = RESULTS / f"plan_{stamp}.json"
     payload = {
         "timestamp": stamp,
+        "profile": profile or "smoke",
         "default_model": model,
         "agent_env": agent_env(),
-        "note": "Harness wrappers not yet executed — plan only. "
-                "All runs target ThinkingCap-Qwen3.6-27B-MLX-4bit.",
         "runs": runs,
     }
     path.write_text(json.dumps(payload, indent=2))
     return path
+
+
+def execute_run(run: dict, *, n_attempts: int, n_concurrent: int) -> dict:
+    suite = run["suite"]
+    agent_id = run["agent_id"]
+    model = run["model"]
+    harness = run.get("harness")
+    if suite == "deepswe" or harness == "pier":
+        return run_pier.run_suite(
+            agent_id=agent_id,
+            model=model,
+            n_attempts=n_attempts,
+            n_concurrent=n_concurrent,
+        )
+    if suite in ("terminal-bench-v2", "swe-atlas-qna") or harness == "harbor":
+        return run_harbor.run_suite(
+            agent_id=agent_id,
+            suite_id=suite,
+            model=model,
+            n_attempts=n_attempts,
+            n_concurrent=n_concurrent,
+        )
+    return {
+        "status": "skipped",
+        "reason": f"no wrapper for harness={harness} suite={suite}",
+        "agent_id": agent_id,
+        "suite": suite,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -122,6 +156,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-unavailable", action="store_true")
     parser.add_argument("--plan-only", action="store_true",
                         help="Emit run plan JSON without invoking Pier/Harbor")
+    parser.add_argument("--n-concurrent", type=int, default=1,
+                        help="Concurrent trials inside Pier/Harbor (default: 1 for local MLX)")
     args = parser.parse_args(argv)
 
     if args.list:
@@ -131,13 +167,15 @@ def main(argv: list[str] | None = None) -> int:
     model = resolve_model(args.model)
     agents_cfg = load_yaml(AGENTS_YAML)
     bench_cfg = load_yaml(BENCH_YAML)
+    profile = args.profile or "smoke"
     agents = select_agents(
         agents_cfg,
         args.agent,
         args.skip_unavailable,
         matrix_only=args.matrix,
     )
-    suites = select_suites(bench_cfg, args.profile or "smoke", args.suite)
+    suites = select_suites(bench_cfg, profile, args.suite)
+    n_attempts = profile_attempts(bench_cfg, profile)
 
     if not agents:
         print("No agents selected (check --agent / --skip-unavailable).")
@@ -148,19 +186,57 @@ def main(argv: list[str] | None = None) -> int:
 
     runs = plan_runs(agents, suites, model)
     print(f"Model (all harnesses): {model}")
+    print(f"Profile: {profile} (repeats/attempts={n_attempts})")
     print(f"Agents ({len(agents)}): {', '.join(a['id'] for a in agents)}")
     print(f"Suites ({len(suites)}): {', '.join(s['id'] for s in suites)}")
     print(f"Planned runs: {len(runs)}")
 
-    plan_path = write_plan(runs, model)
+    plan_path = write_plan(runs, model, profile)
     print(f"Plan written: {plan_path}")
 
-    if args.plan_only or True:  # wrappers land in follow-up PRs
-        print("\nPier/Harbor/Letta wrappers not invoked yet (--plan-only).")
-        print("Next: implement run_pier.py / run_harbor.py / run_letta.py.")
-        print(f"Ensure ThinkingCap is served at {DEFAULT_BASE_URL}:")
-        print(f"  python -m mlx_lm.server --model {model} --port 8080")
-    return 0
+    if args.plan_only:
+        print("\n(--plan-only) Pier/Harbor not invoked.")
+        return 0
+
+    print(f"\nExecuting {len(runs)} runs (n_concurrent={args.n_concurrent})…")
+    print(f"Ensure ThinkingCap: Kevlar {DEFAULT_BASE_URL} + OpenAI shim :8091")
+    results: list[dict] = []
+    for i, run in enumerate(runs, 1):
+        print(f"\n[{i}/{len(runs)}] {run['agent_id']} × {run['suite']} …", flush=True)
+        try:
+            result = execute_run(
+                run,
+                n_attempts=n_attempts,
+                n_concurrent=args.n_concurrent,
+            )
+        except Exception as e:
+            result = {
+                "status": "error",
+                "error": str(e),
+                "agent_id": run["agent_id"],
+                "suite": run["suite"],
+            }
+        results.append(result)
+        print(f"  → {result.get('status')} ({result.get('elapsed_s', '?')}s)"
+              f" {result.get('reason') or result.get('log') or ''}", flush=True)
+
+    stamp = time.strftime("%Y%m%d_%H%M%S")
+    summary_path = RESULTS / f"aa_index_summary_{stamp}.json"
+    summary = {
+        "timestamp": stamp,
+        "profile": profile,
+        "model": model,
+        "n_attempts": n_attempts,
+        "plan": str(plan_path),
+        "results": results,
+        "ok": sum(1 for r in results if r.get("status") == "ok"),
+        "skipped": sum(1 for r in results if r.get("status") == "skipped"),
+        "failed": sum(1 for r in results if r.get("status") not in ("ok", "skipped")),
+    }
+    summary_path.write_text(json.dumps(summary, indent=2))
+    print(f"\nSummary: {summary_path}")
+    print(f"ok={summary['ok']} skipped={summary['skipped']} failed={summary['failed']}")
+    return 0 if summary["failed"] == 0 else 2
 
 
 if __name__ == "__main__":

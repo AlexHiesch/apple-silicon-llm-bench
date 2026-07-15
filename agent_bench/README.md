@@ -137,11 +137,32 @@ Shim notes: Codex needs `/v1/responses` SSE ending in `response.completed`. Open
 |---------|-------|
 | `smoke` | Tier 1 × 3 tasks (default) |
 | `coding-core` | Tier 1 + Letta FS + SWE-bench Verified (50) |
-| `aa-index` | Full AA Coding Agent Index v1.1 |
-| `extended` / `full` | Broader / research matrices |
+| `aa-index` | Full AA Coding Agent Index v1.1 (DeepSWE + Terminal-Bench v2 + SWE-Atlas-QnA, 3 attempts) |
+
+## AA Coding Agent Index run
+
+Requires Pier + Harbor on Python ≤3.12, Docker, Kevlar `:8080`, OpenAI shim `:8091`, and datasets under `results/agent_bench/datasets/`:
+
+```bash
+# One-time tool install (Python 3.14 breaks litellm; pin 3.12)
+uv tool install --python 3.12 datacurve-pier
+uv tool install --python 3.12 harbor
+
+# Datasets (DeepSWE + SWE-Atlas from GitHub; TB from Harbor registry)
+DATA=results/agent_bench/datasets
+git -C "$DATA" clone --depth 1 https://github.com/datacurve-ai/deep-swe.git
+git -C "$DATA" clone --depth 1 https://github.com/scaleapi/SWE-Atlas.git
+harbor datasets download 'terminal-bench@2.0' -o "$DATA/terminal-bench-2.0"
+
+# Full matrix (smoke-green agents that Harbor/Pier can drive)
+.venv/bin/python -m agent_bench.run_matrix --matrix --profile aa-index \
+  --skip-unavailable --n-concurrent 1
+# → results/agent_bench/aa_index/… + aa_index_summary_*.json
+```
+
+Harbor maps most shortlist CLIs (`aider`, `claude-code`, `codex`, `goose`, `openclaw`, …). Pier’s DeepSWE agent set is smaller (`claude-code`, `codex`, `cursor-cli`, `opencode`); unmapped agents are skipped for that suite. See `agent_harbor_map.yaml`.
 
 ## Status
 
-Registries + detect + plan orchestrator ship first. Pier/Harbor/Letta wrappers
-(`run_pier.py`, `run_harbor.py`, `run_letta.py`) land next; until then runs are
-`--plan-only`.
+Registries + detect + plan/execute orchestrator ship with Pier/Harbor wrappers.
+Until datasets + Docker images are warm, first trials spend long on environment build.
