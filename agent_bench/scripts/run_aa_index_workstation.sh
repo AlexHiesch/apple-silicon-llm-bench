@@ -160,6 +160,7 @@ run_matrix() {
     --harbor-retry-error RateLimitError \
     --harbor-retry-error TimeoutError \
     --harbor-retry-error RuntimeError \
+    --harbor-retry-error AgentSetupTimeoutError \
     --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
     --docker-prune-between \
     --min-free-gb "$MIN_FREE_GB" \

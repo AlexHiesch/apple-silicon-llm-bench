@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Patch Harbor's Claude Code install to prefer npm (corp-proxy friendly).
+"""Restore Harbor Claude install to bootstrap.sh (corp Z8).
 
-Default Harbor path on Debian/Ubuntu:
-  apt install curl procps → curl https://downloads.claude.ai/.../bootstrap.sh
+Earlier we tried forcing apt nodejs+npm because downloads.claude.ai failed
+when px-proxy blocked Harbor compose nets (172.19+/16). With the px-proxy
+allow widened to 172.16.0.0/12, bootstrap completes in ~2 min — while
+`apt install nodejs npm` exceeds Harbor's 360s agent-setup timeout.
 
-Corp px-proxy often aborts CONNECT to downloads.claude.ai, while
-registry.npmjs.org works. Prefer nodejs/npm via apt, then npm install -g.
+This script is idempotent: if a previous llm-bench npm patch is present,
+revert it; otherwise leave Harbor stock install alone.
 """
 
 from __future__ import annotations
@@ -37,39 +39,34 @@ def harbor_claude_code_paths() -> list[Path]:
 
 
 def patch_text(src: str) -> str:
-    if MARKER in src:
-        return src
+    """Revert prior npm-forcing patch; no-op on stock Harbor."""
     out = src
-    out = out.replace(
-        "apt-get update && apt-get install -y curl procps;",
-        "apt-get update && apt-get install -y curl procps nodejs npm;",
-        1,
-    )
-    # After apt/apk, prefer npm whenever present (not Alpine-only).
-    out = out.replace(
-        "if command -v apk &> /dev/null; then"
-        "  npm install -g @anthropic-ai/claude-code",
-        "if command -v npm &> /dev/null; then"
-        "  npm install -g @anthropic-ai/claude-code",
-        1,
-    )
-    # Also handle the split-string form in Harbor source.
-    out = out.replace(
-        '"if command -v apk &> /dev/null; then"\n'
-        '                f"  npm install -g @anthropic-ai/claude-code',
-        '"if command -v npm &> /dev/null; then"\n'
-        '                f"  npm install -g @anthropic-ai/claude-code',
-        1,
-    )
-    if out == src:
-        return out
-    # Mark so we don't re-apply / can detect success.
-    return out.replace(
-        "async def install(self, environment: BaseEnvironment) -> None:",
-        f"async def install(self, environment: BaseEnvironment) -> None:\n"
-        f"        {MARKER}",
-        1,
-    )
+    if MARKER in out:
+        out = out.replace(f"        {MARKER}\n", "")
+        out = out.replace(
+            "apt-get update && apt-get install -y curl procps nodejs npm;",
+            "apt-get update && apt-get install -y curl procps;",
+        )
+        out = out.replace(
+            '"if command -v npm &> /dev/null; then"\n'
+            '                f"  npm install -g @anthropic-ai/claude-code',
+            '"if command -v apk &> /dev/null; then"\n'
+            '                f"  npm install -g @anthropic-ai/claude-code',
+        )
+        out = out.replace(
+            "if command -v npm &> /dev/null; then"
+            "  npm install -g @anthropic-ai/claude-code",
+            "if command -v apk &> /dev/null; then"
+            "  npm install -g @anthropic-ai/claude-code",
+        )
+    # Also clean accidental nodejs npm without marker
+    if "apt-get install -y curl procps nodejs npm;" in out:
+        out = out.replace(
+            "apt-get update && apt-get install -y curl procps nodejs npm;",
+            "apt-get update && apt-get install -y curl procps;",
+            1,
+        )
+    return out
 
 
 def main() -> int:
@@ -81,10 +78,10 @@ def main() -> int:
         original = path.read_text()
         updated = patch_text(original)
         if updated == original:
-            print(f"already patched or no match: {path}")
+            print(f"stock/ok: {path}")
             continue
         path.write_text(updated)
-        print(f"patched: {path}")
+        print(f"reverted npm-force patch: {path}")
     return 0
 
 
