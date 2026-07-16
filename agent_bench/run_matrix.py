@@ -156,6 +156,7 @@ def execute_run(
     exclude_deepswe_touched: bool = False,
     resume_harbor: bool = False,
     harbor_filter_errors: list[str] | None = None,
+    agent_timeout_multiplier: float = 1.0,
 ) -> dict:
     suite = run["suite"]
     agent_id = run["agent_id"]
@@ -185,6 +186,7 @@ def execute_run(
             n_concurrent=n_concurrent,
             resume=resume_harbor,
             filter_error_types=harbor_filter_errors,
+            agent_timeout_multiplier=agent_timeout_multiplier,
         )
     return {
         "status": "skipped",
@@ -243,6 +245,12 @@ def main(argv: list[str] | None = None) -> int:
         metavar="TYPE",
         help="On Harbor resume, drop+retry trials with this exception "
              "(e.g. UnknownApiError; repeatable)",
+    )
+    parser.add_argument(
+        "--agent-timeout-multiplier",
+        type=float,
+        default=1.0,
+        help="Harbor agent walltime multiplier for local slow MLX (default: 1.0)",
     )
     parser.add_argument(
         "--docker-prune-between",
@@ -307,6 +315,8 @@ def main(argv: list[str] | None = None) -> int:
         print("Resume: Harbor incomplete jobs (job resume)")
         if args.harbor_retry_error:
             print(f"  retry error types: {', '.join(args.harbor_retry_error)}")
+    if args.agent_timeout_multiplier != 1.0:
+        print(f"Harbor agent timeout multiplier: {args.agent_timeout_multiplier}x")
     if args.min_free_gb:
         print(f"Disk guard: abort below {args.min_free_gb} GiB free")
 
@@ -346,6 +356,7 @@ def main(argv: list[str] | None = None) -> int:
                 exclude_deepswe_touched=args.exclude_deepswe_touched,
                 resume_harbor=args.resume_harbor,
                 harbor_filter_errors=args.harbor_retry_error or None,
+                agent_timeout_multiplier=args.agent_timeout_multiplier,
             )
         except Exception as e:
             result = {

@@ -226,6 +226,7 @@ def run_suite(
     yes: bool = True,
     resume: bool = False,
     filter_error_types: list[str] | None = None,
+    agent_timeout_multiplier: float = 1.0,
 ) -> dict:
     harbor_agent = harbor_agent_name(agent_id)
     if not harbor_agent:
@@ -302,6 +303,8 @@ def run_suite(
         "--allow-agent-host", "host.docker.internal",
         *agent_env_flags(model),
     ]
+    if agent_timeout_multiplier and agent_timeout_multiplier != 1.0:
+        cmd.extend(["--agent-timeout-multiplier", str(agent_timeout_multiplier)])
     if yes:
         cmd.append("-y")
 
@@ -345,6 +348,7 @@ if __name__ == "__main__":
     p.add_argument("--n-attempts", type=int, default=3)
     p.add_argument("--n-concurrent", type=int, default=1)
     p.add_argument("--resume", action="store_true")
+    p.add_argument("--agent-timeout-multiplier", type=float, default=1.0)
     p.add_argument(
         "--filter-error-type",
         action="append",
@@ -360,4 +364,5 @@ if __name__ == "__main__":
         n_concurrent=args.n_concurrent,
         resume=args.resume,
         filter_error_types=args.filter_error_type or None,
+        agent_timeout_multiplier=args.agent_timeout_multiplier,
     ), indent=2))

@@ -2,17 +2,13 @@
 # Overnight AA Coding Agent Index — resume after disk-full / Docker restart.
 #
 # Strategy:
-#   1. Bring ThinkingCap stack up (Kevlar + shim); Kevlar --no-ssd-cache + backoff
+#   1. Bring ThinkingCap stack up with tuned Kevlar:
+#        --no-ssd-cache --prefill-step-size 8192 --max-memory-caches 8
 #   2. Harbor suites first — resume incomplete jobs (keep finished trials)
-#   3. On Harbor resume, retry UnknownApiError + AgentTimeoutError
-#      (API/Kevlar junk and walltime side-effects — not intel signal)
-#   4. DeepSWE with --exclude-deepswe-touched (k=1 by default via N_ATTEMPTS)
-#   5. Docker prune + disk guard between jobs
-#
-# Recoverable from last run:
-#   - DeepSWE claude-code: 43 tasks × 1 attempt (real LLM for ~33); keep under aa_index/deepswe/
-#   - Harbor TB claude-code: ~28/267 trials in terminal-bench-v2__claude-code__20260716_001019
-#   - Datasets intact under results/agent_bench/datasets/
+#   3. On Harbor resume, retry UnknownApiError + AgentTimeoutError only
+#   4. New Harbor jobs use --agent-timeout-multiplier (local 27B is slow)
+#   5. DeepSWE with --exclude-deepswe-touched (k=1 via N_ATTEMPTS)
+#   6. Docker prune + disk guard between jobs
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -31,9 +27,21 @@ export HARBOR_OPENAI_BASE="${HARBOR_OPENAI_BASE:-http://host.docker.internal:809
 
 MIN_FREE_GB="${MIN_FREE_GB:-40}"
 N_ATTEMPTS="${N_ATTEMPTS:-1}"
+AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-2.5}"
+# Tuned for ThinkingCap agent workloads on M3 Max 64GB.
+KEVLAR_FLAGS="${KEVLAR_FLAGS:---no-ssd-cache --prefill-step-size 8192 --max-memory-caches 8}"
+
 STATUS="$ROOT/results/agent_bench/aa_index/OVERNIGHT_STATUS.txt"
 LOG="$ROOT/results/agent_bench/aa_index/overnight_$(date +%Y%m%d_%H%M%S).log"
 mkdir -p "$ROOT/results/agent_bench/aa_index"
+
+tmux_cmd() {
+  if [[ -f /exec-daemon/tmux.portal.conf ]]; then
+    tmux -f /exec-daemon/tmux.portal.conf "$@"
+  else
+    tmux "$@"
+  fi
+}
 
 status() {
   {
@@ -71,38 +79,35 @@ ensure_shim() {
     return 0
   fi
   local sess=thinkingcap-shim
-  tmux -f /exec-daemon/tmux.portal.conf has-session -t "=$sess" 2>/dev/null \
-    || tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$sess" -c "$ROOT" -- "${SHELL:-zsh}" -l
-  tmux -f /exec-daemon/tmux.portal.conf send-keys -t "$sess:0.0" C-c
+  tmux_cmd has-session -t "=$sess" 2>/dev/null \
+    || tmux_cmd new-session -d -s "$sess" -c "$ROOT" -- "${SHELL:-zsh}" -l
+  tmux_cmd send-keys -t "$sess:0.0" C-c
   sleep 1
-  tmux -f /exec-daemon/tmux.portal.conf send-keys -t "$sess:0.0" \
+  tmux_cmd send-keys -t "$sess:0.0" \
     "cd '$ROOT' && .venv/bin/python -u -m agent_bench.openai_anthropic_shim --port 8091 --upstream http://127.0.0.1:8080" C-m
 }
 
 ensure_kevlar() {
-  if curl -sf -m 3 http://127.0.0.1:8080/health >/dev/null 2>&1; then
-    return 0
-  fi
+  # Always (re)start with current KEVLAR_FLAGS so tuning changes take effect.
   local sess=kevlar-thinkingcap
-  # Disable SSD KV cache by default: background Metal save raced inference (SIGABRT popups).
-  local kevlar_flags="${KEVLAR_FLAGS:---no-ssd-cache}"
-  tmux -f /exec-daemon/tmux.portal.conf has-session -t "=$sess" 2>/dev/null \
-    || tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$sess" -c "$KEVLAR_ROOT" -- "${SHELL:-zsh}" -l
-  tmux -f /exec-daemon/tmux.portal.conf send-keys -t "$sess:0.0" C-c
+  tmux_cmd has-session -t "=$sess" 2>/dev/null \
+    || tmux_cmd new-session -d -s "$sess" -c "$KEVLAR_ROOT" -- "${SHELL:-zsh}" -l
+  tmux_cmd send-keys -t "$sess:0.0" C-c
   sleep 1
-  # Restart with exponential backoff on abort (134); avoid popup spam.
-  tmux -f /exec-daemon/tmux.portal.conf send-keys -t "$sess:0.0" \
-    "cd '$KEVLAR_ROOT' && backoff=5; while true; do .venv/bin/kevlar serve --port 8080 --model '$LLM_MODEL' $kevlar_flags; rc=\$?; echo \"[watchdog] kevlar exited \$rc at \$(date)\"; if [ \$rc -eq 134 ] || [ \$rc -gt 128 ]; then backoff=\$((backoff < 120 ? backoff * 2 : 120)); else backoff=5; fi; echo \"[watchdog] restart in \${backoff}s\"; sleep \$backoff; done" C-m
+  pkill -f 'kevlar serve' 2>/dev/null || true
+  sleep 2
+  tmux_cmd send-keys -t "$sess:0.0" \
+    "cd '$KEVLAR_ROOT' && backoff=5; while true; do .venv/bin/kevlar serve --port 8080 --model '$LLM_MODEL' $KEVLAR_FLAGS; rc=\$?; echo \"[watchdog] kevlar exited \$rc at \$(date)\"; if [ \$rc -eq 134 ] || [ \$rc -gt 128 ]; then backoff=\$((backoff < 120 ? backoff * 2 : 120)); else backoff=5; fi; echo \"[watchdog] restart in \${backoff}s\"; sleep \$backoff; done" C-m
 }
 
 cd "$ROOT"
 exec > >(tee -a "$LOG") 2>&1
 
-status "overnight start"
+status "overnight start (k=$N_ATTEMPTS timeout_mult=$AGENT_TIMEOUT_MULT kevlar='$KEVLAR_FLAGS')"
 ensure_docker
 ensure_kevlar
 ensure_shim
-wait_health http://127.0.0.1:8080/health Kevlar 120
+wait_health http://127.0.0.1:8080/health Kevlar 180
 wait_health http://127.0.0.1:8091/health shim 30
 
 python3 "$ROOT/agent_bench/scripts/patch_pier_egress.py" \
@@ -148,6 +153,7 @@ status "launching matrix (Harbor first, then DeepSWE resume)"
   --resume-harbor \
   --harbor-retry-error UnknownApiError \
   --harbor-retry-error AgentTimeoutError \
+  --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
   --docker-prune-between \
   --min-free-gb "$MIN_FREE_GB" \
   ${AGENT_IDS:+--agent $AGENT_IDS}
