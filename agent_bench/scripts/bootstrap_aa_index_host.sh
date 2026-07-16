@@ -36,6 +36,24 @@ if [[ ! -d .venv ]]; then
 fi
 "$UV" pip install -p .venv -r requirements.txt pyyaml
 
+# Harbor compose networks land on 172.19+/16. Stock px-proxy (salt) only allows
+# 172.17/18 — agent apt/curl then gets "Connection failed [IP: 172.17.0.1 3128]".
+# User drop-in (no sudo): allow all RFC1918 docker bridges.
+mkdir -p "$HOME/.config/systemd/user/px-proxy.service.d"
+cat > "$HOME/.config/systemd/user/px-proxy.service.d/harbor-docker.conf" <<'EOF'
+[Unit]
+StartLimitIntervalSec=0
+
+[Service]
+EnvironmentFile=
+ExecStart=
+ExecStart=/usr/bin/px-proxy --hostonly --threads 40 --idle 300 --socktimeout 600 --gateway --allow=127.0.0.0/8,172.16.0.0/12,192.168.0.0/16 --log --pac=http://browsercfg.edc.corpintra.net:8899/linux/proxy.pac --noproxy 127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10
+EOF
+systemctl --user daemon-reload
+systemctl --user reset-failed px-proxy 2>/dev/null || true
+systemctl --user restart px-proxy
+systemctl --user is-active px-proxy >/dev/null
+
 # Warm Docker pulls that Harbor/smoke will need (daemon already has corp proxy).
 docker pull alpine:3.20 >/dev/null
 docker pull curlimages/curl:8.5.0 >/dev/null || true
