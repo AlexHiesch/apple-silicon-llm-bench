@@ -114,6 +114,18 @@ def agent_env_flags(model: str) -> list[str]:
     # MAX_MODEL_LEN=65536, long agent turns hit ContextWindowExceeded
     # (input + 32000 > 65536). Cap output so prompt+completion fits.
     max_out = os.environ.get("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "16384")
+    # Corp Z8: containers must use host proxy (NOT localhost). px-proxy
+    # listens on 0.0.0.0:3128 and allows docker bridges 172.17/18.
+    docker_proxy = os.environ.get(
+        "HARBOR_HTTP_PROXY",
+        "http://host.docker.internal:3128",
+    )
+    no_proxy = os.environ.get(
+        "HARBOR_NO_PROXY",
+        "localhost,127.0.0.1,host.docker.internal,"
+        "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,"
+        ".svc,.cluster.local,.corpintra.net",
+    )
     pairs = {
         "OPENAI_API_KEY": openai_key,
         "OPENAI_BASE_URL": HOST_SHIM,
@@ -125,6 +137,12 @@ def agent_env_flags(model: str) -> list[str]:
         "CLAUDE_CODE_MAX_OUTPUT_TOKENS": max_out,
         "LLM_MODEL": model,
         "MODEL": model,
+        "HTTP_PROXY": docker_proxy,
+        "HTTPS_PROXY": docker_proxy,
+        "http_proxy": docker_proxy,
+        "https_proxy": docker_proxy,
+        "NO_PROXY": no_proxy,
+        "no_proxy": no_proxy,
     }
     # Corporate MITM (Netskope) breaks npm/curl agent installs inside Docker
     # unless the interception CA is trusted.
