@@ -16,6 +16,7 @@ REPO = ROOT.parent
 RESULTS = REPO / "results" / "agent_bench"
 MAP_PATH = ROOT / "agent_harbor_map.yaml"
 CERT_BUNDLE = ROOT / "certs" / "docker-ca-bundle.pem"
+HOST_GATEWAY_COMPOSE = ROOT / "docker" / "host-gateway.compose.yaml"
 
 # Inside Docker containers, host ThinkingCap is reached via host.docker.internal
 HOST_SHIM = os.environ.get(
@@ -486,6 +487,9 @@ def run_suite(
         *agent_env_flags(model),
         *corp_ca_mount_flags(),
     ]
+    # Linux Docker does not define host.docker.internal by default.
+    if HOST_GATEWAY_COMPOSE.is_file():
+        cmd.extend(["--extra-docker-compose", str(HOST_GATEWAY_COMPOSE)])
     if agent_timeout_multiplier and agent_timeout_multiplier != 1.0:
         cmd.extend(["--agent-timeout-multiplier", str(agent_timeout_multiplier)])
     # Skip already-clean intel-usable tasks from prior partial jobs.

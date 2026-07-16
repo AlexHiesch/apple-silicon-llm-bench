@@ -1,0 +1,6 @@
+# Linux Docker: make host.docker.internal resolve to the workstation host.
+# Harbor merges this via --extra-docker-compose.
+services:
+  main:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
