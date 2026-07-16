@@ -121,6 +121,100 @@ def agent_env_flags(model: str) -> list[str]:
     return flags
 
 
+def _dataset_task_count(ds_path: Path) -> int:
+    if not ds_path.is_dir():
+        return 0
+    return sum(1 for p in ds_path.iterdir() if p.is_dir() and (p / "task.toml").exists())
+
+
+def _trial_dirs(job: Path) -> list[Path]:
+    return [
+        d for d in job.iterdir()
+        if d.is_dir() and not d.name.startswith(".") and d.name not in ("artifacts",)
+    ]
+
+
+def job_is_complete(job: Path) -> bool:
+    """True when all expected Harbor trials have result.json."""
+    cfg_path = job / "config.json"
+    if not cfg_path.is_file():
+        return False
+    cfg = json.loads(cfg_path.read_text())
+    n_attempts = int(cfg.get("n_attempts") or 1)
+    ds_path = Path((cfg.get("datasets") or [{}])[0].get("path") or "")
+    n_tasks = _dataset_task_count(ds_path)
+    trials = _trial_dirs(job)
+    if any(not (d / "result.json").exists() for d in trials):
+        return False
+    if n_tasks and len(trials) < n_tasks * n_attempts:
+        return False
+    return bool(trials)
+
+
+def find_latest_job(out: Path) -> Path | None:
+    jobs = [
+        p for p in out.iterdir()
+        if p.is_dir() and (p / "config.json").is_file()
+    ]
+    if not jobs:
+        return None
+    return max(jobs, key=lambda p: p.stat().st_mtime)
+
+
+def find_resumable_job(out: Path) -> Path | None:
+    """Newest incomplete Harbor job dir under agent×suite output."""
+    jobs = [
+        p for p in out.iterdir()
+        if p.is_dir() and (p / "config.json").is_file()
+    ]
+    for job in sorted(jobs, key=lambda p: p.stat().st_mtime, reverse=True):
+        if not job_is_complete(job):
+            return job
+    return None
+
+
+def resume_job(
+    job_path: Path,
+    *,
+    filter_error_types: list[str] | None = None,
+) -> dict:
+    """Resume an interrupted Harbor job (keeps finished trials)."""
+    harbor = ensure_harbor()
+    job_path = Path(job_path)
+    job_name = job_path.name
+    out = job_path.parent
+    cmd = [harbor, "job", "resume", "-p", str(job_path)]
+    for err in filter_error_types or []:
+        cmd.extend(["--filter-error-type", err])
+
+    log_path = out / f"{job_name}.resume_{time.strftime('%Y%m%d_%H%M%S')}.log"
+    t0 = time.time()
+    with log_path.open("w") as log:
+        log.write("$ " + " ".join(cmd) + "\n\n")
+        log.flush()
+        proc = subprocess.run(
+            cmd,
+            stdout=log,
+            stderr=subprocess.STDOUT,
+            text=True,
+            env=clean_runner_env(),
+        )
+    elapsed = round(time.time() - t0, 1)
+    result = {
+        "status": "ok" if proc.returncode == 0 else "exit_" + str(proc.returncode),
+        "mode": "resume",
+        "job_path": str(job_path),
+        "filter_error_types": list(filter_error_types or []),
+        "elapsed_s": elapsed,
+        "jobs_dir": str(out),
+        "log": str(log_path),
+        "cmd": cmd,
+        "complete": job_is_complete(job_path),
+    }
+    (out / f"{job_name}.resume.result.json").write_text(json.dumps(result, indent=2))
+    return result
+
+
 def run_suite(
     *,
     agent_id: str,
@@ -130,6 +224,8 @@ def run_suite(
     n_concurrent: int = 1,
     jobs_dir: Path | None = None,
     yes: bool = True,
+    resume: bool = False,
+    filter_error_types: list[str] | None = None,
 ) -> dict:
     harbor_agent = harbor_agent_name(agent_id)
     if not harbor_agent:
@@ -159,6 +255,35 @@ def run_suite(
     harbor = ensure_harbor()
     out = jobs_dir or (RESULTS / "aa_index" / suite_id / agent_id)
     out.mkdir(parents=True, exist_ok=True)
+
+    if resume:
+        latest = find_latest_job(out)
+        if latest and job_is_complete(latest):
+            return {
+                "status": "ok",
+                "mode": "already_complete",
+                "agent_id": agent_id,
+                "suite": suite_id,
+                "job_path": str(latest),
+                "jobs_dir": str(out),
+                "elapsed_s": 0,
+            }
+        resumable = find_resumable_job(out)
+        if resumable:
+            print(f"  (resume) Harbor job {resumable.name}", flush=True)
+            result = resume_job(
+                resumable,
+                filter_error_types=filter_error_types,
+            )
+            result.update({
+                "agent_id": agent_id,
+                "harbor_agent": harbor_agent,
+                "suite": suite_id,
+                "dataset": ds_label,
+                "n_attempts": n_attempts,
+            })
+            return result
+
     job_name = f"{suite_id}__{agent_id}__{time.strftime('%Y%m%d_%H%M%S')}"
 
     # Prefer OpenAI-compatible model id for BYOK agents; Harbor prepends provider.
@@ -195,6 +320,7 @@ def run_suite(
     elapsed = round(time.time() - t0, 1)
     result = {
         "status": "ok" if proc.returncode == 0 else "exit_" + str(proc.returncode),
+        "mode": "run",
         "agent_id": agent_id,
         "harbor_agent": harbor_agent,
         "suite": suite_id,
@@ -218,6 +344,13 @@ if __name__ == "__main__":
     p.add_argument("--model", default=MODEL)
     p.add_argument("--n-attempts", type=int, default=3)
     p.add_argument("--n-concurrent", type=int, default=1)
+    p.add_argument("--resume", action="store_true")
+    p.add_argument(
+        "--filter-error-type",
+        action="append",
+        default=[],
+        help="On resume, drop+retry trials with this exception (repeatable)",
+    )
     args = p.parse_args()
     print(json.dumps(run_suite(
         agent_id=args.agent,
@@ -225,4 +358,6 @@ if __name__ == "__main__":
         model=args.model,
         n_attempts=args.n_attempts,
         n_concurrent=args.n_concurrent,
+        resume=args.resume,
+        filter_error_types=args.filter_error_type or None,
     ), indent=2))

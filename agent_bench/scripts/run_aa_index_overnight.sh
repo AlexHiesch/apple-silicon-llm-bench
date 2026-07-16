@@ -2,14 +2,15 @@
 # Overnight AA Coding Agent Index — resume after disk-full / Docker restart.
 #
 # Strategy:
-#   1. Bring ThinkingCap stack up (Kevlar + shim) with CrashLoop restart
-#   2. Harbor suites first (TB v2 + SWE-Atlas) — previous overnight failed in 0.5s (Docker down)
-#   3. DeepSWE with --exclude-deepswe-touched (keep 43 claude attempt-1 trials; finish the rest @k=3)
-#   4. Docker prune + disk guard between jobs
+#   1. Bring ThinkingCap stack up (Kevlar + shim); Kevlar --no-ssd-cache + backoff
+#   2. Harbor suites first — resume incomplete jobs (keep finished trials)
+#   3. On Harbor resume, retry UnknownApiError trials (422/stream after Kevlar fixes)
+#   4. DeepSWE with --exclude-deepswe-touched (keep existing trials; finish rest @k=3)
+#   5. Docker prune + disk guard between jobs
 #
 # Recoverable from last run:
 #   - DeepSWE claude-code: 43 tasks × 1 attempt (real LLM for ~33); keep under aa_index/deepswe/
-#   - Harbor: nothing (instant Docker-down failures) — full redo
+#   - Harbor TB claude-code: ~28/267 trials in terminal-bench-v2__claude-code__20260716_001019
 #   - Datasets intact under results/agent_bench/datasets/
 set -uo pipefail
 
@@ -81,13 +82,15 @@ ensure_kevlar() {
     return 0
   fi
   local sess=kevlar-thinkingcap
+  # Disable SSD KV cache by default: background Metal save raced inference (SIGABRT popups).
+  local kevlar_flags="${KEVLAR_FLAGS:---no-ssd-cache}"
   tmux -f /exec-daemon/tmux.portal.conf has-session -t "=$sess" 2>/dev/null \
     || tmux -f /exec-daemon/tmux.portal.conf new-session -d -s "$sess" -c "$KEVLAR_ROOT" -- "${SHELL:-zsh}" -l
   tmux -f /exec-daemon/tmux.portal.conf send-keys -t "$sess:0.0" C-c
   sleep 1
-  # CrashLoop: restart kevlar if it exits
+  # Restart with exponential backoff on abort (134); avoid popup spam.
   tmux -f /exec-daemon/tmux.portal.conf send-keys -t "$sess:0.0" \
-    "cd '$KEVLAR_ROOT' && while true; do .venv/bin/kevlar serve --port 8080 --model '$LLM_MODEL'; echo \"[watchdog] kevlar exited \$? at \$(date); restart in 5s\"; sleep 5; done" C-m
+    "cd '$KEVLAR_ROOT' && backoff=5; while true; do .venv/bin/kevlar serve --port 8080 --model '$LLM_MODEL' $kevlar_flags; rc=\$?; echo \"[watchdog] kevlar exited \$rc at \$(date)\"; if [ \$rc -eq 134 ] || [ \$rc -gt 128 ]; then backoff=\$((backoff < 120 ? backoff * 2 : 120)); else backoff=5; fi; echo \"[watchdog] restart in \${backoff}s\"; sleep \$backoff; done" C-m
 }
 
 cd "$ROOT"
@@ -139,6 +142,8 @@ status "launching matrix (Harbor first, then DeepSWE resume)"
   --suite-major \
   --suite-order terminal-bench-v2 swe-atlas-qna deepswe \
   --exclude-deepswe-touched \
+  --resume-harbor \
+  --harbor-retry-error UnknownApiError \
   --docker-prune-between \
   --min-free-gb "$MIN_FREE_GB" \
   ${AGENT_IDS:+--agent $AGENT_IDS}

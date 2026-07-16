@@ -154,6 +154,8 @@ def execute_run(
     n_attempts: int,
     n_concurrent: int,
     exclude_deepswe_touched: bool = False,
+    resume_harbor: bool = False,
+    harbor_filter_errors: list[str] | None = None,
 ) -> dict:
     suite = run["suite"]
     agent_id = run["agent_id"]
@@ -181,6 +183,8 @@ def execute_run(
             model=model,
             n_attempts=n_attempts,
             n_concurrent=n_concurrent,
+            resume=resume_harbor,
+            filter_error_types=harbor_filter_errors,
         )
     return {
         "status": "skipped",
@@ -219,6 +223,19 @@ def main(argv: list[str] | None = None) -> int:
         "--exclude-deepswe-touched",
         action="store_true",
         help="Skip DeepSWE tasks that already have ≥1 trial result (resume)",
+    )
+    parser.add_argument(
+        "--resume-harbor",
+        action="store_true",
+        help="Resume incomplete Harbor jobs instead of starting fresh",
+    )
+    parser.add_argument(
+        "--harbor-retry-error",
+        action="append",
+        default=[],
+        metavar="TYPE",
+        help="On Harbor resume, drop+retry trials with this exception "
+             "(e.g. UnknownApiError; repeatable)",
     )
     parser.add_argument(
         "--docker-prune-between",
@@ -279,6 +296,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Planned runs: {len(runs)}")
     if args.exclude_deepswe_touched:
         print("Resume: excluding already-touched DeepSWE tasks")
+    if args.resume_harbor:
+        print("Resume: Harbor incomplete jobs (job resume)")
+        if args.harbor_retry_error:
+            print(f"  retry error types: {', '.join(args.harbor_retry_error)}")
     if args.min_free_gb:
         print(f"Disk guard: abort below {args.min_free_gb} GiB free")
 
@@ -316,6 +337,8 @@ def main(argv: list[str] | None = None) -> int:
                 n_attempts=n_attempts,
                 n_concurrent=args.n_concurrent,
                 exclude_deepswe_touched=args.exclude_deepswe_touched,
+                resume_harbor=args.resume_harbor,
+                harbor_filter_errors=args.harbor_retry_error or None,
             )
         except Exception as e:
             result = {
