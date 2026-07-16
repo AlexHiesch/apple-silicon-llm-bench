@@ -138,12 +138,19 @@ def agent_env_flags(model: str) -> list[str]:
 
 
 def corp_ca_mount_flags() -> list[str]:
+    """Bind-mount corp CA dir into the agent container.
+
+    IMPORTANT: agent_env_flags() points SSL_CERT_FILE etc. at
+    /etc/harbor-corp-ca/docker-ca-bundle.pem — without this mount curl exits 77
+    ("error setting certificate file") and every trial becomes NetworkConnectionError.
+    """
     if not CERT_BUNDLE.is_file():
         return []
+    # Mount the directory (more reliable than a single-file bind on Docker Desktop).
     mounts = [{
         "type": "bind",
-        "source": str(CERT_BUNDLE.resolve()),
-        "target": "/etc/harbor-corp-ca/docker-ca-bundle.pem",
+        "source": str(CERT_BUNDLE.parent.resolve()),
+        "target": "/etc/harbor-corp-ca",
         "read_only": True,
     }]
     return ["--mounts", json.dumps(mounts)]
@@ -242,6 +249,35 @@ def find_latest_job(out: Path) -> Path | None:
     return max(jobs, key=lambda p: p.stat().st_mtime)
 
 
+def trial_exception_message(result: dict) -> str:
+    ei = result.get("exception_info") or {}
+    if isinstance(ei, dict):
+        return str(ei.get("exception_message") or "")
+    return ""
+
+
+def job_is_missing_ca_mount_junk(job: Path) -> bool:
+    """True when trials fail because SSL_CERT_FILE points at an unmounted CA path."""
+    seen = 0
+    ca_fail = 0
+    for d in _trial_dirs(job):
+        rj = d / "result.json"
+        if not rj.is_file():
+            continue
+        try:
+            r = json.loads(rj.read_text())
+        except Exception:
+            continue
+        seen += 1
+        msg = trial_exception_message(r)
+        if (
+            "error setting certificate file" in msg
+            or "/etc/harbor-corp-ca/" in msg
+        ):
+            ca_fail += 1
+    return seen > 0 and ca_fail == seen
+
+
 def find_resumable_job(out: Path) -> Path | None:
     """Newest incomplete Harbor job dir under agent×suite output."""
     jobs = [
@@ -251,8 +287,12 @@ def find_resumable_job(out: Path) -> Path | None:
         and not p.name.startswith("_")
     ]
     for job in sorted(jobs, key=lambda p: p.stat().st_mtime, reverse=True):
-        if not job_is_complete(job):
-            return job
+        if job_is_complete(job):
+            continue
+        # Old jobs set SSL_CERT_FILE without --mounts; resume would keep failing.
+        if job_is_missing_ca_mount_junk(job):
+            continue
+        return job
     return None
 
 
@@ -433,6 +473,7 @@ def run_suite(
         "--env", "docker",
         "--allow-agent-host", "host.docker.internal",
         *agent_env_flags(model),
+        *corp_ca_mount_flags(),
     ]
     if agent_timeout_multiplier and agent_timeout_multiplier != 1.0:
         cmd.extend(["--agent-timeout-multiplier", str(agent_timeout_multiplier)])
