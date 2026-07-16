@@ -1,6 +1,17 @@
 # Linux Docker: make host.docker.internal resolve to the workstation host.
 # Harbor merges this via --extra-docker-compose.
+#
+# Also inject corp px-proxy into the *container* environment so root apt/curl
+# during Harbor agent install sees a working proxy. Host localhost:3128 is
+# unreachable from the container namespace; host.docker.internal → docker bridge.
 services:
   main:
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      HTTP_PROXY: http://host.docker.internal:3128
+      HTTPS_PROXY: http://host.docker.internal:3128
+      http_proxy: http://host.docker.internal:3128
+      https_proxy: http://host.docker.internal:3128
+      NO_PROXY: localhost,127.0.0.1,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net
+      no_proxy: localhost,127.0.0.1,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net

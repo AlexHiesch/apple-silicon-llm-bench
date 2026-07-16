@@ -23,25 +23,22 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-export PATH="${HOME}/.local/bin:${HOME}/.npm-global/bin:${PATH}"
+RUNNER_HOME="${RUNNER_HOME:-$HOME/aa-index-runner-home}"
+export RUNNER_HOME
+export UV_TOOL_DIR="${UV_TOOL_DIR:-$RUNNER_HOME/.local/share/uv/tools}"
+export UV_TOOL_BIN_DIR="${UV_TOOL_BIN_DIR:-$RUNNER_HOME/.local/bin}"
+export PATH="${UV_TOOL_BIN_DIR}:${HOME}/.local/bin:${HOME}/.npm-global/bin:${PATH}"
 
 # Corp egress — Harbor pulls / agent installs. No sudo/kinit (expire overnight).
+# Host process uses localhost; containers get host.docker.internal via
+# agent_bench/docker/host-gateway.compose.yaml + run_harbor --ae.
 export HTTP_PROXY="${HTTP_PROXY:-http://localhost:3128}"
 export HTTPS_PROXY="${HTTPS_PROXY:-http://localhost:3128}"
 export http_proxy="$HTTP_PROXY"
 export https_proxy="$HTTPS_PROXY"
 export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net,cmtcdeu89976740.rd.corpintra.net}"
 export no_proxy="$NO_PROXY"
-
-# Corp egress — required for Harbor image pulls / agent installs. Docker daemon
-# on the Z8 already has this proxy; export for curl/uv/npm in-process too.
-# Do not use sudo/kinit here (both expire under corp policy overnight).
-export HTTP_PROXY="${HTTP_PROXY:-http://localhost:3128}"
-export HTTPS_PROXY="${HTTPS_PROXY:-http://localhost:3128}"
-export http_proxy="$HTTP_PROXY"
-export https_proxy="$HTTPS_PROXY"
-export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net,cmtcdeu89976740.rd.corpintra.net}"
-export no_proxy="$NO_PROXY"
+export HARBOR_HTTP_PROXY="${HARBOR_HTTP_PROXY:-http://host.docker.internal:3128}"
 
 # --- API key (prefer local workstation keys; never inherit cloud Azure tokens) ---
 if [[ -n "${WORKSTATION_API_KEY:-}" ]]; then
@@ -201,8 +198,12 @@ if [[ "$docker_code" != "200" ]]; then
 fi
 
 if [[ -f "$ROOT/agent_bench/scripts/patch_pier_egress.py" ]]; then
-  python3 "$ROOT/agent_bench/scripts/patch_pier_egress.py" \
-    || "$ROOT/.venv/bin/python" "$ROOT/agent_bench/scripts/patch_pier_egress.py" || true
+  "$PYTHON" "$ROOT/agent_bench/scripts/patch_pier_egress.py" \
+    || python3 "$ROOT/agent_bench/scripts/patch_pier_egress.py" || true
+fi
+if [[ -f "$ROOT/agent_bench/scripts/patch_harbor_claude_npm.py" ]]; then
+  "$PYTHON" "$ROOT/agent_bench/scripts/patch_harbor_claude_npm.py" \
+    || python3 "$ROOT/agent_bench/scripts/patch_harbor_claude_npm.py" || true
 fi
 
 # --- Pass 1: full matrix ---

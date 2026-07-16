@@ -42,12 +42,30 @@ SAFE_PORTS_NEW = (
 
 
 def pier_agent_setup() -> Path:
-    # Prefer the pier used by the `pier` CLI (uv tool env).
+    # Prefer the pier used by the `pier` CLI (uv tool env). On the Z8 that
+    # lives under ~/aa-index-runner-home (see bootstrap_aa_index_host.sh),
+    # not ~/.local.
+    import os
+
+    home = Path.home()
+    runner = Path(os.environ.get("RUNNER_HOME", home / "aa-index-runner-home"))
+    tool_dir = Path(
+        os.environ.get(
+            "UV_TOOL_DIR",
+            runner / ".local" / "share" / "uv" / "tools",
+        )
+    )
     candidates = [
-        Path.home()
+        tool_dir
+        / "datacurve-pier/lib/python3.12/site-packages"
+        / "pier/environments/agent_setup.py",
+        tool_dir
+        / "datacurve-pier/lib/python3.13/site-packages"
+        / "pier/environments/agent_setup.py",
+        home
         / ".local/share/uv/tools/datacurve-pier/lib/python3.12/site-packages"
         / "pier/environments/agent_setup.py",
-        Path.home()
+        home
         / ".local/share/uv/tools/datacurve-pier/lib/python3.13/site-packages"
         / "pier/environments/agent_setup.py",
     ]
