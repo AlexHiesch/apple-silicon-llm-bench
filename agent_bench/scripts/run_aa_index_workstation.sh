@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # AA Coding Agent Index — run ON the HP Z8 (no Mac harness).
 #
-# Inference: local LiteLLM :4000 → dual vLLM ThinkingCap (:8001 + :8011)
-# Harness:   Harbor/Pier on THIS host
+# Inference (k3s llm-serving):
+#   LiteLLM hostNetwork :4000
+#     → Service vllm-int4 (2× GPU pods, MooncakeStoreConnector cross-pod KV)
+# Harness: Harbor/Pier on this host or in Deployment aa-index-runner
+#          (docker.sock); trial sandboxes are Docker, not k3s pods
 # Concurrency: N_CONCURRENT=2 (one heavy trial per A6000 via LiteLLM LB)
 #
 # After the first full matrix pass, retries Harbor technical failures

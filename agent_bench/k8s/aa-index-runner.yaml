@@ -1,0 +1,133 @@
+# AA Coding Agent Index — controller on the Z8 k3s node (Mac-off).
+#
+# Inference stays in llm-serving:
+#   LiteLLM :4000 → vllm-int4 ×2 (+ mooncake-master cross-pod KV)
+#
+# This Deployment only runs Harbor/Pier. Trial sandboxes still use the node
+# Docker engine via the mounted docker.sock (Harbor has no generic k3s env;
+# GKE/OpenShift adapters exist but are not this cluster).
+#
+# Apply:
+#   kubectl apply -f agent_bench/k8s/aa-index-runner.yaml
+#   kubectl -n llm-experiments logs -f deploy/aa-index-runner
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-experiments
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aa-index-runner-env
+  namespace: llm-experiments
+data:
+  LLM_MODEL: thinkingcap
+  N_ATTEMPTS: "1"
+  N_CONCURRENT: "2"
+  AGENT_TIMEOUT_MULT: "1.5"
+  CLAUDE_CODE_MAX_OUTPUT_TOKENS: "8192"
+  MAX_TECH_ROUNDS: "12"
+  MIN_FREE_GB: "20"
+  # Host LiteLLM (litellm Deployment uses hostNetwork)
+  HOST_GATEWAY: http://127.0.0.1:4000
+  DOCKER_GATEWAY: http://host.docker.internal:4000
+  HPLLM_KEY_FILE: /keys/mvp-test-key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aa-index-runner
+  namespace: llm-experiments
+  labels:
+    app: aa-index-runner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aa-index-runner
+  template:
+    metadata:
+      labels:
+        app: aa-index-runner
+    spec:
+      # Reach hostNetwork LiteLLM :4000 and keep Harbor→host.docker.internal simple.
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      restartPolicy: Always
+      containers:
+        - name: runner
+          image: python:3.12-bookworm
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: aa-index-runner-env
+          env:
+            - name: HOME
+              value: /home/runner
+            - name: PATH
+              value: /home/runner/.local/bin:/usr/local/bin:/usr/bin:/bin
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: dockersock
+              mountPath: /var/run/docker.sock
+            - name: repo
+              mountPath: /work/llm-bench
+            - name: keys
+              mountPath: /keys
+              readOnly: true
+            - name: runner-home
+              mountPath: /home/runner
+          command:
+            - bash
+            - -lc
+            - |
+              set -euo pipefail
+              export PATH="/home/runner/.local/bin:$PATH"
+              apt-get update -qq
+              apt-get install -y -qq git curl ca-certificates docker.io >/dev/null
+              if [[ ! -x /home/runner/.local/bin/uv ]]; then
+                curl -LsSf https://astral.sh/uv/install.sh | sh
+              fi
+              if [[ ! -x /home/runner/.local/bin/harbor ]]; then
+                uv tool install --python 3.12 harbor
+              fi
+              if [[ ! -x /home/runner/.local/bin/pier ]]; then
+                uv tool install --python 3.12 datacurve-pier || true
+              fi
+              cd /work/llm-bench
+              if [[ ! -d .venv ]]; then
+                uv venv .venv
+                uv pip install -p .venv -r requirements.txt pyyaml
+              fi
+              # Ensure docker can resolve host.docker.internal for agent containers
+              docker info >/dev/null
+              exec bash agent_bench/scripts/run_aa_index_workstation.sh
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "8"
+              memory: 16Gi
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: repo
+          hostPath:
+            path: /home/hiescha/Projects/Work/llm-bench
+            type: Directory
+        - name: keys
+          hostPath:
+            path: /home/hiescha/litellm-portal/state
+            type: Directory
+        - name: runner-home
+          hostPath:
+            path: /home/hiescha/aa-index-runner-home
+            type: DirectoryOrCreate
