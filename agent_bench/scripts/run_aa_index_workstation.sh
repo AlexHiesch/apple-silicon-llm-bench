@@ -142,11 +142,12 @@ count_tech() {
 run_matrix() {
   local label="$1"
   status "matrix pass: $label (n_concurrent=$N_CONCURRENT)"
+  # Do NOT pass --skip-unavailable: Harbor/Pier install agents inside
+  # containers. Host CLI detection would drop every agent on a clean Z8.
   "$PYTHON" -m agent_bench.run_matrix \
     --matrix \
     --profile aa-index \
     --model "$LLM_MODEL" \
-    --skip-unavailable \
     --n-attempts "$N_ATTEMPTS" \
     --n-concurrent "$N_CONCURRENT" \
     --suite-major \
@@ -206,6 +207,9 @@ fi
 # --- Pass 1: full matrix ---
 run_matrix "initial"
 rc=$?
+if [[ "$rc" -ne 0 ]]; then
+  status "WARN: matrix pass initial exited rc=$rc (will still scan/retry tech fails)"
+fi
 
 # --- Pass 2..N: retry only technical Harbor failures until clean ---
 round=1
@@ -213,7 +217,15 @@ while (( round <= MAX_TECH_ROUNDS )); do
   "$PYTHON" -m agent_bench.tech_failures --root "$ROOT/results/agent_bench/aa_index" | tee -a "$STATUS"
   tech="$(count_tech)"
   tech="${tech:-0}"
-  status "tech-failure check round=$round tech=$tech"
+  # Guard: empty result tree after a failed matrix is NOT success.
+  trial_n=$("$PYTHON" -m agent_bench.tech_failures --json --root "$ROOT/results/agent_bench/aa_index" \
+    2>/dev/null | "$PYTHON" -c "import sys,json; d=json.load(sys.stdin); print(sum(d.get('counts',{}).values()))" || echo 0)
+  status "tech-failure check round=$round tech=$tech trials=$trial_n"
+  if [[ "${trial_n:-0}" -eq 0 ]]; then
+    status "FATAL: no trial results yet — matrix did not produce work; aborting retry loop"
+    rc=1
+    break
+  fi
   if [[ "$tech" -eq 0 ]]; then
     status "OK: zero technical failures — only content pass/fail remain"
     break
