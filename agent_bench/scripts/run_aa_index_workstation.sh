@@ -46,6 +46,9 @@ export HARBOR_ANTHROPIC_BASE="$ANTHROPIC_BASE_URL"
 export PIER_OPENAI_BASE="$OPENAI_BASE_URL"
 export PIER_ANTHROPIC_BASE="$ANTHROPIC_BASE_URL"
 export CLAUDE_CODE_USE_BEDROCK=0
+# Keep Claude output budget under workstation vLLM context (65k).
+# Default Claude Code asks for 32k max_tokens and OOMs the context window.
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
 unset AWS_BEARER_TOKEN_BEDROCK ANTHROPIC_BEDROCK_BASE_URL AWS_PROFILE || true
 
 N_ATTEMPTS="${N_ATTEMPTS:-1}"

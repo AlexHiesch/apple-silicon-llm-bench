@@ -109,6 +109,10 @@ def agent_env_flags(model: str) -> list[str]:
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY") or "sk-ant-local"
     if anthropic_key == "local":
         anthropic_key = "sk-ant-local"
+    # Claude Code defaults to max_output=32000. With workstation vLLM at
+    # MAX_MODEL_LEN=65536, long agent turns hit ContextWindowExceeded
+    # (input + 32000 > 65536). Cap output so prompt+completion fits.
+    max_out = os.environ.get("CLAUDE_CODE_MAX_OUTPUT_TOKENS", "16384")
     pairs = {
         "OPENAI_API_KEY": openai_key,
         "OPENAI_BASE_URL": HOST_SHIM,
@@ -117,6 +121,7 @@ def agent_env_flags(model: str) -> list[str]:
         "ANTHROPIC_BASE_URL": HOST_KEVLAR,
         "CLAUDE_CODE_USE_BEDROCK": "0",
         "AWS_BEARER_TOKEN_BEDROCK": "",
+        "CLAUDE_CODE_MAX_OUTPUT_TOKENS": max_out,
         "LLM_MODEL": model,
         "MODEL": model,
     }
