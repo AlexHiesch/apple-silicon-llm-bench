@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
 RESULTS = REPO / "results" / "agent_bench"
 MAP_PATH = ROOT / "agent_harbor_map.yaml"
+CERT_BUNDLE = ROOT / "certs" / "docker-ca-bundle.pem"
 
 # Inside Docker containers, host ThinkingCap is reached via host.docker.internal
 HOST_SHIM = os.environ.get(
@@ -104,22 +105,100 @@ def ensure_harbor() -> str:
 
 def agent_env_flags(model: str) -> list[str]:
     """Pass OpenAI + Anthropic routes into the agent container."""
+    openai_key = os.environ.get("OPENAI_API_KEY") or "local"
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY") or "sk-ant-local"
+    if anthropic_key == "local":
+        anthropic_key = "sk-ant-local"
     pairs = {
-        "OPENAI_API_KEY": "local",
+        "OPENAI_API_KEY": openai_key,
         "OPENAI_BASE_URL": HOST_SHIM,
         "OPENAI_API_BASE": HOST_SHIM,
-        "ANTHROPIC_API_KEY": "sk-ant-local",
+        "ANTHROPIC_API_KEY": anthropic_key,
         "ANTHROPIC_BASE_URL": HOST_KEVLAR,
         "CLAUDE_CODE_USE_BEDROCK": "0",
         "AWS_BEARER_TOKEN_BEDROCK": "",
         "LLM_MODEL": model,
         "MODEL": model,
     }
+    # Corporate MITM (Netskope) breaks npm/curl agent installs inside Docker
+    # unless the interception CA is trusted.
+    if CERT_BUNDLE.is_file():
+        ca = "/etc/harbor-corp-ca/docker-ca-bundle.pem"
+        pairs.update({
+            "SSL_CERT_FILE": ca,
+            "CURL_CA_BUNDLE": ca,
+            "REQUESTS_CA_BUNDLE": ca,
+            "NODE_EXTRA_CA_CERTS": ca,
+            "GIT_SSL_CAINFO": ca,
+        })
     flags: list[str] = []
     for k, v in pairs.items():
         flags.extend(["--ae", f"{k}={v}"])
     return flags
 
+
+def corp_ca_mount_flags() -> list[str]:
+    if not CERT_BUNDLE.is_file():
+        return []
+    mounts = [{
+        "type": "bind",
+        "source": str(CERT_BUNDLE.resolve()),
+        "target": "/etc/harbor-corp-ca/docker-ca-bundle.pem",
+        "read_only": True,
+    }]
+    return ["--mounts", json.dumps(mounts)]
+
+
+def trial_exception_type(result: dict) -> str | None:
+    ei = result.get("exception_info") or {}
+    if isinstance(ei, dict):
+        return ei.get("exception_type")
+    return ei
+
+
+def job_clean_count(job: Path) -> int:
+    n = 0
+    for d in _trial_dirs(job):
+        rj = d / "result.json"
+        if not rj.is_file():
+            continue
+        try:
+            r = json.loads(rj.read_text())
+        except Exception:
+            continue
+        if not trial_exception_type(r):
+            n += 1
+    return n
+
+
+def job_is_technical_junk(job: Path) -> bool:
+    """Complete job with zero clean trials — only setup/network failures."""
+    if not job_is_complete(job):
+        return False
+    if job_clean_count(job) > 0:
+        return False
+    tech = {
+        "NetworkConnectionError",
+        "CancelledError",
+        "UnknownApiError",
+        "AgentTimeoutError",
+        "NonZeroAgentExitCodeError",
+    }
+    total = 0
+    tech_n = 0
+    for d in _trial_dirs(job):
+        rj = d / "result.json"
+        if not rj.is_file():
+            continue
+        total += 1
+        try:
+            r = json.loads(rj.read_text())
+        except Exception:
+            continue
+        exc = trial_exception_type(r)
+        if exc in tech:
+            tech_n += 1
+    return total > 0 and tech_n == total
 
 def _dataset_task_count(ds_path: Path) -> int:
     if not ds_path.is_dir():

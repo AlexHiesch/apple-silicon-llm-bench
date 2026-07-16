@@ -92,11 +92,15 @@ def resolve_tasks_path(explicit: Path | None = None) -> Path:
 def agent_env_flags(model: str) -> list[str]:
     # Pier agents sit on an internal network and reach ThinkingCap via Squid.
     # Safe_ports + dns_v4_first are patched by scripts/patch_pier_egress.py.
+    openai_key = os.environ.get("OPENAI_API_KEY") or "local"
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY") or "sk-ant-local"
+    if anthropic_key == "local":
+        anthropic_key = "sk-ant-local"
     pairs = {
-        "OPENAI_API_KEY": "local",
+        "OPENAI_API_KEY": openai_key,
         "OPENAI_BASE_URL": HOST_SHIM,
         "OPENAI_API_BASE": HOST_SHIM,
-        "ANTHROPIC_API_KEY": "sk-ant-local",
+        "ANTHROPIC_API_KEY": anthropic_key,
         "ANTHROPIC_BASE_URL": HOST_KEVLAR,
         "CLAUDE_CODE_USE_BEDROCK": "0",
         # Empty overrides host Bedrock token via Pier _extra_env precedence.
