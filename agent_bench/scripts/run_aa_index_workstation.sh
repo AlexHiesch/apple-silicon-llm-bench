@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # AA Coding Agent Index — run ON the HP Z8 (no Mac harness).
 #
-# Inference: local LiteLLM :4000 → vLLM ThinkingCap (dual A6000)
+# Inference: local LiteLLM :4000 → dual vLLM ThinkingCap (:8001 + :8011)
 # Harness:   Harbor/Pier on THIS host
+# Concurrency: N_CONCURRENT=2 (one heavy trial per A6000 via LiteLLM LB)
+#
+# After the first full matrix pass, retries Harbor technical failures
+# (timeout / 403 / network / context / UnknownApiError / …) until only
+# content failures (reward=0, no exception) remain.
 #
 # Env (optional):
 #   WORKSTATION_API_KEY / HPLLM_KEY_FILE
 #   LLM_MODEL                 default thinkingcap
 #   N_ATTEMPTS                default 1
-#   N_CONCURRENT              default 1
+#   N_CONCURRENT              default 2
 #   AGENT_TIMEOUT_MULT        default 1.5
-#   CLAUDE_CODE_MAX_OUTPUT_TOKENS  default 16384
+#   CLAUDE_CODE_MAX_OUTPUT_TOKENS  default 8192  (fits dual-replica 65k)
+#   MAX_TECH_ROUNDS           default 12
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
@@ -36,39 +42,44 @@ if [[ -z "${OPENAI_API_KEY:-}" ]]; then
   exit 1
 fi
 
-# Host-local LiteLLM (this process / health checks)
 HOST_GATEWAY="${HOST_GATEWAY:-http://127.0.0.1:4000}"
-# From inside Docker agent containers → host LiteLLM
-# (127.0.0.1 inside the container is NOT the workstation)
 DOCKER_GATEWAY="${DOCKER_GATEWAY:-http://host.docker.internal:4000}"
 
 export LLM_MODEL="${LLM_MODEL:-thinkingcap}"
 export OPENAI_BASE_URL="${OPENAI_BASE_URL:-$HOST_GATEWAY/v1}"
 export OPENAI_API_BASE="$OPENAI_BASE_URL"
 export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-$HOST_GATEWAY}"
-# Harbor/Pier inject these into agent containers
 export HARBOR_OPENAI_BASE="${HARBOR_OPENAI_BASE:-$DOCKER_GATEWAY/v1}"
 export HARBOR_ANTHROPIC_BASE="${HARBOR_ANTHROPIC_BASE:-$DOCKER_GATEWAY}"
 export PIER_OPENAI_BASE="${PIER_OPENAI_BASE:-$DOCKER_GATEWAY/v1}"
 export PIER_ANTHROPIC_BASE="${PIER_ANTHROPIC_BASE:-$DOCKER_GATEWAY}"
 export CLAUDE_CODE_USE_BEDROCK=0
-# Cap Claude output so long turns fit vLLM context (65k dual / 131k TP2).
-export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
+# Dual-replica MAX_MODEL_LEN=65536: keep output budget small so 2 concurrent
+# long agent turns still fit (input + max_out < 65k).
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-8192}"
 unset AWS_BEARER_TOKEN_BEDROCK ANTHROPIC_BEDROCK_BASE_URL AWS_PROFILE || true
 
 N_ATTEMPTS="${N_ATTEMPTS:-1}"
+N_CONCURRENT="${N_CONCURRENT:-2}"
 AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.5}"
 MIN_FREE_GB="${MIN_FREE_GB:-20}"
+MAX_TECH_ROUNDS="${MAX_TECH_ROUNDS:-12}"
 
 STATUS="$ROOT/results/agent_bench/aa_index/OVERNIGHT_STATUS.txt"
 LOG="$ROOT/results/agent_bench/aa_index/overnight_ws_$(date +%Y%m%d_%H%M%S).log"
 mkdir -p "$ROOT/results/agent_bench/aa_index"
+
+PYTHON="${ROOT}/.venv/bin/python"
+if [[ ! -x "$PYTHON" ]]; then
+  PYTHON="$(command -v python3)"
+fi
 
 status() {
   {
     echo "==== $(date -Iseconds) ===="
     echo "$*"
     echo "host_gateway: $HOST_GATEWAY  docker_gateway: $DOCKER_GATEWAY  model=$LLM_MODEL"
+    echo "n_concurrent=$N_CONCURRENT max_out=$CLAUDE_CODE_MAX_OUTPUT_TOKENS"
     if curl -sf -m 8 -H "Authorization: Bearer $OPENAI_API_KEY" \
       "$OPENAI_BASE_URL/models" >/dev/null; then
       echo "gateway: UP"
@@ -100,29 +111,46 @@ ensure_docker() {
     echo "FATAL: Docker daemon not running / not permitted" >&2
     exit 1
   fi
-  # Linux: make host.docker.internal resolve (Docker Desktop does this by default).
-  if ! docker run --rm --add-host=host.docker.internal:host-gateway alpine:3.20 \
-      getent hosts host.docker.internal >/dev/null 2>&1; then
-    echo "WARN: could not verify host.docker.internal via host-gateway" >&2
-  fi
 }
 
-ensure_host_gateway_in_daemon() {
-  # Harbor --allow-agent-host relies on Docker resolving host.docker.internal.
-  # Persist host-gateway in daemon.json when missing (needs docker restart once).
-  local dj="/etc/docker/daemon.json"
-  if [[ -f "$dj" ]] && grep -q host.docker.internal "$dj" 2>/dev/null; then
-    return 0
-  fi
-  return 0
+count_tech() {
+  "$PYTHON" -m agent_bench.tech_failures --root "$ROOT/results/agent_bench/aa_index" 2>/dev/null \
+    | awk -F'[= ]' '/^tech=/{print $2; exit}'
+}
+
+run_matrix() {
+  local label="$1"
+  status "matrix pass: $label (n_concurrent=$N_CONCURRENT)"
+  "$PYTHON" -m agent_bench.run_matrix \
+    --matrix \
+    --profile aa-index \
+    --model "$LLM_MODEL" \
+    --skip-unavailable \
+    --n-attempts "$N_ATTEMPTS" \
+    --n-concurrent "$N_CONCURRENT" \
+    --suite-major \
+    --suite-order terminal-bench-v2 swe-atlas-qna deepswe \
+    --exclude-deepswe-touched \
+    --resume-harbor \
+    --harbor-retry-error UnknownApiError \
+    --harbor-retry-error AgentTimeoutError \
+    --harbor-retry-error CancelledError \
+    --harbor-retry-error NetworkConnectionError \
+    --harbor-retry-error NonZeroAgentExitCodeError \
+    --harbor-retry-error ContextWindowExceededError \
+    --harbor-retry-error RateLimitError \
+    --harbor-retry-error TimeoutError \
+    --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
+    --docker-prune-between \
+    --min-free-gb "$MIN_FREE_GB" \
+    ${AGENT_IDS:+--agent $AGENT_IDS}
 }
 
 cd "$ROOT"
 exec > >(tee -a "$LOG") 2>&1
 
-status "workstation-native overnight start (k=$N_ATTEMPTS timeout_mult=$AGENT_TIMEOUT_MULT host=$(hostname))"
+status "workstation-native overnight start (k=$N_ATTEMPTS n=$N_CONCURRENT timeout_mult=$AGENT_TIMEOUT_MULT host=$(hostname))"
 ensure_docker
-ensure_host_gateway_in_daemon
 wait_gateway 90
 
 code=$(curl -sS -o /tmp/aa_ws_smoke.json -w '%{http_code}' -m 120 \
@@ -137,7 +165,6 @@ if [[ "$code" != "200" ]]; then
 fi
 echo "smoke ok: $(head -c 180 /tmp/aa_ws_smoke.json)"
 
-# Container → host LiteLLM (must work with Mac powered off)
 docker_code=$(docker run --rm --add-host=host.docker.internal:host-gateway \
   curlimages/curl:8.5.0 -sS -o /dev/null -w '%{http_code}' -m 45 \
   -H "Authorization: Bearer ${OPENAI_API_KEY}" \
@@ -147,7 +174,6 @@ docker_code=$(docker run --rm --add-host=host.docker.internal:host-gateway \
 echo "docker→host gateway http=$docker_code"
 if [[ "$docker_code" != "200" ]]; then
   echo "FATAL: containers cannot reach LiteLLM via $DOCKER_GATEWAY" >&2
-  echo "Ensure Docker host-gateway / LiteLLM listens on 0.0.0.0:4000" >&2
   exit 1
 fi
 
@@ -156,33 +182,34 @@ if [[ -f "$ROOT/agent_bench/scripts/patch_pier_egress.py" ]]; then
     || "$ROOT/.venv/bin/python" "$ROOT/agent_bench/scripts/patch_pier_egress.py" || true
 fi
 
-PYTHON="${ROOT}/.venv/bin/python"
-if [[ ! -x "$PYTHON" ]]; then
-  PYTHON="$(command -v python3)"
-fi
-
-status "launching matrix on workstation ThinkingCap (native)"
-
-"$PYTHON" -m agent_bench.run_matrix \
-  --matrix \
-  --profile aa-index \
-  --model "$LLM_MODEL" \
-  --skip-unavailable \
-  --n-attempts "$N_ATTEMPTS" \
-  --n-concurrent "${N_CONCURRENT:-1}" \
-  --suite-major \
-  --suite-order terminal-bench-v2 swe-atlas-qna deepswe \
-  --exclude-deepswe-touched \
-  --resume-harbor \
-  --harbor-retry-error UnknownApiError \
-  --harbor-retry-error AgentTimeoutError \
-  --harbor-retry-error CancelledError \
-  --harbor-retry-error NetworkConnectionError \
-  --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
-  --docker-prune-between \
-  --min-free-gb "$MIN_FREE_GB" \
-  ${AGENT_IDS:+--agent $AGENT_IDS}
-
+# --- Pass 1: full matrix ---
+run_matrix "initial"
 rc=$?
-status "workstation-native overnight finished rc=$rc log=$LOG"
+
+# --- Pass 2..N: retry only technical Harbor failures until clean ---
+round=1
+while (( round <= MAX_TECH_ROUNDS )); do
+  "$PYTHON" -m agent_bench.tech_failures --root "$ROOT/results/agent_bench/aa_index" | tee -a "$STATUS"
+  tech="$(count_tech)"
+  tech="${tech:-0}"
+  status "tech-failure check round=$round tech=$tech"
+  if [[ "$tech" -eq 0 ]]; then
+    status "OK: zero technical failures — only content pass/fail remain"
+    break
+  fi
+  if (( round == MAX_TECH_ROUNDS )); then
+    status "STOP: still $tech technical failures after $MAX_TECH_ROUNDS rounds — see tech_failures report"
+    "$PYTHON" -m agent_bench.tech_failures --json --root "$ROOT/results/agent_bench/aa_index" \
+      > "$ROOT/results/agent_bench/aa_index/tech_failures_final.json" || true
+    rc=2
+    break
+  fi
+  run_matrix "tech-retry-$round"
+  rc=$?
+  round=$((round + 1))
+done
+
+"$PYTHON" -m agent_bench.tech_failures --json --root "$ROOT/results/agent_bench/aa_index" \
+  > "$ROOT/results/agent_bench/aa_index/tech_failures_final.json" || true
+status "workstation-native overnight finished rc=$rc log=$LOG tech_report=tech_failures_final.json"
 exit "$rc"
