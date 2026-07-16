@@ -458,8 +458,14 @@ def run_suite(
                 return result
     job_name = f"{suite_id}__{agent_id}__{time.strftime('%Y%m%d_%H%M%S')}"
 
-    # Prefer OpenAI-compatible model id for BYOK agents; Harbor prepends provider.
-    model_arg = model if "/" in model and not model.startswith("t-prazak/") else f"openai/{model}"
+    # Harbor -m is often provider/model. LiteLLM aliases (thinkingcap) must stay
+    # bare — openai/thinkingcap is rejected (403 key not allowed to access model).
+    if "/" in model and not model.startswith("t-prazak/"):
+        model_arg = model
+    elif model in {"thinkingcap", "ThinkingCap"} or os.environ.get("HARBOR_MODEL_AS_IS") == "1":
+        model_arg = model
+    else:
+        model_arg = f"openai/{model}"
 
     cmd = [
         harbor, "run",
