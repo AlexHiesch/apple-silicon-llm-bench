@@ -154,7 +154,9 @@ def job_is_complete(job: Path) -> bool:
 def find_latest_job(out: Path) -> Path | None:
     jobs = [
         p for p in out.iterdir()
-        if p.is_dir() and (p / "config.json").is_file()
+        if p.is_dir()
+        and (p / "config.json").is_file()
+        and not p.name.startswith("_")
     ]
     if not jobs:
         return None
@@ -165,13 +167,46 @@ def find_resumable_job(out: Path) -> Path | None:
     """Newest incomplete Harbor job dir under agent×suite output."""
     jobs = [
         p for p in out.iterdir()
-        if p.is_dir() and (p / "config.json").is_file()
+        if p.is_dir()
+        and (p / "config.json").is_file()
+        and not p.name.startswith("_")
     ]
     for job in sorted(jobs, key=lambda p: p.stat().st_mtime, reverse=True):
         if not job_is_complete(job):
             return job
     return None
 
+
+def discover_clean_task_names(out: Path) -> list[str]:
+    """Task names with a finished clean trial under this agent×suite dir.
+
+    Includes archived `_partial*` / `_broken*` dirs so we can start a fresh
+    Harbor job without redoing intel-usable results after a lock mismatch.
+    """
+    names: set[str] = set()
+    if not out.is_dir():
+        return []
+    for job in out.iterdir():
+        if not job.is_dir():
+            continue
+        for trial in job.iterdir():
+            if not trial.is_dir():
+                continue
+            rj = trial / "result.json"
+            if not rj.is_file():
+                continue
+            try:
+                r = json.loads(rj.read_text())
+            except Exception:
+                continue
+            ei = r.get("exception_info") or {}
+            exc = ei.get("exception_type") if isinstance(ei, dict) else ei
+            if exc:
+                continue
+            task = r.get("task_name") or trial.name.split("__")[0]
+            if task:
+                names.add(task)
+    return sorted(names)
 
 def resume_job(
     job_path: Path,
@@ -283,8 +318,25 @@ def run_suite(
                 "dataset": ds_label,
                 "n_attempts": n_attempts,
             })
-            return result
-
+            if result.get("status") == "ok" or result.get("complete"):
+                return result
+            # Common after n_attempts/config patches: lock.json mismatch.
+            log_text = ""
+            try:
+                log_text = Path(result["log"]).read_text(errors="ignore")
+            except Exception:
+                pass
+            if "lock.json" in log_text or "FileExistsError" in log_text:
+                print(
+                    "  (resume) lock mismatch — archiving job and starting fresh "
+                    "with clean-task excludes",
+                    flush=True,
+                )
+                broken = out / f"_broken_lock_{resumable.name}"
+                if not broken.exists():
+                    resumable.rename(broken)
+            else:
+                return result
     job_name = f"{suite_id}__{agent_id}__{time.strftime('%Y%m%d_%H%M%S')}"
 
     # Prefer OpenAI-compatible model id for BYOK agents; Harbor prepends provider.
@@ -305,6 +357,12 @@ def run_suite(
     ]
     if agent_timeout_multiplier and agent_timeout_multiplier != 1.0:
         cmd.extend(["--agent-timeout-multiplier", str(agent_timeout_multiplier)])
+    # Skip already-clean intel-usable tasks from prior partial jobs.
+    clean = discover_clean_task_names(out)
+    if clean:
+        print(f"  (fresh) excluding {len(clean)} clean tasks from prior runs", flush=True)
+        for name in clean:
+            cmd.extend(["--exclude-task-name", name])
     if yes:
         cmd.append("-y")
 
