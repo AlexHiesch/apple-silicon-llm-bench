@@ -214,6 +214,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--n-concurrent", type=int, default=1,
                         help="Concurrent trials inside Pier/Harbor (default: 1 for local MLX)")
     parser.add_argument(
+        "--n-attempts",
+        type=int,
+        default=None,
+        metavar="K",
+        help="Override profile repeats/attempts per task (default: from profile)",
+    )
+    parser.add_argument(
         "--suite-order",
         nargs="+",
         metavar="ID",
@@ -270,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
         matrix_only=args.matrix,
     )
     suites = select_suites(bench_cfg, profile, args.suite)
-    n_attempts = profile_attempts(bench_cfg, profile)
+    n_attempts = args.n_attempts if args.n_attempts is not None else profile_attempts(bench_cfg, profile)
 
     if not agents:
         print("No agents selected (check --agent / --skip-unavailable).")

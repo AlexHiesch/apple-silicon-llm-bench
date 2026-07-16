@@ -25,7 +25,7 @@ profiles:
     repeats: 1
   aa-index:
     suites: [deepswe, terminal-bench-v2, swe-atlas-qna]
-    repeats: 3
+    repeats: 1
   extended:
     suites: [deepswe, terminal-bench-v2, swe-atlas-qna, swebench-verified,
              swe-atlas-tw, swe-atlas-rf, letta-context-fs, letta-context-skills,

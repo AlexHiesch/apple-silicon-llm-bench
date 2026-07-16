@@ -6,7 +6,7 @@
 #   2. Harbor suites first — resume incomplete jobs (keep finished trials)
 #   3. On Harbor resume, retry UnknownApiError + AgentTimeoutError
 #      (API/Kevlar junk and walltime side-effects — not intel signal)
-#   4. DeepSWE with --exclude-deepswe-touched (keep existing trials; finish rest @k=3)
+#   4. DeepSWE with --exclude-deepswe-touched (k=1 by default via N_ATTEMPTS)
 #   5. Docker prune + disk guard between jobs
 #
 # Recoverable from last run:
@@ -30,6 +30,7 @@ export HARBOR_ANTHROPIC_BASE="${HARBOR_ANTHROPIC_BASE:-http://host.docker.intern
 export HARBOR_OPENAI_BASE="${HARBOR_OPENAI_BASE:-http://host.docker.internal:8091/v1}"
 
 MIN_FREE_GB="${MIN_FREE_GB:-40}"
+N_ATTEMPTS="${N_ATTEMPTS:-1}"
 STATUS="$ROOT/results/agent_bench/aa_index/OVERNIGHT_STATUS.txt"
 LOG="$ROOT/results/agent_bench/aa_index/overnight_$(date +%Y%m%d_%H%M%S).log"
 mkdir -p "$ROOT/results/agent_bench/aa_index"
@@ -139,6 +140,7 @@ status "launching matrix (Harbor first, then DeepSWE resume)"
   --matrix \
   --profile aa-index \
   --skip-unavailable \
+  --n-attempts "$N_ATTEMPTS" \
   --n-concurrent "${N_CONCURRENT:-1}" \
   --suite-major \
   --suite-order terminal-bench-v2 swe-atlas-qna deepswe \
