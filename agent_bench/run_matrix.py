@@ -126,7 +126,9 @@ def plan_runs(
             "agent_id": agent["id"],
             "suite": suite["id"],
             "harness": suite.get("harness"),
-            "model": agent.get("default_model") or suite.get("default_model") or model,
+            # Orchestrator --model / DEFAULT_MODEL wins so workstation alias
+            # (thinkingcap) is not overridden by agent YAML MLX ids.
+            "model": model,
             "base_url": DEFAULT_BASE_URL,
             "status": "planned",
         })
