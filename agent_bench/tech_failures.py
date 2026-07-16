@@ -23,6 +23,7 @@ TECH_EXCEPTION_TYPES = frozenset({
     "ContextWindowExceededError",
     "RateLimitError",
     "TimeoutError",
+    "RuntimeError",  # Harbor wraps docker/compose infra failures as RuntimeError
 })
 
 # Message snippets that mean infra/API — even if exception type is odd.
@@ -45,6 +46,9 @@ TECH_MESSAGE_MARKERS = (
     "timed out",
     "Timeout",
     "Rate limit",
+    "Docker compose command failed",
+    "unknown flag: --project-name",
+    "docker compose",
 )
 
 

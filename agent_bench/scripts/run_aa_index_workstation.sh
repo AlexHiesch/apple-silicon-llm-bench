@@ -162,6 +162,7 @@ run_matrix() {
     --harbor-retry-error ContextWindowExceededError \
     --harbor-retry-error RateLimitError \
     --harbor-retry-error TimeoutError \
+    --harbor-retry-error RuntimeError \
     --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
     --docker-prune-between \
     --min-free-gb "$MIN_FREE_GB" \
