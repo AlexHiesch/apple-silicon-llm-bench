@@ -33,6 +33,13 @@ data:
   HOST_GATEWAY: http://127.0.0.1:4000
   DOCKER_GATEWAY: http://host.docker.internal:4000
   HPLLM_KEY_FILE: /keys/mvp-test-key
+  # Corp egress (px-proxy on the Z8). hostNetwork → localhost works.
+  HTTP_PROXY: http://localhost:3128
+  HTTPS_PROXY: http://localhost:3128
+  http_proxy: http://localhost:3128
+  https_proxy: http://localhost:3128
+  NO_PROXY: localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net
+  no_proxy: localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -88,6 +95,15 @@ spec:
             - |
               set -euo pipefail
               export PATH="/home/runner/.local/bin:$PATH"
+              export HTTP_PROXY="${HTTP_PROXY:-http://localhost:3128}"
+              export HTTPS_PROXY="${HTTPS_PROXY:-http://localhost:3128}"
+              export http_proxy="$HTTP_PROXY"
+              export https_proxy="$HTTPS_PROXY"
+              export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net}"
+              export no_proxy="$NO_PROXY"
+              # apt needs Acquire::http::Proxy
+              printf 'Acquire::http::Proxy "%s";\nAcquire::https::Proxy "%s";\n' \
+                "$HTTP_PROXY" "$HTTPS_PROXY" > /etc/apt/apt.conf.d/01proxy
               apt-get update -qq
               apt-get install -y -qq git curl ca-certificates docker.io >/dev/null
               if [[ ! -x /home/runner/.local/bin/uv ]]; then
@@ -104,7 +120,6 @@ spec:
                 uv venv .venv
                 uv pip install -p .venv -r requirements.txt pyyaml
               fi
-              # Ensure docker can resolve host.docker.internal for agent containers
               docker info >/dev/null
               exec bash agent_bench/scripts/run_aa_index_workstation.sh
           resources:
