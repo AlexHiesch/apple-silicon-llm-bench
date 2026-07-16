@@ -25,6 +25,24 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 export PATH="${HOME}/.local/bin:${HOME}/.npm-global/bin:${PATH}"
 
+# Corp egress — Harbor pulls / agent installs. No sudo/kinit (expire overnight).
+export HTTP_PROXY="${HTTP_PROXY:-http://localhost:3128}"
+export HTTPS_PROXY="${HTTPS_PROXY:-http://localhost:3128}"
+export http_proxy="$HTTP_PROXY"
+export https_proxy="$HTTPS_PROXY"
+export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net,cmtcdeu89976740.rd.corpintra.net}"
+export no_proxy="$NO_PROXY"
+
+# Corp egress — required for Harbor image pulls / agent installs. Docker daemon
+# on the Z8 already has this proxy; export for curl/uv/npm in-process too.
+# Do not use sudo/kinit here (both expire under corp policy overnight).
+export HTTP_PROXY="${HTTP_PROXY:-http://localhost:3128}"
+export HTTPS_PROXY="${HTTPS_PROXY:-http://localhost:3128}"
+export http_proxy="$HTTP_PROXY"
+export https_proxy="$HTTPS_PROXY"
+export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net,cmtcdeu89976740.rd.corpintra.net}"
+export no_proxy="$NO_PROXY"
+
 # --- API key (prefer local workstation keys; never inherit cloud Azure tokens) ---
 if [[ -n "${WORKSTATION_API_KEY:-}" ]]; then
   _ws_key="$WORKSTATION_API_KEY"
