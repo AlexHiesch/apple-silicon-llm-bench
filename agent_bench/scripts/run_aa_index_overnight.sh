@@ -4,7 +4,8 @@
 # Strategy:
 #   1. Bring ThinkingCap stack up (Kevlar + shim); Kevlar --no-ssd-cache + backoff
 #   2. Harbor suites first — resume incomplete jobs (keep finished trials)
-#   3. On Harbor resume, retry UnknownApiError trials (422/stream after Kevlar fixes)
+#   3. On Harbor resume, retry UnknownApiError + AgentTimeoutError
+#      (API/Kevlar junk and walltime side-effects — not intel signal)
 #   4. DeepSWE with --exclude-deepswe-touched (keep existing trials; finish rest @k=3)
 #   5. Docker prune + disk guard between jobs
 #
@@ -144,6 +145,7 @@ status "launching matrix (Harbor first, then DeepSWE resume)"
   --exclude-deepswe-touched \
   --resume-harbor \
   --harbor-retry-error UnknownApiError \
+  --harbor-retry-error AgentTimeoutError \
   --docker-prune-between \
   --min-free-gb "$MIN_FREE_GB" \
   ${AGENT_IDS:+--agent $AGENT_IDS}
