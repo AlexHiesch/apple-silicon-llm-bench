@@ -57,11 +57,21 @@ def _trial_dirs_under(root: Path) -> list[Path]:
     if not root.is_dir():
         return out
     for p in root.rglob("result.json"):
-        # skip archived / smoke / failed junk folders
-        parts = set(p.parts)
-        if any(x.startswith("_") for x in p.relative_to(root).parts):
+        rel_parts = p.relative_to(root).parts
+        # Skip smoke / failed junk, but KEEP lock-mismatch archives that hold
+        # clean (pass/content_fail) trials — otherwise a resume archive zeroes
+        # the scoreboard.
+        skip = False
+        for part in rel_parts:
+            if not part.startswith("_"):
+                continue
+            if part.startswith("_broken_lock") or part.startswith("_partial"):
+                continue
+            skip = True
+            break
+        if skip:
             continue
-        if "artifacts" in parts:
+        if "artifacts" in set(rel_parts):
             continue
         out.append(p.parent)
     return out
