@@ -10,8 +10,9 @@
 | Topology | 1× pod, `--tensor-parallel-size 2`, 2 GPUs on `cmtcdeu89976740` |
 | `max-model-len` | `131072` |
 | Mooncake | off |
-| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `32768` |
+| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` (started at 32768; dialed down after `~98k+32k>128k` on schemelike) |
 | `N_CONCURRENT` | `2` |
+| `AGENT_TIMEOUT_MULT` | `2.0` |
 | LiteLLM `request_timeout` | `1800` (was 600) |
 | LiteLLM `nodeSelector` | pinned to Z8 (`cmtcdeu89976740`) for `hostNetwork :4000` |
 

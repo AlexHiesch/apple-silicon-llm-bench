@@ -110,8 +110,16 @@ restart_aa_ws() {
     | awk '/agent_bench[.]run_matrix|uv\/tools\/harbor\/bin\/python .*harbor /{print $1}' \
     | while read -r p; do kill "$p" 2>/dev/null || true; done
   sleep 3
+  # Prefer temporary TP2@128k launcher when that overnight mode is active.
+  local launcher="agent_bench/scripts/run_aa_index_workstation.sh"
+  if [[ -f "$ROOT/BENCH_TP2_128K.env" || -f "$ROOT/TEMP_MODE_ACTIVE.txt" ]]; then
+    if [[ -x "$REPO/agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh" ]]; then
+      launcher="agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh"
+      say "using TEMP TP2@128k launcher"
+    fi
+  fi
   tmux new-session -d -s aa-ws -c "$REPO" -- bash -lc \
-    "bash agent_bench/scripts/run_aa_index_workstation.sh 2>&1 | tee -a $ROOT/overnight_ws_restart_\$(date +%Y%m%d_%H%M%S).log"
+    "bash $launcher 2>&1 | tee -a $ROOT/overnight_ws_restart_\$(date +%Y%m%d_%H%M%S).log"
   sleep 4
   tmux has-session -t aa-ws 2>/dev/null && say "aa-ws restarted" || say "FATAL aa-ws failed to start"
 }
@@ -192,12 +200,23 @@ while true; do
   ensure_swe_pull
 
   # 5) aa-ws / harbor liveness
-  if ! aa_alive || ! matrix_alive; then
+  # Grace: overnight script does gateway/docker smokes before run_matrix starts.
+  # Do not restart during that window or we thrash aa-ws forever.
+  runner_bootstrapping=0
+  if aa_alive && ! matrix_alive; then
+    if pgrep -u "$USER" -f 'run_aa_index_workstation' >/dev/null 2>&1; then
+      runner_bootstrapping=1
+    fi
+  fi
+  if ! aa_alive || { ! matrix_alive && [[ "$runner_bootstrapping" -eq 0 ]]; }; then
     say "aa-ws or matrix dead"
     restart_aa_ws
     idle_rounds=0
     sleep "$INTERVAL"
     continue
+  fi
+  if [[ "$runner_bootstrapping" -eq 1 ]]; then
+    say "aa-ws bootstrapping (pre-matrix); skip restart"
   fi
 
   # 6) progress watchdog: no new artifacts AND no harbor AND gpu idle
