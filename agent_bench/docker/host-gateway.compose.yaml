@@ -4,8 +4,14 @@
 # Also inject corp px-proxy into the *container* environment so root apt/curl
 # during Harbor agent install sees a working proxy. Host localhost:3128 is
 # unreachable from the container namespace; host.docker.internal → docker bridge.
+#
+# Clear image ENTRYPOINT: SWE-Atlas prebuilts ship ENTRYPOINT ["/bin/bash"].
+# Harbor's docker-compose-prebuilt sets command ["sh","-c","sleep infinity"].
+# With bash left as entrypoint that becomes `bash sh -c …` → exit 126
+# ("cannot execute binary file"). Empty entrypoint lets Harbor's command run.
 services:
   main:
+    entrypoint: []
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:

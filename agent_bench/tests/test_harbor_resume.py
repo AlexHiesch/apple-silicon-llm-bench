@@ -65,3 +65,28 @@ def test_already_complete_skips_resume(tmp_path: Path):
         (trial / "result.json").write_text("{}")
     assert run_harbor.job_is_complete(job) is True
     assert run_harbor.find_resumable_job(job.parent) is None
+
+
+def test_job_has_exception_types(tmp_path: Path):
+    ds = tmp_path / "dataset"
+    ds.mkdir()
+    for i in range(2):
+        t = ds / f"task-{i}"
+        t.mkdir()
+        (t / "task.toml").write_text("[task]\n")
+    job = tmp_path / "jobs" / "done"
+    job.mkdir(parents=True)
+    (job / "config.json").write_text(
+        json.dumps({"n_attempts": 1, "datasets": [{"path": str(ds)}]})
+    )
+    clean = job / "task-0__a"
+    clean.mkdir()
+    (clean / "result.json").write_text("{}")
+    bad = job / "task-1__b"
+    bad.mkdir()
+    (bad / "result.json").write_text(
+        json.dumps({"exception_info": {"exception_type": "RuntimeError"}})
+    )
+    assert run_harbor.job_is_complete(job) is True
+    assert run_harbor.job_has_exception_types(job, ["RuntimeError"]) is True
+    assert run_harbor.job_has_exception_types(job, ["AgentTimeoutError"]) is False

@@ -202,6 +202,24 @@ def job_clean_count(job: Path) -> int:
     return n
 
 
+def job_has_exception_types(job: Path, types: list[str] | set[str] | None) -> bool:
+    """True if any finished trial has an exception_type in *types*."""
+    if not types:
+        return False
+    want = set(types)
+    for d in _trial_dirs(job):
+        rj = d / "result.json"
+        if not rj.is_file():
+            continue
+        try:
+            r = json.loads(rj.read_text())
+        except Exception:
+            continue
+        if trial_exception_type(r) in want:
+            return True
+    return False
+
+
 def job_is_technical_junk(job: Path) -> bool:
     """Complete job with zero clean trials — only setup/network failures."""
     if not job_is_complete(job):
@@ -214,6 +232,11 @@ def job_is_technical_junk(job: Path) -> bool:
         "UnknownApiError",
         "AgentTimeoutError",
         "NonZeroAgentExitCodeError",
+        "RuntimeError",
+        "AgentSetupTimeoutError",
+        "TimeoutError",
+        "RateLimitError",
+        "ContextWindowExceededError",
     }
     total = 0
     tech_n = 0
@@ -351,6 +374,42 @@ def discover_clean_task_names(out: Path) -> list[str]:
                 names.add(task)
     return sorted(names)
 
+def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
+    """chown root-owned crash leftovers so Harbor can rmtree incomplete trials.
+
+    After a hard reboot, Docker-created agent/sessions/debug dirs are often
+    owned by root; Harbor's resume then dies with PermissionError on 'debug'.
+    Uses a privileged alpine container (no host sudo required).
+    """
+    job_path = Path(job_path)
+    try:
+        probe = subprocess.run(
+            ["find", str(job_path), "-user", "root"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return 0
+    paths = [ln for ln in (probe.stdout or "").splitlines() if ln.strip()]
+    if not paths:
+        return 0
+    uid = os.getuid()
+    gid = os.getgid()
+    subprocess.run(
+        [
+            "docker", "run", "--rm",
+            "-v", f"{job_path.resolve()}:/job",
+            "alpine:3.20",
+            "chown", "-R", f"{uid}:{gid}", "/job",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    return len(paths)
+
+
 def resume_job(
     job_path: Path,
     *,
@@ -361,6 +420,7 @@ def resume_job(
     job_path = Path(job_path)
     job_name = job_path.name
     out = job_path.parent
+    reclaimed = reclaim_root_owned_trial_dirs(job_path)
     cmd = [harbor, "job", "resume", "-p", str(job_path)]
     for err in filter_error_types or []:
         cmd.extend(["--filter-error-type", err])
@@ -369,6 +429,8 @@ def resume_job(
     t0 = time.time()
     with log_path.open("w") as log:
         log.write("$ " + " ".join(cmd) + "\n\n")
+        if reclaimed:
+            log.write(f"# reclaimed {reclaimed} root-owned paths under job\n\n")
         log.flush()
         proc = subprocess.run(
             cmd,
@@ -383,6 +445,7 @@ def resume_job(
         "mode": "resume",
         "job_path": str(job_path),
         "filter_error_types": list(filter_error_types or []),
+        "reclaimed_root_paths": reclaimed,
         "elapsed_s": elapsed,
         "jobs_dir": str(out),
         "log": str(log_path),
@@ -437,7 +500,15 @@ def run_suite(
 
     if resume:
         latest = find_latest_job(out)
-        if latest and job_is_complete(latest):
+        # Complete jobs with only content results → skip. Complete jobs that
+        # still have filterable tech exceptions must be resumed (Harbor drops
+        # those trials). Previously we short-circuited and never retried
+        # RuntimeError-only SWE-Atlas/TB jobs.
+        if (
+            latest
+            and job_is_complete(latest)
+            and not job_has_exception_types(latest, filter_error_types)
+        ):
             return {
                 "status": "ok",
                 "mode": "already_complete",
@@ -447,7 +518,15 @@ def run_suite(
                 "jobs_dir": str(out),
                 "elapsed_s": 0,
             }
-        resumable = find_resumable_job(out)
+        resumable = None
+        if (
+            latest
+            and job_is_complete(latest)
+            and job_has_exception_types(latest, filter_error_types)
+        ):
+            resumable = latest
+        else:
+            resumable = find_resumable_job(out)
         if resumable:
             print(f"  (resume) Harbor job {resumable.name}", flush=True)
             result = resume_job(
@@ -469,6 +548,29 @@ def run_suite(
                 log_text = Path(result["log"]).read_text(errors="ignore")
             except Exception:
                 pass
+            if "PermissionError" in log_text and "debug" in log_text:
+                print(
+                    "  (resume) root-owned crash leftovers — reclaiming and retrying",
+                    flush=True,
+                )
+                reclaim_root_owned_trial_dirs(resumable)
+                result = resume_job(
+                    resumable,
+                    filter_error_types=filter_error_types,
+                )
+                result.update({
+                    "agent_id": agent_id,
+                    "harbor_agent": harbor_agent,
+                    "suite": suite_id,
+                    "dataset": ds_label,
+                    "n_attempts": n_attempts,
+                })
+                if result.get("status") == "ok" or result.get("complete"):
+                    return result
+                try:
+                    log_text = Path(result["log"]).read_text(errors="ignore")
+                except Exception:
+                    log_text = ""
             if "lock.json" in log_text or "FileExistsError" in log_text:
                 print(
                     "  (resume) lock mismatch — archiving job and starting fresh "
