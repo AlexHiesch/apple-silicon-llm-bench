@@ -53,6 +53,8 @@ systemctl --user daemon-reload
 systemctl --user reset-failed px-proxy 2>/dev/null || true
 systemctl --user restart px-proxy
 systemctl --user is-active px-proxy >/dev/null
+# After a fresh `kinit`, restart px again — stale upstream CONNECT tunnels
+# otherwise time out (ghcr.io / npm / github all fail until restart).
 
 # Warm Docker pulls that Harbor/smoke will need (daemon already has corp proxy).
 docker pull alpine:3.20 >/dev/null
