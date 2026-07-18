@@ -1,0 +1,66 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["127.0.0.1:9090"]
+  - job_name: vllm-int4
+    metrics_path: /metrics
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ["llm-serving"]
+    relabel_configs:
+      # x40 deploy (app=vllm-int4) + x39 deploy (app=vllm-int4-x39)
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: vllm-int4(?:-x39)?
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        action: keep
+        regex: "8000"
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        target_label: vllm_app
+      - source_labels: [__meta_kubernetes_pod_label_llm_bench_node]
+        target_label: bench_node
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node_short
+        regex: cmtcdeu89976739
+        replacement: x39
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node_short
+        regex: cmtcdeu89976740
+        replacement: x40
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: instance
+  - job_name: litellm
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["litellm.llm-serving.svc.cluster.local:4000"]
+  - job_name: dcgm
+    metrics_path: /metrics
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: ["llm-observability"]
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: dcgm-exporter
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node_short
+        regex: cmtcdeu89976739
+        replacement: x39
+      - source_labels: [__meta_kubernetes_pod_node_name]
+        target_label: node_short
+        regex: cmtcdeu89976740
+        replacement: x40
+      - source_labels: [__meta_kubernetes_pod_ip]
+        target_label: instance

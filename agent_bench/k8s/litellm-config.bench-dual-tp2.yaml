@@ -1,0 +1,30 @@
+# LiteLLM config fragment for dual TP2@128k backends (x40 + x39).
+# Applied via: kubectl -n llm-serving create cm litellm-config --from-file=config.yaml=... -o yaml --dry-run=client | kubectl apply -f -
+model_list:
+  - model_name: thinkingcap
+    litellm_params:
+      model: openai/thinkingcap-qwen3.6-27b
+      api_base: http://vllm-int4.llm-serving.svc.cluster.local:8000/v1
+      api_key: sk-k8s-local-vllm
+  - model_name: thinkingcap
+    litellm_params:
+      model: openai/thinkingcap-qwen3.6-27b
+      api_base: http://vllm-int4-x39.llm-serving.svc.cluster.local:8000/v1
+      api_key: sk-k8s-local-vllm
+
+router_settings:
+  routing_strategy: simple-shuffle
+
+litellm_settings:
+  request_timeout: 1800
+  set_verbose: false
+  json_logs: true
+  drop_params: true
+  callbacks: ["prometheus"]
+  require_auth_for_metrics_endpoint: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  disable_error_logs: true
+  allow_requests_on_db_unavailable: true
