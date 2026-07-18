@@ -172,3 +172,18 @@ def test_set_job_n_concurrent_patches_lock(tmp_path: Path):
     assert json.loads((job / "config.json").read_text())["n_concurrent_trials"] == 4
     # idempotent
     assert run_harbor.set_job_n_concurrent(job, 4) == 4
+
+
+def test_set_job_n_concurrent_writes_config_when_key_missing(tmp_path: Path):
+    """Harbor resume rebuilds the lock from config (default n=4).
+
+    Lock-only bumps to 8 leave config at default 4 → FileExistsError.
+    """
+    job = tmp_path / "job"
+    job.mkdir()
+    (job / "lock.json").write_text(json.dumps({"n_concurrent_trials": 4}))
+    (job / "config.json").write_text(json.dumps({"job_name": "x", "agents": []}))
+    prev = run_harbor.set_job_n_concurrent(job, 8)
+    assert prev == 4
+    assert json.loads((job / "lock.json").read_text())["n_concurrent_trials"] == 8
+    assert json.loads((job / "config.json").read_text())["n_concurrent_trials"] == 8

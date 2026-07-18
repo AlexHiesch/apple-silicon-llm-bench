@@ -31,10 +31,10 @@ trials to a single node.
 | `AGENT_TIMEOUT_MULT` | `1.5` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
 
-Harbor `job resume` has **no** `-n` flag — concurrency lives in the job's
-`lock.json` (`n_concurrent_trials`). `run_harbor.resume_*` patches that field
-to match `--n-concurrent` / `N_CONCURRENT` before each resume so dual-node
-bumps stick on existing jobs.
+Harbor `job resume` has **no** `-n` flag. Resume rebuilds the lock from
+`config.json` (Harbor default `n_concurrent_trials=4`) and errors if that
+disagrees with existing `lock.json`. `run_harbor.set_job_n_concurrent` patches
+**both** files to match `--n-concurrent` / `N_CONCURRENT` before each resume.
 
 LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 `litellm-config.bench-dual-tp2.yaml`). Re-apply with

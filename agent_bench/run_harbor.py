@@ -296,6 +296,21 @@ def resume_until_content(
         result["tech_resume_rounds"] = round_i
         after = count_job_exception_types(job, types)
         result["tech_remaining"] = after
+        log_text = ""
+        try:
+            log_text = Path(result["log"]).read_text(errors="ignore")
+        except Exception:
+            pass
+        if "FileExistsError" in log_text or "does not match the resolved job lock" in log_text:
+            print(
+                "  (resume) ERROR: lock/config n_concurrent mismatch — "
+                "fix set_job_n_concurrent (patch config.json + lock.json) "
+                "and retry; aborting resume loop",
+                flush=True,
+            )
+            result["status"] = "lock_mismatch"
+            result["complete"] = False
+            return result
         if after == 0 and job_is_complete(job):
             result["complete"] = True
             return result
@@ -314,6 +329,22 @@ def resume_until_content(
             )
             result["status"] = "tech_stagnant"
             return result
+        # Failed resume with no progress on an incomplete job: don't burn
+        # the full round budget on the same error.
+        if (
+            result.get("status", "").startswith("exit_")
+            and after == 0
+            and not job_is_complete(job)
+        ):
+            stagnant += 1
+            if stagnant >= 3:
+                print(
+                    "  (resume) WARN: incomplete job resume failing — "
+                    "leaving for a later pass",
+                    flush=True,
+                )
+                result["status"] = "resume_failed"
+                return result
     result["status"] = "tech_budget_exhausted"
     result["tech_remaining"] = count_job_exception_types(job, types)
     print(
@@ -482,10 +513,10 @@ def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
 def set_job_n_concurrent(job_path: Path, n_concurrent: int) -> int | None:
     """Bump Harbor job concurrency before resume.
 
-    Harbor ``job resume`` has no ``-n`` flag — it reads ``n_concurrent_trials``
-    from ``lock.json`` (and sometimes ``config.json``). Fresh ``harbor run``
-    wrote the old value; dual-node bumps must patch the existing job or resume
-    stays stuck at the prior concurrency.
+    Harbor ``job resume`` has no ``-n`` flag. It rebuilds the job lock from
+    ``config.json`` (default ``n_concurrent_trials=4``) and refuses to run if
+    that disagrees with existing ``lock.json``. Both files must be patched to
+    the same value — lock-only bumps (e.g. 4→8) raise ``FileExistsError``.
     """
     if n_concurrent < 1:
         raise ValueError(f"n_concurrent must be >= 1, got {n_concurrent}")
@@ -501,14 +532,13 @@ def set_job_n_concurrent(job_path: Path, n_concurrent: int) -> int | None:
             continue
         if not isinstance(data, dict):
             continue
-        if "n_concurrent_trials" in data or name == "lock.json":
-            old = data.get("n_concurrent_trials")
-            if prev is None and isinstance(old, int):
-                prev = old
-            if old == n_concurrent:
-                continue
-            data["n_concurrent_trials"] = n_concurrent
-            path.write_text(json.dumps(data, indent=2) + "\n")
+        old = data.get("n_concurrent_trials")
+        if prev is None and isinstance(old, int):
+            prev = old
+        if old == n_concurrent:
+            continue
+        data["n_concurrent_trials"] = n_concurrent
+        path.write_text(json.dumps(data, indent=2) + "\n")
     return prev
 
 
@@ -658,12 +688,23 @@ def run_suite(
                 "dataset": ds_label,
                 "n_attempts": n_attempts,
             })
-            if result.get("status") in ("ok", "tech_stagnant", "tech_budget_exhausted") or result.get("complete"):
-                # tech_stagnant/budget: still return — overnight watchdog can
-                # revisit; do not start a duplicate fresh job on top.
-                if result.get("tech_remaining", 0) == 0 or result.get("complete"):
+            if result.get("status") in (
+                "ok",
+                "tech_stagnant",
+                "tech_budget_exhausted",
+                "lock_mismatch",
+                "resume_failed",
+            ) or result.get("complete"):
+                # tech_stagnant/budget/lock_mismatch: still return — overnight
+                # watchdog can revisit; do not start a duplicate fresh job.
+                if result.get("status") in (
+                    "tech_stagnant",
+                    "tech_budget_exhausted",
+                    "lock_mismatch",
+                    "resume_failed",
+                ):
                     return result
-                if result.get("status") in ("tech_stagnant", "tech_budget_exhausted"):
+                if result.get("tech_remaining", 0) == 0 or result.get("complete"):
                     return result
             # Common after n_attempts/config patches: lock.json mismatch.
             log_text = ""
@@ -690,7 +731,13 @@ def run_suite(
                     "n_attempts": n_attempts,
                 })
                 if (
-                    result.get("status") in ("ok", "tech_stagnant", "tech_budget_exhausted")
+                    result.get("status") in (
+                        "ok",
+                        "tech_stagnant",
+                        "tech_budget_exhausted",
+                        "lock_mismatch",
+                        "resume_failed",
+                    )
                     or result.get("complete")
                 ):
                     return result
