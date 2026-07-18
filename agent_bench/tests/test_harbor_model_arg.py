@@ -39,18 +39,24 @@ def test_patch_job_model_names(tmp_path: Path):
                 "name": "opencode",
                 "model_name": "thinkingcap",
                 "env": {"LLM_MODEL": "thinkingcap", "MODEL": "thinkingcap"},
-            }
+            },
+            {
+                "name": "claude-code",
+                "model_name": "thinkingcap",
+                "env": {"LLM_MODEL": "thinkingcap"},
+            },
         ]
     }
     (job / "config.json").write_text(json.dumps(cfg))
     (job / "lock.json").write_text(json.dumps(cfg))
     n = patch_job_model_names(job, "openai/thinkingcap")
-    assert n == 2
+    assert n == 2  # opencode in config + lock only
     for name in ("config.json", "lock.json"):
         data = json.loads((job / name).read_text())
-        assert data["agents"][0]["model_name"] == "openai/thinkingcap"
-        # API env stays bare
-        assert data["agents"][0]["env"]["LLM_MODEL"] == "thinkingcap"
+        by = {a["name"]: a for a in data["agents"]}
+        assert by["opencode"]["model_name"] == "openai/thinkingcap"
+        assert by["claude-code"]["model_name"] == "thinkingcap"
+        assert by["opencode"]["env"]["LLM_MODEL"] == "thinkingcap"
 
 
 def test_valueerror_is_tech():

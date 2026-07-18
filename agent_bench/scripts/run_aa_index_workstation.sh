@@ -167,6 +167,7 @@ run_matrix() {
     --harbor-retry-error ApiRateLimitError \
     --harbor-retry-error TimeoutError \
     --harbor-retry-error RuntimeError \
+    --harbor-retry-error ValueError \
     --harbor-retry-error AgentSetupTimeoutError \
     --harbor-retry-error EnvironmentStartTimeoutError \
     --harbor-retry-error VerifierTimeoutError \

@@ -398,11 +398,15 @@ def resume_until_content(
             log_text = Path(result["log"]).read_text(errors="ignore")
         except Exception:
             pass
-        if "FileExistsError" in log_text or "does not match the resolved job lock" in log_text:
+        if (
+            "FileExistsError" in log_text
+            or "does not match the resolved job lock" in log_text
+            or "Existing trial config does not match planned job config" in log_text
+        ):
             print(
-                "  (resume) ERROR: lock/config n_concurrent mismatch — "
-                "fix set_job_n_concurrent (patch config.json + lock.json) "
-                "and retry; aborting resume loop",
+                "  (resume) ERROR: lock/config mismatch — "
+                "archive job or revert model_name/n_concurrent drift; "
+                "aborting resume loop",
                 flush=True,
             )
             result["status"] = "lock_mismatch"
@@ -471,8 +475,12 @@ def job_is_complete(job: Path) -> bool:
         return False
     cfg = json.loads(cfg_path.read_text())
     n_attempts = int(cfg.get("n_attempts") or 1)
-    ds_path = Path((cfg.get("datasets") or [{}])[0].get("path") or "")
+    ds_cfg = (cfg.get("datasets") or [{}])[0]
+    ds_path = Path(ds_cfg.get("path") or "")
+    excludes = set(ds_cfg.get("exclude_task_names") or [])
     n_tasks = _dataset_task_count(ds_path)
+    if n_tasks and excludes:
+        n_tasks = max(0, n_tasks - len(excludes))
     trials = _trial_dirs(job)
     if any(not (d / "result.json").exists() for d in trials):
         return False
@@ -607,12 +615,29 @@ def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
     return len(paths)
 
 
-def patch_job_model_names(job_path: Path, model_arg: str) -> int:
-    """Rewrite bare ``thinkingcap`` Harbor ``agents[].model_name`` in config+lock.
+# Harbor agents that raise if ``-m`` / model_name lacks ``provider/…``.
+# Claude Code / OpenHands strip a prefix and must keep bare thinkingcap in
+# existing trial configs (resume rejects model_name drift).
+_HARBOR_AGENTS_NEED_SLASH_MODEL = frozenset({
+    "aider",
+    "antigravity-cli",
+    "cursor-cli",
+    "goose",
+    "hermes",
+    "mimo",
+    "mini-swe-agent",
+    "openclaw",
+    "opencode",
+    "pi",
+})
 
-    Agent *env* ``LLM_MODEL`` / ``MODEL`` stay bare (LiteLLM allowlist). Only the
-    Harbor ``-m`` / ``model_name`` field needs ``openai/thinkingcap`` so agents
-    that require ``provider/model`` do not raise ValueError on resume.
+
+def patch_job_model_names(job_path: Path, model_arg: str) -> int:
+    """Rewrite bare ``thinkingcap`` → ``openai/thinkingcap`` only for slash-agents.
+
+    Agent *env* ``LLM_MODEL`` / ``MODEL`` stay bare (LiteLLM allowlist). Never
+    rewrite claude-code / openhands jobs — resume then fails with
+    ``Existing trial config does not match planned job config``.
     """
     job_path = Path(job_path)
     n = 0
@@ -629,6 +654,8 @@ def patch_job_model_names(job_path: Path, model_arg: str) -> int:
         changed = False
         for agent in data.get("agents") or []:
             if not isinstance(agent, dict):
+                continue
+            if agent.get("name") not in _HARBOR_AGENTS_NEED_SLASH_MODEL:
                 continue
             cur = agent.get("model_name")
             if cur in {"thinkingcap", "ThinkingCap"} and cur != model_arg:
