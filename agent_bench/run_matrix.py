@@ -21,6 +21,7 @@ from harness_model import DEFAULT_BASE_URL, DEFAULT_MODEL, agent_env
 
 from .detect import list_readiness, print_report
 from . import run_harbor, run_pier
+from .tb_suite_remap import remap_tb_suite
 
 ROOT = Path(__file__).resolve().parent
 RESULTS = ROOT.parent / "results" / "agent_bench"
@@ -122,10 +123,18 @@ def plan_runs(
         else ((suite, agent) for agent in agents for suite in suites)
     )
     for suite, agent in loops:
+        requested = suite["id"]
+        remapped = remap_tb_suite(requested, agent["id"])
+        # When remap rewrites TB 2.0 → 2.1, pull harness/meta from the
+        # remapped suite catalog entry if present; else keep requested.
+        harness = suite.get("harness")
+        if remapped != requested:
+            harness = "harbor"
         runs.append({
             "agent_id": agent["id"],
-            "suite": suite["id"],
-            "harness": suite.get("harness"),
+            "suite": remapped,
+            "suite_requested": requested,
+            "harness": harness,
             # Orchestrator --model / DEFAULT_MODEL wins so workstation alias
             # (thinkingcap) is not overridden by agent YAML MLX ids.
             "model": model,
@@ -179,7 +188,7 @@ def execute_run(
             n_concurrent=n_concurrent,
             exclude_task_names=exclude,
         )
-    if suite in ("terminal-bench-v2", "swe-atlas-qna") or harness == "harbor":
+    if suite in ("terminal-bench-v2", "terminal-bench-v2-1", "swe-atlas-qna") or harness == "harbor":
         return run_harbor.run_suite(
             agent_id=agent_id,
             suite_id=suite,
@@ -311,6 +320,17 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Agents ({len(agents)}): {', '.join(a['id'] for a in agents)}")
     print(f"Suites ({len(suites)}): {', '.join(s['id'] for s in suites)}")
     print(f"Planned runs: {len(runs)}")
+    remapped = [
+        r for r in runs
+        if r.get("suite_requested") and r["suite_requested"] != r["suite"]
+    ]
+    if remapped:
+        print(f"TB suite remap ({len(remapped)} runs):")
+        for r in remapped:
+            print(
+                f"  {r['agent_id']}: {r['suite_requested']} → {r['suite']}",
+                flush=True,
+            )
     if args.exclude_deepswe_touched:
         print("Resume: excluding already-touched DeepSWE tasks")
     # Tech failures must never stick: default to retrying every known tech

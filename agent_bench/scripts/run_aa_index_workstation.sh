@@ -40,6 +40,12 @@ export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.16
 export no_proxy="$NO_PROXY"
 export HARBOR_HTTP_PROXY="${HARBOR_HTTP_PROXY:-http://host.docker.internal:3128}"
 
+# After claude-code TB 2.0 finishes, set in BENCH_TP2_128K.env (or here):
+#   export AA_TB_REMAP_TO_21=1
+#   export AA_TB_LEGACY_AGENTS=claude-code
+# Then restart aa-ws so remaining agents use TB 2.1.
+# Pass-through is automatic via environment (remap_tb_suite in run_matrix).
+
 # --- API key (prefer local workstation keys; never inherit cloud Azure tokens) ---
 if [[ -n "${WORKSTATION_API_KEY:-}" ]]; then
   _ws_key="$WORKSTATION_API_KEY"

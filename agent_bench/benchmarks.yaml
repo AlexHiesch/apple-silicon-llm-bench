@@ -6,6 +6,8 @@ default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
 
 composites:
   aa_coding_index_v1_1:
+    # AA Index historically cites TB 2.0; with AA_TB_REMAP_TO_21=1 most agents
+    # run terminal-bench-v2-1 (claude-code stays on 2.0 via AA_TB_LEGACY_AGENTS).
     formula: avg(deepswe, terminal-bench-v2, swe-atlas-qna)
     source: https://artificialanalysis.ai/methodology/coding-agents-benchmarking
   llm_bench_coding_core:
@@ -24,12 +26,14 @@ profiles:
       swebench-verified: 50
     repeats: 1
   aa-index:
+    # Keep terminal-bench-v2 only — remap_tb_suite rewrites to v2-1 when
+    # AA_TB_REMAP_TO_21=1 (except AA_TB_LEGACY_AGENTS, default claude-code).
     suites: [deepswe, terminal-bench-v2, swe-atlas-qna]
     repeats: 1
   extended:
     suites: [deepswe, terminal-bench-v2, swe-atlas-qna, swebench-verified,
              swe-atlas-tw, swe-atlas-rf, letta-context-fs, letta-context-skills,
-             skillsbench, bfcl-v3, claw-eval]
+             skillsbench, bfcl-v3, claw-eval, terminal-bench-v2-1]
   full:
     suites: all
 
@@ -55,6 +59,18 @@ benchmarks:
     composites: [aa_coding_index_v1_1, llm_bench_coding_core]
     phase: 1
     default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+
+  - id: terminal-bench-v2-1
+    tier: 1
+    tasks: 89
+    harness: harbor
+    dataset: terminal-bench/terminal-bench-2-1
+    metric: pass_at_1
+    repeats: 3
+    composites: [aa_coding_index_v1_1]
+    phase: 1
+    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    notes: Prefer over v2 once AA_TB_REMAP_TO_21 is enabled; profile still lists v2 for remap.
 
   - id: swe-atlas-qna
     tier: 1
@@ -151,15 +167,6 @@ benchmarks:
     harness: claw-eval
     metric: pass_cubed
     trials: 3
-    phase: 2
-    default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
-
-  - id: terminal-bench-v2-1
-    tier: 4
-    tasks: 89
-    harness: harbor
-    dataset: terminal-bench/terminal-bench-2-1
-    metric: pass_at_1
     phase: 2
     default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
 

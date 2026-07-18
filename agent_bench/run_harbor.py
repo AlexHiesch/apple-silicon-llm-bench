@@ -59,6 +59,10 @@ SUITE_DATASETS = {
         "registry": "terminal-bench@2.0",
         "local": RESULTS / "datasets" / "terminal-bench-2.0" / "terminal-bench",
     },
+    "terminal-bench-v2-1": {
+        "registry": "terminal-bench/terminal-bench-2-1",
+        "local": RESULTS / "datasets" / "terminal-bench-2.1" / "terminal-bench",
+    },
     "swe-atlas-qna": {
         "registry": None,  # not on default Harbor registry; use Scale GitHub export
         "local": RESULTS / "datasets" / "SWE-Atlas" / "data" / "qa",
@@ -163,6 +167,17 @@ def agent_env_flags(model: str) -> list[str]:
     for k, v in pairs.items():
         flags.extend(["--ae", f"{k}={v}"])
     return flags
+
+
+def agent_kwarg_flags(harbor_agent: str) -> list[str]:
+    """Agent-specific Harbor ``--ak`` flags.
+
+    Terminus 2 takes ``api_base`` as a constructor kwarg (LiteLLM endpoint).
+    mini-swe-agent reads OPENAI_BASE_URL / OPENAI_API_BASE from ``--ae`` instead.
+    """
+    if harbor_agent == "terminus-2":
+        return ["--ak", f"api_base={HOST_SHIM}"]
+    return []
 
 
 def corp_ca_mount_flags() -> list[str]:
@@ -779,6 +794,7 @@ def run_suite(
         "--env", "docker",
         "--allow-agent-host", "host.docker.internal",
         *agent_env_flags(model),
+        *agent_kwarg_flags(harbor_agent),
         *corp_ca_mount_flags(),
     ]
     # Linux Docker does not define host.docker.internal by default.

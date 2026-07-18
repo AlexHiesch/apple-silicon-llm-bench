@@ -78,6 +78,40 @@ def test_smoke_profile_selects_tier1():
     assert {s["id"] for s in suites} == {"deepswe", "terminal-bench-v2", "swe-atlas-qna"}
 
 
+def test_select_suite_terminal_bench_v2_1():
+    cfg = load_yaml(BENCH)
+    suites = select_suites(cfg, None, "terminal-bench-v2-1")
+    assert len(suites) == 1
+    assert suites[0]["id"] == "terminal-bench-v2-1"
+    assert suites[0]["tier"] == 1
+    assert suites[0]["phase"] == 1
+    assert suites[0]["harness"] == "harbor"
+
+
+def test_aa_index_profile_keeps_v2_for_remap():
+    cfg = load_yaml(BENCH)
+    suites = select_suites(cfg, "aa-index", None)
+    ids = {s["id"] for s in suites}
+    assert "terminal-bench-v2" in ids
+    assert "terminal-bench-v2-1" not in ids  # remapped at plan time, not profile
+
+
+def test_plan_runs_tb_remap(monkeypatch):
+    monkeypatch.setenv("AA_TB_REMAP_TO_21", "1")
+    monkeypatch.setenv("AA_TB_LEGACY_AGENTS", "claude-code")
+    agents = [
+        {"id": "claude-code"},
+        {"id": "codex"},
+    ]
+    suites = [{"id": "terminal-bench-v2", "harness": "harbor"}]
+    runs = plan_runs(agents, suites, DEFAULT_MODEL)
+    by_agent = {r["agent_id"]: r for r in runs}
+    assert by_agent["claude-code"]["suite"] == "terminal-bench-v2"
+    assert by_agent["claude-code"]["suite_requested"] == "terminal-bench-v2"
+    assert by_agent["codex"]["suite"] == "terminal-bench-v2-1"
+    assert by_agent["codex"]["suite_requested"] == "terminal-bench-v2"
+
+
 def test_thinkingcap_matrix_include_set():
     cfg = load_yaml(AGENTS)
     meta = cfg["thinkingcap_matrix"]

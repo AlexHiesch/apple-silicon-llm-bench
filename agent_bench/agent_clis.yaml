@@ -336,8 +336,18 @@ agents:
   bench_enabled: true
   model_routing: pier_mini_swe_agent
   default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
-  notes: Control harness for fair model comparison — always ThinkingCap
-  matrix: out
+  notes: Harbor/Pier control harness for fair model comparison — always ThinkingCap
+  matrix: include
+- id: terminus-2
+  group: control
+  vendor: laude
+  binary: null
+  harness_tier: A
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  notes: Harbor-native Terminus 2 scaffold (TB leaderboard control); api_base via --ak
+  matrix: include
 - id: warp
   group: oss
   binary: warp
@@ -525,6 +535,7 @@ thinkingcap_matrix:
   - kilocode
   - lemonade
   - mimo-code
+  - mini-swe-agent
   - oh-my-pi
   - openclaw
   - opencode
@@ -534,6 +545,7 @@ thinkingcap_matrix:
   - pi
   - poolside
   - portkey
+  - terminus-2
   - zed
   skip:
   - ito
@@ -544,3 +556,5 @@ thinkingcap_matrix:
   - Lemonade / GDevelop / Zed / Portkey are platforms/editors/gateways — included for breadth, smoke differs.
   - 'Smoke-green on ThinkingCap: aider, antigravity, claude-code, cline, codex, command-code, cursor-cli,
     goose, hermes-agent, kilocode, mimo-code, oh-my-pi, openclaw, opencode, openhands, opensquilla, peezy, pi.'
+  - terminus-2 and mini-swe-agent are Harbor-ready TB leaderboard controls (matrix include).
+  - grok-build / letta-code stay matrix:out until smoke-proven.

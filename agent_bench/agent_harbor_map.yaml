@@ -12,6 +12,7 @@ harbor:
   hermes-agent: hermes
   kilocode: null
   mimo-code: mimo
+  mini-swe-agent: mini-swe-agent
   oh-my-pi: null
   openclaw: openclaw
   opencode: opencode
@@ -24,6 +25,7 @@ harbor:
   gdevelop: null
   zed: null
   portkey: null
+  terminus-2: terminus-2
 
 # Pier supports a smaller agent set; null ⇒ skip DeepSWE for that CLI.
 pier:
@@ -38,6 +40,7 @@ pier:
   hermes-agent: null
   kilocode: null
   mimo-code: null
+  mini-swe-agent: mini-swe-agent
   oh-my-pi: null
   openclaw: null
   opencode: opencode
@@ -50,3 +53,4 @@ pier:
   gdevelop: null
   zed: null
   portkey: null
+  terminus-2: null
