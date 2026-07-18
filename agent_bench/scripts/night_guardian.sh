@@ -56,6 +56,51 @@ restart_aa_ws() {
   tmux has-session -t aa-ws 2>/dev/null && say "aa-ws up" || say "FATAL aa-ws start failed"
 }
 
+cleanup_orphan_trial_containers() {
+  # After aa-ws restarts, old trial containers can linger and steal resources.
+  # Keep only containers whose trial key matches a dir without result.json.
+  python3 - <<'PY' 2>/dev/null || return 0
+import subprocess
+from pathlib import Path
+root = Path("/home/hiescha/Projects/Work/llm-bench/results/agent_bench/aa_index")
+active = set()
+for suite in root.iterdir():
+    if not suite.is_dir() or suite.name.startswith("_"):
+        continue
+    for agent in suite.iterdir():
+        if not agent.is_dir() or agent.name.startswith("_"):
+            continue
+        # newest job dir only
+        jobs = [p for p in agent.iterdir() if p.is_dir() and not p.name.startswith("_")]
+        if not jobs:
+            continue
+        job = max(jobs, key=lambda p: p.stat().st_mtime)
+        for d in job.iterdir():
+            if not d.is_dir() or d.name.startswith("_") or d.name == "artifacts":
+                continue
+            if (d / "result.json").is_file():
+                continue
+            active.add(d.name.lower())
+if not active:
+    raise SystemExit(0)
+out = subprocess.check_output(["docker", "ps", "--format", "{{.ID}}\t{{.Names}}"], text=True)
+for line in out.splitlines():
+    if "local-registry" in line:
+        continue
+    cid, name = line.split("\t", 1)
+    parts = name.split("__")
+    if len(parts) < 2:
+        continue
+    key = f"{parts[0]}__{parts[1]}".lower()
+    if "env-main" not in name:
+        continue
+    if key not in active:
+        print(f"orphan {name}")
+        subprocess.run(["docker", "stop", cid], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["docker", "rm", cid], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+PY
+}
+
 disk_emergency() {
   local free
   free=$(free_gib)
@@ -94,10 +139,17 @@ disk_emergency() {
 say "night_guardian start interval=${INTERVAL}s (no docker prune)"
 ensure_krenew
 idle=0
+loop_i=0
 
 while true; do
   ensure_krenew
   disk_emergency
+  loop_i=$((loop_i + 1))
+  # every ~10 min (5 * 120s)
+  if [[ $((loop_i % 5)) -eq 0 ]]; then
+    orphans=$(cleanup_orphan_trial_containers | wc -l | tr -d ' ')
+    [[ "${orphans:-0}" -gt 0 ]] && say "INTERVENE: removed ${orphans} orphan trial containers"
+  fi
 
   local_krb=n; klist -s 2>/dev/null && local_krb=y
   local_aa=n; tmux has-session -t aa-ws 2>/dev/null && local_aa=y
