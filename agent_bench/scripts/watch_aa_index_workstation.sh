@@ -225,35 +225,35 @@ ensure_swe_pull() {
   "
 }
 
-# If aa-ws is stuck in lock_mismatch / incomplete spin on a finished job, archive
-# the bad job so matrix can advance (clean scores already on disk).
+# Only archive a job if the *newest* resume log shows config mismatch AND that
+# job path is named in the log (never guess the first TB job on disk).
 unstick_lock_mismatch() {
-  local n
-  n=$(recent_lock_mismatch_storm)
-  if [[ "${n:-0}" -lt 3 ]]; then
+  local newest job dest
+  newest=$(find "$ROOT" -name '*.resume_*.log' -mmin -10 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+  [[ -z "${newest:-}" ]] && return 0
+  if ! grep -q 'Existing trial config does not match planned job config\|does not match the resolved job lock' "$newest" 2>/dev/null; then
     return 0
   fi
-  say "INTERVENE: lock-mismatch storm ($n logs) — check aa-ws pane for job path"
-  # Prefer: if claude-code TB job has ≥35 clean results and finished_at, archive
-  # only when resume cannot proceed (mismatch). Leave content scores intact.
-  local job
-  job=$(find "$ROOT/terminal-bench-v2" -maxdepth 2 -type d -name 'terminal-bench-v2__*__*' \
-    ! -name '_*' 2>/dev/null | head -1)
-  [[ -z "$job" ]] && return 0
-  if [[ -f "$job/result.json" ]]; then
-    local finished
-    finished=$(python3 -c "import json; print(json.load(open('$job/result.json')).get('finished_at') or '')" 2>/dev/null || true)
-    if [[ -n "$finished" ]]; then
-      local dest
-      dest="$(dirname "$job")/_stuck_resume_$(basename "$job")"
-      if [[ ! -e "$dest" ]]; then
-        say "  archive finished job to $dest so matrix advances"
-        mv "$job" "$dest" 2>/dev/null || true
-        # nudge: restart matrix after archive
-        restart_aa_ws
-      fi
-    fi
+  # Extract -p <jobpath> from the resume command line in the log.
+  job=$(grep -oE '\-p[[:space:]]+/[^[:space:]]+' "$newest" 2>/dev/null | awk '{print $2}' | head -1)
+  [[ -z "$job" || ! -d "$job" ]] && return 0
+  # Require repeated failures on same job (same path in ≥3 recent logs).
+  local hits
+  hits=$(find "$ROOT" -name '*.resume_*.log' -mmin -20 2>/dev/null \
+    | xargs grep -l "Existing trial config does not match\|$job" 2>/dev/null | wc -l)
+  if [[ "${hits:-0}" -lt 5 ]]; then
+    return 0
   fi
+  if [[ ! -f "$job/result.json" ]]; then
+    return 0
+  fi
+  dest="$(dirname "$job")/_stuck_resume_$(basename "$job")"
+  if [[ -e "$dest" ]]; then
+    return 0
+  fi
+  say "INTERVENE: archive lock-mismatched job $job → $dest (hits=$hits)"
+  mv "$job" "$dest" 2>/dev/null || true
+  restart_aa_ws
 }
 
 gateway_ok() {
