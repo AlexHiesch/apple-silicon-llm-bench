@@ -74,9 +74,23 @@ agents:
   headless: grok -p
   model_routing: openai_compatible
   default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
-  prereqs:
-  - XAI_API_KEY
-  install: curl -fsSL https://x.ai/cli/install.sh | bash
+  # TB leaderboard "Grok CLI" / Superagent: npm package talks OpenAI-compatible.
+  # Host smoke OK (GROK_BASE_URL + GROK_API_KEY → ThinkingCap). Harbor wrapper TBD.
+  prereqs: []
+  install: npm i -g @vibe-kit/grok-cli
+  notes: "Host smoke 2026-07-18 PASS vs LiteLLM thinkingcap; keep out of matrix until Harbor agent exists"
+  matrix: out
+- id: little-coder
+  group: oss
+  vendor: community
+  binary: little-coder
+  harness_tier: B
+  bench_enabled: true
+  headless: little-coder -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g little-coder
+  notes: "pi-based; host smoke 2026-07-18 PASS vs ThinkingCap; Harbor wrapper TBD"
   matrix: out
 - id: antigravity
   group: frontier-lab
