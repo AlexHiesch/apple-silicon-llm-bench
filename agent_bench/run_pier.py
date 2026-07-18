@@ -105,6 +105,13 @@ def agent_env_flags(model: str) -> list[str]:
         "CLAUDE_CODE_USE_BEDROCK": "0",
         # Empty overrides host Bedrock token via Pier _extra_env precedence.
         "AWS_BEARER_TOKEN_BEDROCK": "",
+        # WebFetch summarization uses Haiku tier; pin all tiers to ThinkingCap.
+        "ANTHROPIC_MODEL": model,
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": model,
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": model,
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": model,
+        "ANTHROPIC_SMALL_FAST_MODEL": model,
+        "CLAUDE_CODE_SUBAGENT_MODEL": model,
         "LLM_MODEL": model,
         "MODEL": model,
     }

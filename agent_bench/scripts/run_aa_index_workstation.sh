@@ -215,6 +215,10 @@ if [[ -f "$ROOT/agent_bench/scripts/patch_harbor_claude_npm.py" ]]; then
   "$PYTHON" "$ROOT/agent_bench/scripts/patch_harbor_claude_npm.py" \
     || python3 "$ROOT/agent_bench/scripts/patch_harbor_claude_npm.py" || true
 fi
+if [[ -f "$ROOT/agent_bench/scripts/patch_harbor_claude_webfetch.py" ]]; then
+  "$PYTHON" "$ROOT/agent_bench/scripts/patch_harbor_claude_webfetch.py" \
+    || python3 "$ROOT/agent_bench/scripts/patch_harbor_claude_webfetch.py" || true
+fi
 
 # --- Pass 1: full matrix ---
 run_matrix "initial"

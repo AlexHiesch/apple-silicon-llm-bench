@@ -143,6 +143,14 @@ def agent_env_flags(model: str) -> list[str]:
         "CLAUDE_CODE_USE_BEDROCK": "0",
         "AWS_BEARER_TOKEN_BEDROCK": "",
         "CLAUDE_CODE_MAX_OUTPUT_TOKENS": max_out,
+        # WebFetch / subagents pin Haiku+Sonnet tiers; LiteLLM keys often
+        # allow only `thinkingcap`. Remap every tier to the bench model.
+        "ANTHROPIC_MODEL": model,
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": model,
+        "ANTHROPIC_DEFAULT_SONNET_MODEL": model,
+        "ANTHROPIC_DEFAULT_OPUS_MODEL": model,
+        "ANTHROPIC_SMALL_FAST_MODEL": model,
+        "CLAUDE_CODE_SUBAGENT_MODEL": model,
         "LLM_MODEL": model,
         "MODEL": model,
         "HTTP_PROXY": docker_proxy,
