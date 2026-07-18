@@ -14,9 +14,9 @@ if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
 fi
-# Dual-node default is 8 (~4 per TP2 replica; vLLM max-num-seqs=8).
-# Single-node TP2 should set N_CONCURRENT=2–4 explicitly via BENCH_TP2_128K.env.
-export N_CONCURRENT="${N_CONCURRENT:-8}"
+# Dual-node default is 4 (~2 per TP2 replica). N=8 saturated GPUs and spiked
+# AgentTimeouts; keep 4 unless A/B shows clean/h gains.
+export N_CONCURRENT="${N_CONCURRENT:-4}"
 # 16k out leaves ~112k input under 128k context (32k out overflowed at ~98k input).
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
 # 1.5x is the floor that kept all observed TB passes under the agent cap

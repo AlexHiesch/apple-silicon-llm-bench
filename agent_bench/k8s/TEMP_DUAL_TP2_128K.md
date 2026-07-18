@@ -25,8 +25,8 @@ trials to a single node.
 
 | Knob | Value |
 |------|-------|
-| `N_CONCURRENT` | `8` (~4 per node) |
-| vLLM `--max-num-seqs` | `8` (both replicas; matches peak per-node load) |
+| `N_CONCURRENT` | `4` (~2 per node; N=8 caused timeout storm) |
+| vLLM `--max-num-seqs` | `8` (headroom above N=4) |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` |
 | `AGENT_TIMEOUT_MULT` | `1.5` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
@@ -65,7 +65,7 @@ bash agent_bench/k8s/patch-grafana-dual-dashboard.sh
 
 # update runner env + restart aa-ws (results preserved via resume)
 cat > results/agent_bench/aa_index/BENCH_TP2_128K.env <<'EOF'
-export N_CONCURRENT=8
+export N_CONCURRENT=4
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=16384
 export AGENT_TIMEOUT_MULT=1.5
 EOF
