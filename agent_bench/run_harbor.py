@@ -258,6 +258,7 @@ def resume_until_content(
     *,
     filter_error_types: list[str] | None = None,
     max_rounds: int | None = None,
+    n_concurrent: int | None = None,
 ) -> dict:
     """Resume *job* until no filterable tech exceptions remain (or cap).
 
@@ -289,7 +290,9 @@ def resume_until_content(
                 f"— round {round_i}/{limit}",
                 flush=True,
             )
-        result = resume_job(job, filter_error_types=types)
+        result = resume_job(
+            job, filter_error_types=types, n_concurrent=n_concurrent
+        )
         result["tech_resume_rounds"] = round_i
         after = count_job_exception_types(job, types)
         result["tech_remaining"] = after
@@ -476,10 +479,44 @@ def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
     return len(paths)
 
 
+def set_job_n_concurrent(job_path: Path, n_concurrent: int) -> int | None:
+    """Bump Harbor job concurrency before resume.
+
+    Harbor ``job resume`` has no ``-n`` flag — it reads ``n_concurrent_trials``
+    from ``lock.json`` (and sometimes ``config.json``). Fresh ``harbor run``
+    wrote the old value; dual-node bumps must patch the existing job or resume
+    stays stuck at the prior concurrency.
+    """
+    if n_concurrent < 1:
+        raise ValueError(f"n_concurrent must be >= 1, got {n_concurrent}")
+    job_path = Path(job_path)
+    prev: int | None = None
+    for name in ("lock.json", "config.json"):
+        path = job_path / name
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        if "n_concurrent_trials" in data or name == "lock.json":
+            old = data.get("n_concurrent_trials")
+            if prev is None and isinstance(old, int):
+                prev = old
+            if old == n_concurrent:
+                continue
+            data["n_concurrent_trials"] = n_concurrent
+            path.write_text(json.dumps(data, indent=2) + "\n")
+    return prev
+
+
 def resume_job(
     job_path: Path,
     *,
     filter_error_types: list[str] | None = None,
+    n_concurrent: int | None = None,
 ) -> dict:
     """Resume an interrupted Harbor job (keeps finished trials)."""
     harbor = ensure_harbor()
@@ -487,6 +524,14 @@ def resume_job(
     job_name = job_path.name
     out = job_path.parent
     reclaimed = reclaim_root_owned_trial_dirs(job_path)
+    conc_prev = None
+    if n_concurrent is not None:
+        conc_prev = set_job_n_concurrent(job_path, n_concurrent)
+        if conc_prev is not None and conc_prev != n_concurrent:
+            print(
+                f"  (resume) n_concurrent_trials {conc_prev} → {n_concurrent}",
+                flush=True,
+            )
     cmd = [harbor, "job", "resume", "-p", str(job_path)]
     for err in filter_error_types or []:
         cmd.extend(["--filter-error-type", err])
@@ -512,6 +557,8 @@ def resume_job(
         "job_path": str(job_path),
         "filter_error_types": list(filter_error_types or []),
         "reclaimed_root_paths": reclaimed,
+        "n_concurrent": n_concurrent,
+        "n_concurrent_prev": conc_prev,
         "elapsed_s": elapsed,
         "jobs_dir": str(out),
         "log": str(log_path),
@@ -602,6 +649,7 @@ def run_suite(
             result = resume_until_content(
                 resumable,
                 filter_error_types=types,
+                n_concurrent=n_concurrent,
             )
             result.update({
                 "agent_id": agent_id,
@@ -632,6 +680,7 @@ def run_suite(
                 result = resume_until_content(
                     resumable,
                     filter_error_types=types,
+                    n_concurrent=n_concurrent,
                 )
                 result.update({
                     "agent_id": agent_id,

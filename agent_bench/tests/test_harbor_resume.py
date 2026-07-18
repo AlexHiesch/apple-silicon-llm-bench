@@ -147,7 +147,7 @@ def test_resume_until_content_stops_when_no_tech(tmp_path: Path, monkeypatch):
 
     calls = {"n": 0}
 
-    def fake_resume(job_path, filter_error_types=None):
+    def fake_resume(job_path, filter_error_types=None, n_concurrent=None):
         calls["n"] += 1
         return {"status": "ok", "complete": True, "job_path": str(job_path)}
 
@@ -157,3 +157,18 @@ def test_resume_until_content_stops_when_no_tech(tmp_path: Path, monkeypatch):
     )
     assert result["tech_remaining"] == 0
     assert calls["n"] == 0  # already content-only; no Harbor call
+
+
+def test_set_job_n_concurrent_patches_lock(tmp_path: Path):
+    job = tmp_path / "job"
+    job.mkdir()
+    (job / "lock.json").write_text(json.dumps({"n_concurrent_trials": 2}))
+    (job / "config.json").write_text(
+        json.dumps({"n_concurrent_trials": 2, "job_name": "x"})
+    )
+    prev = run_harbor.set_job_n_concurrent(job, 4)
+    assert prev == 2
+    assert json.loads((job / "lock.json").read_text())["n_concurrent_trials"] == 4
+    assert json.loads((job / "config.json").read_text())["n_concurrent_trials"] == 4
+    # idempotent
+    assert run_harbor.set_job_n_concurrent(job, 4) == 4

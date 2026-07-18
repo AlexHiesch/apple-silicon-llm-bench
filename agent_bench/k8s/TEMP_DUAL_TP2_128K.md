@@ -24,6 +24,11 @@ LiteLLM `thinkingcap` → simple-shuffle across:
 | `AGENT_TIMEOUT_MULT` | `2.0` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
 
+Harbor `job resume` has **no** `-n` flag — concurrency lives in the job's
+`lock.json` (`n_concurrent_trials`). `run_harbor.resume_*` patches that field
+to match `--n-concurrent` / `N_CONCURRENT` before each resume so dual-node
+bumps stick on existing jobs.
+
 ## Activate / deactivate
 
 ```bash

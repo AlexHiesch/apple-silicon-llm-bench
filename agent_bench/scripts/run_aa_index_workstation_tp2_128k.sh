@@ -14,7 +14,9 @@ if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
 fi
-export N_CONCURRENT="${N_CONCURRENT:-2}"
+# Dual-node default is 4 (~2 per TP2 replica). Single-node TP2 should set
+# N_CONCURRENT=2 explicitly via BENCH_TP2_128K.env.
+export N_CONCURRENT="${N_CONCURRENT:-4}"
 # 16k out leaves ~112k input under 128k context (32k out overflowed at ~98k input).
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
 export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-2.0}"
