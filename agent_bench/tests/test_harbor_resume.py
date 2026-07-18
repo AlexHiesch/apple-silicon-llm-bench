@@ -100,3 +100,60 @@ def test_tech_exception_types_cover_harbor_rate_limit_aliases():
     assert "ApiRateLimitError" in TECH_EXCEPTION_TYPES
     assert "EnvironmentStartTimeoutError" in TECH_EXCEPTION_TYPES
     assert "VerifierTimeoutError" in TECH_EXCEPTION_TYPES
+
+
+def test_count_job_exception_types(tmp_path: Path):
+    ds = tmp_path / "dataset"
+    ds.mkdir()
+    for i in range(2):
+        t = ds / f"task-{i}"
+        t.mkdir()
+        (t / "task.toml").write_text("[task]\n")
+    job = tmp_path / "jobs" / "done"
+    job.mkdir(parents=True)
+    (job / "config.json").write_text(
+        json.dumps({"n_attempts": 1, "datasets": [{"path": str(ds)}]})
+    )
+    clean = job / "task-0__a"
+    clean.mkdir()
+    (clean / "result.json").write_text(
+        json.dumps({"verifier_result": {"rewards": {"reward": 1.0}}})
+    )
+    bad = job / "task-1__b"
+    bad.mkdir()
+    (bad / "result.json").write_text(
+        json.dumps({"exception_info": {"exception_type": "ApiRateLimitError"}})
+    )
+    assert run_harbor.count_job_exception_types(job, ["ApiRateLimitError"]) == 1
+    assert run_harbor.count_job_exception_types(job, ["AgentTimeoutError"]) == 0
+
+
+def test_resume_until_content_stops_when_no_tech(tmp_path: Path, monkeypatch):
+    ds = tmp_path / "dataset"
+    ds.mkdir()
+    t = ds / "task-0"
+    t.mkdir()
+    (t / "task.toml").write_text("[task]\n")
+    job = tmp_path / "jobs" / "done"
+    job.mkdir(parents=True)
+    (job / "config.json").write_text(
+        json.dumps({"n_attempts": 1, "datasets": [{"path": str(ds)}]})
+    )
+    trial = job / "task-0__a"
+    trial.mkdir()
+    (trial / "result.json").write_text(
+        json.dumps({"verifier_result": {"rewards": {"reward": 0.0}}})
+    )
+
+    calls = {"n": 0}
+
+    def fake_resume(job_path, filter_error_types=None):
+        calls["n"] += 1
+        return {"status": "ok", "complete": True, "job_path": str(job_path)}
+
+    monkeypatch.setattr(run_harbor, "resume_job", fake_resume)
+    result = run_harbor.resume_until_content(
+        job, filter_error_types=["ApiRateLimitError"], max_rounds=3
+    )
+    assert result["tech_remaining"] == 0
+    assert calls["n"] == 0  # already content-only; no Harbor call

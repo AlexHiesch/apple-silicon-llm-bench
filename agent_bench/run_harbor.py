@@ -11,9 +11,13 @@ from pathlib import Path
 
 import yaml
 
+from agent_bench.tech_failures import TECH_EXCEPTION_TYPES
+
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
 RESULTS = REPO / "results" / "agent_bench"
+# Keep resuming a job until every trial is pass or content_fail (no tech).
+MAX_TECH_RESUME_ROUNDS = int(os.environ.get("HARBOR_MAX_TECH_RESUME_ROUNDS", "50"))
 MAP_PATH = ROOT / "agent_harbor_map.yaml"
 CERT_BUNDLE = ROOT / "certs" / "docker-ca-bundle.pem"
 HOST_GATEWAY_COMPOSE = ROOT / "docker" / "host-gateway.compose.yaml"
@@ -204,9 +208,15 @@ def job_clean_count(job: Path) -> int:
 
 def job_has_exception_types(job: Path, types: list[str] | set[str] | None) -> bool:
     """True if any finished trial has an exception_type in *types*."""
+    return count_job_exception_types(job, types) > 0
+
+
+def count_job_exception_types(job: Path, types: list[str] | set[str] | None) -> int:
+    """How many finished trials have an exception_type in *types*."""
     if not types:
-        return False
+        return 0
     want = set(types)
+    n = 0
     for d in _trial_dirs(job):
         rj = d / "result.json"
         if not rj.is_file():
@@ -216,8 +226,8 @@ def job_has_exception_types(job: Path, types: list[str] | set[str] | None) -> bo
         except Exception:
             continue
         if trial_exception_type(r) in want:
-            return True
-    return False
+            n += 1
+    return n
 
 
 def job_is_technical_junk(job: Path) -> bool:
@@ -226,21 +236,6 @@ def job_is_technical_junk(job: Path) -> bool:
         return False
     if job_clean_count(job) > 0:
         return False
-    tech = {
-        "NetworkConnectionError",
-        "CancelledError",
-        "UnknownApiError",
-        "AgentTimeoutError",
-        "NonZeroAgentExitCodeError",
-        "RuntimeError",
-        "AgentSetupTimeoutError",
-        "EnvironmentStartTimeoutError",
-        "VerifierTimeoutError",
-        "TimeoutError",
-        "RateLimitError",
-        "ApiRateLimitError",
-        "ContextWindowExceededError",
-    }
     total = 0
     tech_n = 0
     for d in _trial_dirs(job):
@@ -253,9 +248,77 @@ def job_is_technical_junk(job: Path) -> bool:
         except Exception:
             continue
         exc = trial_exception_type(r)
-        if exc in tech:
+        if exc in TECH_EXCEPTION_TYPES:
             tech_n += 1
     return total > 0 and tech_n == total
+
+
+def resume_until_content(
+    job: Path,
+    *,
+    filter_error_types: list[str] | None = None,
+    max_rounds: int | None = None,
+) -> dict:
+    """Resume *job* until no filterable tech exceptions remain (or cap).
+
+    AA Index scoring is clean-only: tech failures must not stick. Harbor's
+    ``job resume --filter-error-type`` drops matching trials and re-runs them;
+    we loop that until every trial is pass or content_fail.
+    """
+    types = list(filter_error_types or sorted(TECH_EXCEPTION_TYPES))
+    limit = MAX_TECH_RESUME_ROUNDS if max_rounds is None else max_rounds
+    result: dict = {"status": "ok", "mode": "resume", "job_path": str(job)}
+    stagnant = 0
+    prev_tech = None
+    for round_i in range(1, limit + 1):
+        tech_n = count_job_exception_types(job, types)
+        if tech_n == 0 and job_is_complete(job):
+            result["tech_resume_rounds"] = round_i - 1
+            result["tech_remaining"] = 0
+            result["complete"] = True
+            return result
+        if tech_n == 0 and not job_is_complete(job):
+            # Incomplete / pending trials — one more plain resume.
+            print(
+                f"  (resume) incomplete job {job.name} — continuing",
+                flush=True,
+            )
+        else:
+            print(
+                f"  (resume) tech×{tech_n} still open on {job.name} "
+                f"— round {round_i}/{limit}",
+                flush=True,
+            )
+        result = resume_job(job, filter_error_types=types)
+        result["tech_resume_rounds"] = round_i
+        after = count_job_exception_types(job, types)
+        result["tech_remaining"] = after
+        if after == 0 and job_is_complete(job):
+            result["complete"] = True
+            return result
+        if prev_tech is not None and after >= prev_tech and after > 0:
+            stagnant += 1
+        else:
+            stagnant = 0
+        prev_tech = after
+        # Infra may be hard-stuck (same tech count every round). Keep trying
+        # but bail after several zero-progress rounds so the matrix can move.
+        if stagnant >= 5:
+            print(
+                f"  (resume) WARN: tech count stuck at {after} for "
+                f"{stagnant} rounds — leaving for a later pass",
+                flush=True,
+            )
+            result["status"] = "tech_stagnant"
+            return result
+    result["status"] = "tech_budget_exhausted"
+    result["tech_remaining"] = count_job_exception_types(job, types)
+    print(
+        f"  (resume) WARN: hit {limit} tech-resume rounds "
+        f"({result['tech_remaining']} tech left)",
+        flush=True,
+    )
+    return result
 
 def _dataset_task_count(ds_path: Path) -> int:
     if not ds_path.is_dir():
@@ -502,6 +565,9 @@ def run_suite(
     out.mkdir(parents=True, exist_ok=True)
 
     if resume:
+        # Default: every known tech exception is retryable. Content-only jobs
+        # (pass / content_fail) are the only ones we treat as done.
+        filter_error_types = list(filter_error_types or sorted(TECH_EXCEPTION_TYPES))
         latest = find_latest_job(out)
         # Complete jobs with only content results → skip. Complete jobs that
         # still have filterable tech exceptions must be resumed (Harbor drops
@@ -532,9 +598,10 @@ def run_suite(
             resumable = find_resumable_job(out)
         if resumable:
             print(f"  (resume) Harbor job {resumable.name}", flush=True)
-            result = resume_job(
+            types = list(filter_error_types or sorted(TECH_EXCEPTION_TYPES))
+            result = resume_until_content(
                 resumable,
-                filter_error_types=filter_error_types,
+                filter_error_types=types,
             )
             result.update({
                 "agent_id": agent_id,
@@ -543,8 +610,13 @@ def run_suite(
                 "dataset": ds_label,
                 "n_attempts": n_attempts,
             })
-            if result.get("status") == "ok" or result.get("complete"):
-                return result
+            if result.get("status") in ("ok", "tech_stagnant", "tech_budget_exhausted") or result.get("complete"):
+                # tech_stagnant/budget: still return — overnight watchdog can
+                # revisit; do not start a duplicate fresh job on top.
+                if result.get("tech_remaining", 0) == 0 or result.get("complete"):
+                    return result
+                if result.get("status") in ("tech_stagnant", "tech_budget_exhausted"):
+                    return result
             # Common after n_attempts/config patches: lock.json mismatch.
             log_text = ""
             try:
@@ -557,9 +629,9 @@ def run_suite(
                     flush=True,
                 )
                 reclaim_root_owned_trial_dirs(resumable)
-                result = resume_job(
+                result = resume_until_content(
                     resumable,
-                    filter_error_types=filter_error_types,
+                    filter_error_types=types,
                 )
                 result.update({
                     "agent_id": agent_id,
@@ -568,7 +640,10 @@ def run_suite(
                     "dataset": ds_label,
                     "n_attempts": n_attempts,
                 })
-                if result.get("status") == "ok" or result.get("complete"):
+                if (
+                    result.get("status") in ("ok", "tech_stagnant", "tech_budget_exhausted")
+                    or result.get("complete")
+                ):
                     return result
                 try:
                     log_text = Path(result["log"]).read_text(errors="ignore")

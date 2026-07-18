@@ -313,10 +313,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Planned runs: {len(runs)}")
     if args.exclude_deepswe_touched:
         print("Resume: excluding already-touched DeepSWE tasks")
+    # Tech failures must never stick: default to retrying every known tech
+    # exception type until trials resolve to pass or content_fail.
+    from agent_bench.tech_failures import TECH_EXCEPTION_TYPES
+
+    harbor_retry_errors = list(args.harbor_retry_error)
+    if args.resume_harbor and not harbor_retry_errors:
+        harbor_retry_errors = sorted(TECH_EXCEPTION_TYPES)
     if args.resume_harbor:
         print("Resume: Harbor incomplete jobs (job resume)")
-        if args.harbor_retry_error:
-            print(f"  retry error types: {', '.join(args.harbor_retry_error)}")
+        print(
+            "  retry until content (tech excluded from score): "
+            + ", ".join(harbor_retry_errors)
+        )
     if args.agent_timeout_multiplier != 1.0:
         print(f"Harbor agent timeout multiplier: {args.agent_timeout_multiplier}x")
     if args.min_free_gb:
@@ -357,7 +366,7 @@ def main(argv: list[str] | None = None) -> int:
                 n_concurrent=args.n_concurrent,
                 exclude_deepswe_touched=args.exclude_deepswe_touched,
                 resume_harbor=args.resume_harbor,
-                harbor_filter_errors=args.harbor_retry_error or None,
+                harbor_filter_errors=harbor_retry_errors or None,
                 agent_timeout_multiplier=args.agent_timeout_multiplier,
             )
         except Exception as e:
