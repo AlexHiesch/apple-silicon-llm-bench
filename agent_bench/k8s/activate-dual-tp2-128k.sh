@@ -42,4 +42,4 @@ kubectl -n "$NS" label pod "$POD40" llm-bench-node=x40 --overwrite || true
 echo "== status =="
 kubectl -n "$NS" get deploy,pods,svc -l 'app in (vllm-int4,vllm-int4-x39)' -o wide
 kubectl -n "$NS" get pods -l app=litellm -o wide
-echo "Done. Next: patch-grafana-dual-dashboard.sh + smoke + runner n=4 restart."
+echo "Done. Next: patch-grafana-dual-dashboard.sh + smoke + runner n=8 restart."

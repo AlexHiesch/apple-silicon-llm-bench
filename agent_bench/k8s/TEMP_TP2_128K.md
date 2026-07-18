@@ -3,7 +3,7 @@
 **Status:** temporary for overnight AA Coding Agent Index only.  
 **Prod default remains:** `vllm-int4` TP=1, 2 replicas, `max-model-len=65536`, Mooncake.
 
-> **Dual-node update:** see [`TEMP_DUAL_TP2_128K.md`](./TEMP_DUAL_TP2_128K.md) — second TP2@128k on `cmtcdeu89976739` + `N_CONCURRENT=4`.
+> **Dual-node update:** see [`TEMP_DUAL_TP2_128K.md`](./TEMP_DUAL_TP2_128K.md) — second TP2@128k on `cmtcdeu89976739` + `N_CONCURRENT=8`.
 
 ## Active settings (bench)
 
@@ -13,8 +13,8 @@
 | `max-model-len` | `131072` |
 | Mooncake | off |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` (started at 32768; dialed down after `~98k+32k>128k` on schemelike) |
-| `N_CONCURRENT` | `4` (was 2; dual-node) |
-| `AGENT_TIMEOUT_MULT` | `2.0` |
+| `N_CONCURRENT` | `8` (dual-node; was 4) |
+| `AGENT_TIMEOUT_MULT` | `1.5` (was 2.0; see dual doc) |
 | LiteLLM `request_timeout` | `1800` (was 600) |
 | LiteLLM `nodeSelector` | pinned to Z8 (`cmtcdeu89976740`) for `hostNetwork :4000` |
 

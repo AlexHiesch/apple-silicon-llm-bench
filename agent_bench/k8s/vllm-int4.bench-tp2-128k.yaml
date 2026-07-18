@@ -1,40 +1,33 @@
-# TEMPORARY: second TP=2 @ 128k replica on cmtcdeu89976739 (x39).
-# Separate app label so Service vllm-int4 (x40) is not double-weighted.
-# Activate: bash agent_bench/k8s/activate-dual-tp2-128k.sh
-# Remove:   kubectl -n llm-serving delete deploy/vllm-int4-x39 svc/vllm-int4-x39
+# TEMPORARY AA-index bench overlay — TP=2, max_model_len=131072, no Mooncake.
+# Revert: bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vllm-int4-x39
+  name: vllm-int4
   namespace: llm-serving
   labels:
-    app: vllm-int4-x39
-    llm-bench-mode: temporary-tp2-128k-dual
-    llm-bench-node: x39
+    app: vllm-int4
+    llm-bench-mode: temporary-tp2-128k
   annotations:
-    llm-bench/mode: "temporary-aa-index-tp2-128k-dual"
-    llm-bench/revert: "kubectl -n llm-serving delete deploy/vllm-int4-x39 svc/vllm-int4-x39"
+    llm-bench/mode: "temporary-aa-index-tp2-128k"
+    llm-bench/revert: "bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh"
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: vllm-int4-x39
-      llm-bench-node: x39
+      app: vllm-int4
   template:
     metadata:
       labels:
-        app: vllm-int4-x39
-        llm-bench-mode: temporary-tp2-128k-dual
-        llm-bench-node: x39
-        # Alias for dashboards that group on "vllm family"
-        vllm_family: thinkingcap-int4
+        app: vllm-int4
+        llm-bench-mode: temporary-tp2-128k
     spec:
       runtimeClassName: nvidia
       enableServiceLinks: false
       nodeSelector:
-        kubernetes.io/hostname: cmtcdeu89976739
+        kubernetes.io/hostname: cmtcdeu89976740
       containers:
         - name: vllm
           image: docker.io/vllm/vllm-openai:v0.24.0
@@ -112,21 +105,3 @@ spec:
           hostPath:
             path: /opt/models
             type: Directory
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: vllm-int4-x39
-  namespace: llm-serving
-  labels:
-    app: vllm-int4-x39
-    llm-bench-node: x39
-spec:
-  type: ClusterIP
-  selector:
-    app: vllm-int4-x39
-    llm-bench-node: x39
-  ports:
-    - name: http
-      port: 8000
-      targetPort: http

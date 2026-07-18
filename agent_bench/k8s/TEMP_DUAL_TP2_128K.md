@@ -25,9 +25,10 @@ trials to a single node.
 
 | Knob | Value |
 |------|-------|
-| `N_CONCURRENT` | `4` (~2 per node) |
+| `N_CONCURRENT` | `8` (~4 per node) |
+| vLLM `--max-num-seqs` | `8` (both replicas; matches peak per-node load) |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` |
-| `AGENT_TIMEOUT_MULT` | `2.0` |
+| `AGENT_TIMEOUT_MULT` | `1.5` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
 
 Harbor `job resume` has **no** `-n` flag — concurrency lives in the job's
@@ -38,6 +39,19 @@ bumps stick on existing jobs.
 LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 `litellm-config.bench-dual-tp2.yaml`). Re-apply with
 `bash agent_bench/k8s/apply-litellm-dual-routing.sh`.
+
+### Timeout rationale (no false content fails)
+
+- `AgentTimeoutError` is in `TECH_EXCEPTION_TYPES` → scored **tech**, retried by
+  `resume_until_content`. A tighter multiplier can never turn a timeout into a
+  `content_fail`.
+- Empirically on TB/claude-code (job `…20260717_154234`): **1.5x** left all
+  observed passes under the agent cap; **1.25x** would have timed out 2 real
+  passes (`largest-eigenval`, `extract-elf`) as tech retries.
+- Env `2.0` was wasteful: stuck tasks already die at `base×1.5` (e.g. caffe
+  1200→1800s). Align runner + docs on **1.5**.
+- Resume reuses per-trial `agent_timeout_multiplier` from the job lock (already
+  1.5 on the active job); the env knob applies to **new** `harbor run` jobs.
 
 ## Activate / deactivate
 
@@ -51,9 +65,9 @@ bash agent_bench/k8s/patch-grafana-dual-dashboard.sh
 
 # update runner env + restart aa-ws (results preserved via resume)
 cat > results/agent_bench/aa_index/BENCH_TP2_128K.env <<'EOF'
-export N_CONCURRENT=4
+export N_CONCURRENT=8
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=16384
-export AGENT_TIMEOUT_MULT=2.0
+export AGENT_TIMEOUT_MULT=1.5
 EOF
 tmux kill-session -t aa-ws 2>/dev/null || true
 tmux new-session -d -s aa-ws -c ~/Projects/Work/llm-bench -- \
@@ -72,6 +86,18 @@ bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh
 - Also: HPLLM GPU/DCGM (`node_short=x40|x39`), vLLM/Mooncake, Overview
 - Prometheus: `:30090` — job `vllm-int4` scrapes both pods with `node_short` + `bench_node`
 
-## Why not Harbor on x39
+## Why not Harbor trials on x39 / k3s (without Docker)
 
-No Docker package; limited sudo has no `apt install docker`. Inference scale-out is the available lever without host package changes.
+Harbor 0.18 env types include `docker`, `gke`, `openshift`, `ack`, cloud
+sandboxes (`e2b`, `modal`, …) — **no generic Kubernetes / k3s backend**.
+
+| Option | Blocker on this cluster |
+|--------|-------------------------|
+| `--env docker` on x39 | No Docker package; limited sudo (no `apt install docker`) |
+| `--env gke` | GCP auth + GKE API; still runs tasks via **DinD** in pods |
+| `--env openshift` | Needs `oc` + privileged SCC, not plain k3s |
+| `--env ack` | Alibaba OpenKruise SandboxClaim CRDs |
+
+So x39 stays **inference-only**. Trial sandboxes stay on x40 Docker; LiteLLM
+spreads decode across both vLLM replicas. A future upstream generic k8s env
+(or installing Docker on x39) would be required to move Harbor trials off x40.
