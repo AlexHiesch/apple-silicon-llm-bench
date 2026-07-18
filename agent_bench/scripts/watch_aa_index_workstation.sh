@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # Tight watchdog for AA Index overnight on the Z8.
-# Detects stuck/infra failure modes and intervenes without sudo/kinit.
+# Keeps Kerberos + px-proxy + SWE images + aa-ws alive.
+# NEVER docker image prune -a / system prune -af (wipes swe-atlas images).
 set -uo pipefail
 
 REPO="${REPO:-$HOME/Projects/Work/llm-bench}"
 ROOT="$REPO/results/agent_bench/aa_index"
 LOG="$ROOT/WATCHDOG.log"
-STATUS="$ROOT/OVERNIGHT_STATUS.txt"
 INTERVAL="${WATCH_INTERVAL:-90}"
-STALE_RESULT_MIN="${STALE_RESULT_MIN:-12}"   # no new result.json → suspect
-STALE_GPU_IDLE_MIN="${STALE_GPU_IDLE_MIN:-8}"
+STALE_RESULT_MIN="${STALE_RESULT_MIN:-12}"
 PX_FAIL_STREAK_RESTART=2
+MIN_FREE_GB_SOFT="${MIN_FREE_GB_SOFT:-40}"
+MIN_FREE_GB_HARD="${MIN_FREE_GB_HARD:-15}"
 
 mkdir -p "$ROOT"
 exec >>"$LOG" 2>&1
@@ -26,7 +27,6 @@ px_ok() {
 }
 
 ghcr_connect_ok() {
-  # 401/405 = CONNECT worked; 000/timeout = broken
   local code
   code=$(curl -sS -o /dev/null -w '%{http_code}' -x http://127.0.0.1:3128 \
     --connect-timeout 15 -I https://ghcr.io/v2/ 2>/dev/null || echo 000)
@@ -41,17 +41,43 @@ restart_px() {
   systemctl --user is-active px-proxy >/dev/null && say "px active" || say "WARN px not active"
 }
 
-aa_alive() {
-  tmux has-session -t aa-ws 2>/dev/null
+ensure_krenew() {
+  # Ticket renew-until ~1 week after fresh kinit; keep TGT alive overnight.
+  if ! command -v krenew >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! klist -s 2>/dev/null; then
+    say "WARN: no kerberos ticket (klist -s failed) — corp proxy may die"
+    return 0
+  fi
+  # Renew if < 90 minutes left
+  local exp_epoch now left
+  exp_epoch=$(klist 2>/dev/null | awk '/krbtgt/{print $3,$4; exit}' | python3 -c '
+import sys,datetime
+s=sys.stdin.read().strip()
+for fmt in ("%m/%d/%Y %H:%M:%S","%Y-%m-%d %H:%M:%S"):
+  try:
+    print(int(datetime.datetime.strptime(s, fmt).timestamp())); break
+  except Exception:
+    pass
+' 2>/dev/null || echo 0)
+  now=$(date +%s)
+  left=$((exp_epoch - now))
+  if [[ "$exp_epoch" -gt 0 && "$left" -lt 5400 ]]; then
+    say "INTERVENE: kinit -R (ticket left ${left}s)"
+    kinit -R 2>&1 | while read -r line; do say "  kinit: $line"; done || true
+  fi
+  if ! pgrep -u "$USER" -x krenew >/dev/null 2>&1; then
+    say "INTERVENE: start krenew -K 30"
+    # -K 30: check every 30 min; renew before expiry
+    nohup krenew -K 30 -i >/dev/null 2>&1 &
+    disown || true
+  fi
 }
 
-harbor_alive() {
-  pgrep -u "$USER" -f 'harbor (run|job resume)' >/dev/null 2>&1
-}
-
-matrix_alive() {
-  pgrep -u "$USER" -f 'agent_bench.run_matrix' >/dev/null 2>&1
-}
+aa_alive() { tmux has-session -t aa-ws 2>/dev/null; }
+harbor_alive() { pgrep -u "$USER" -f 'harbor (run|job resume)' >/dev/null 2>&1; }
+matrix_alive() { pgrep -u "$USER" -f 'agent_bench.run_matrix' >/dev/null 2>&1; }
 
 newest_result_age_min() {
   local f
@@ -59,26 +85,28 @@ newest_result_age_min() {
     ! -path '*/_failed*' ! -path '*/_broken*' ! -path '*/_smoke*' \
     -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | awk '{print $1}')
   if [[ -z "${f:-}" ]]; then echo 9999; return; fi
-  local now age
+  local now
   now=$(date +%s)
-  age=$(python3 -c "print(int(($now - float('$f')) // 60))")
-  echo "$age"
+  python3 -c "print(int(($now - float('$f')) // 60))"
 }
 
 gpu_busy() {
-  # any GPU util > 5%
   nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null \
     | awk '{if ($1+0 > 5) found=1} END{exit !found}'
 }
 
+free_gib() {
+  df -BG --output=avail / | tail -1 | tr -dc '0-9'
+}
+
 count_zombies() {
-  # harbor env containers older than 3h (exclude local-registry)
   docker ps --format '{{.Names}}\t{{.Status}}' 2>/dev/null \
     | grep -v local-registry \
     | grep -cE 'Up [3-9] hours|Up [0-9]+ days' || true
 }
 
 prune_zombies() {
+  # Containers only — NEVER images.
   local n
   n=$(count_zombies)
   if [[ "${n:-0}" -lt 1 ]]; then return 0; fi
@@ -93,11 +121,47 @@ prune_zombies() {
   docker container prune -f >/dev/null 2>&1 || true
 }
 
+disk_hygiene() {
+  # Free space without touching tagged docker images / SWE-Atlas datasets.
+  local free
+  free=$(free_gib)
+  [[ -z "$free" ]] && return 0
+  if [[ "$free" -ge "$MIN_FREE_GB_SOFT" ]]; then
+    return 0
+  fi
+  say "INTERVENE: disk soft pressure free=${free}GiB — clean logs/junk (not images)"
+  # old overnight / resume logs > 3 days
+  find "$ROOT" -maxdepth 2 -type f \( -name 'overnight_*.log' -o -name '*.resume_*.log' -o -name 'aa_watch_*.log' \) \
+    -mtime +3 -delete 2>/dev/null || true
+  find "$REPO/results/agent_bench" -maxdepth 1 -type f -name 'plan_*.json' -mtime +7 -delete 2>/dev/null || true
+  # docker: dangling images + build cache only
+  docker image prune -f >/dev/null 2>&1 || true
+  docker builder prune -f >/dev/null 2>&1 || true
+  docker container prune -f >/dev/null 2>&1 || true
+  free=$(free_gib)
+  say "  free after soft clean: ${free}GiB"
+  if [[ "$free" -lt "$MIN_FREE_GB_HARD" ]]; then
+    say "WARN: HARD disk pressure ${free}GiB — archive oldest _broken_lock / _failed_* trees"
+    find "$ROOT" -maxdepth 3 -type d \( -name '_broken_lock_*' -o -name '_failed_*' -o -name '_partial_*' \) \
+      -mtime +2 2>/dev/null | head -20 | while read -r d; do
+        say "  rm -rf $d"
+        rm -rf "$d" 2>/dev/null || true
+      done
+  fi
+}
+
 recent_ghcr_fail_storm() {
-  # ≥5 compose/ghcr exceptions in last 10 minutes under aa_index
   local n
   n=$(find "$ROOT" -name exception.txt -mmin -10 ! -path '*/_failed*' 2>/dev/null \
-    | xargs grep -l 'ghcr.io\|context deadline exceeded\|main Pulling' 2>/dev/null \
+    | xargs grep -l 'ghcr.io\|context deadline exceeded\|main Pulling\|Service Unavailable' 2>/dev/null \
+    | wc -l)
+  echo "${n:-0}"
+}
+
+recent_lock_mismatch_storm() {
+  local n
+  n=$(find "$ROOT" -name '*.resume_*.log' -mmin -15 2>/dev/null \
+    | xargs grep -l 'Existing trial config does not match\|does not match the resolved job lock' 2>/dev/null \
     | wc -l)
   echo "${n:-0}"
 }
@@ -105,18 +169,20 @@ recent_ghcr_fail_storm() {
 restart_aa_ws() {
   say "INTERVENE: restart tmux aa-ws"
   tmux has-session -t aa-ws 2>/dev/null && tmux kill-session -t aa-ws || true
-  # careful kill — match harbor/matrix only
   ps -u "$USER" -o pid=,args= \
     | awk '/agent_bench[.]run_matrix|uv\/tools\/harbor\/bin\/python .*harbor /{print $1}' \
     | while read -r p; do kill "$p" 2>/dev/null || true; done
   sleep 3
-  # Prefer temporary TP2@128k launcher when that overnight mode is active.
   local launcher="agent_bench/scripts/run_aa_index_workstation.sh"
   if [[ -f "$ROOT/BENCH_TP2_128K.env" || -f "$ROOT/TEMP_MODE_ACTIVE.txt" ]]; then
     if [[ -x "$REPO/agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh" ]]; then
       launcher="agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh"
       say "using TEMP TP2@128k launcher"
     fi
+  fi
+  # Always prefer TP2 launcher if present (overnight mode).
+  if [[ -x "$REPO/agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh" ]]; then
+    launcher="agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh"
   fi
   tmux new-session -d -s aa-ws -c "$REPO" -- bash -lc \
     "bash $launcher 2>&1 | tee -a $ROOT/overnight_ws_restart_\$(date +%Y%m%d_%H%M%S).log"
@@ -125,16 +191,19 @@ restart_aa_ws() {
 }
 
 ensure_swe_pull() {
-  # keep prefetch going if images remain
   local list=/tmp/swe-atlas-images.txt
   if [[ ! -f "$list" ]]; then
     grep -rh '^docker_image' "$REPO/results/agent_bench/datasets/SWE-Atlas/data/qa" --include='task.toml' \
       | sed -E 's/.*= "([^"]+)".*/\1/' | sort -u >"$list" || true
   fi
-  local missing=0
+  local missing=0 present=0
   while read -r img; do
     [[ -z "$img" ]] && continue
-    docker image inspect "$img" >/dev/null 2>&1 || missing=$((missing + 1))
+    if docker image inspect "$img" >/dev/null 2>&1; then
+      present=$((present + 1))
+    else
+      missing=$((missing + 1))
+    fi
   done <"$list"
   if [[ "$missing" -eq 0 ]]; then
     return 0
@@ -142,8 +211,9 @@ ensure_swe_pull() {
   if tmux has-session -t swe-pull 2>/dev/null; then
     return 0
   fi
-  say "INTERVENE: restart swe-pull ($missing images missing)"
+  say "INTERVENE: start swe-pull (present=$present missing=$missing)"
   tmux new-session -d -s swe-pull -- bash -lc "
+    export HTTP_PROXY=http://127.0.0.1:3128 HTTPS_PROXY=http://127.0.0.1:3128
     ok=0; fail=0; skip=0
     while read img; do
       [[ -z \"\$img\" ]] && continue
@@ -155,22 +225,68 @@ ensure_swe_pull() {
   "
 }
 
+# If aa-ws is stuck in lock_mismatch / incomplete spin on a finished job, archive
+# the bad job so matrix can advance (clean scores already on disk).
+unstick_lock_mismatch() {
+  local n
+  n=$(recent_lock_mismatch_storm)
+  if [[ "${n:-0}" -lt 3 ]]; then
+    return 0
+  fi
+  say "INTERVENE: lock-mismatch storm ($n logs) — check aa-ws pane for job path"
+  # Prefer: if claude-code TB job has ≥35 clean results and finished_at, archive
+  # only when resume cannot proceed (mismatch). Leave content scores intact.
+  local job
+  job=$(find "$ROOT/terminal-bench-v2" -maxdepth 2 -type d -name 'terminal-bench-v2__*__*' \
+    ! -name '_*' 2>/dev/null | head -1)
+  [[ -z "$job" ]] && return 0
+  if [[ -f "$job/result.json" ]]; then
+    local finished
+    finished=$(python3 -c "import json; print(json.load(open('$job/result.json')).get('finished_at') or '')" 2>/dev/null || true)
+    if [[ -n "$finished" ]]; then
+      local dest
+      dest="$(dirname "$job")/_stuck_resume_$(basename "$job")"
+      if [[ ! -e "$dest" ]]; then
+        say "  archive finished job to $dest so matrix advances"
+        mv "$job" "$dest" 2>/dev/null || true
+        # nudge: restart matrix after archive
+        restart_aa_ws
+      fi
+    fi
+  fi
+}
+
+gateway_ok() {
+  local code
+  code=$(curl -sS -o /dev/null -w '%{http_code}' -m 8 http://127.0.0.1:4000/health 2>/dev/null || echo 000)
+  # LiteLLM may 401 without key — any HTTP response means up
+  [[ "$code" != "000" && "$code" != "" ]]
+}
+
 snapshot() {
-  local age tech_line gpu docker_n
+  local age tech_line gpu docker_n free
   age=$(newest_result_age_min)
   tech_line=$("$REPO/.venv/bin/python" -m agent_bench.tech_failures --root "$ROOT" 2>/dev/null | head -1 || echo "?")
   gpu=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | tr '\n' ',' || echo "?")
   docker_n=$(docker ps -q 2>/dev/null | wc -l)
-  say "snap age_min=$age gpu%=$gpu docker=$docker_n aa=$(aa_alive && echo y || echo n) harbor=$(harbor_alive && echo y || echo n) matrix=$(matrix_alive && echo y || echo n) | $tech_line"
+  free=$(free_gib)
+  say "snap age_min=$age free=${free}G gpu%=$gpu docker=$docker_n aa=$(aa_alive && echo y || echo n) harbor=$(harbor_alive && echo y || echo n) matrix=$(matrix_alive && echo y || echo n) krb=$(klist -s 2>/dev/null && echo y || echo n) | $tech_line"
 }
 
 px_fail=0
 idle_rounds=0
 
-say "watchdog start interval=${INTERVAL}s repo=$REPO"
+say "watchdog start interval=${INTERVAL}s repo=$REPO (no image prune)"
+ensure_krenew
 
 while true; do
+  ensure_krenew
   snapshot
+
+  # 0) LiteLLM gateway
+  if ! gateway_ok; then
+    say "WARN: LiteLLM :4000 not responding"
+  fi
 
   # 1) proxy health
   if px_ok && ghcr_connect_ok; then
@@ -185,23 +301,27 @@ while true; do
     fi
   fi
 
-  # 2) ghcr fail storm → bounce px (often fixes CONNECT)
+  # 2) ghcr fail storm → bounce px
   storm=$(recent_ghcr_fail_storm)
   if [[ "${storm:-0}" -ge 5 ]]; then
     say "ghcr fail storm last10m=$storm"
     restart_px
-    # archive nothing automatically — resume-harbor retries RuntimeError
+    ensure_swe_pull
   fi
 
-  # 3) zombies
+  # 3) lock mismatch thrash
+  unstick_lock_mismatch
+
+  # 4) zombies (containers only)
   prune_zombies
 
-  # 4) swe image prefetch
+  # 5) swe image prefetch
   ensure_swe_pull
 
-  # 5) aa-ws / harbor liveness
-  # Grace: overnight script does gateway/docker smokes before run_matrix starts.
-  # Do not restart during that window or we thrash aa-ws forever.
+  # 6) disk hygiene without killing images
+  disk_hygiene
+
+  # 7) aa-ws / harbor liveness
   runner_bootstrapping=0
   if aa_alive && ! matrix_alive; then
     if pgrep -u "$USER" -f 'run_aa_index_workstation' >/dev/null 2>&1; then
@@ -219,12 +339,11 @@ while true; do
     say "aa-ws bootstrapping (pre-matrix); skip restart"
   fi
 
-  # 6) progress watchdog: no new artifacts AND no harbor AND gpu idle
+  # 8) progress watchdog
   age=$(newest_result_age_min)
   if harbor_alive || gpu_busy; then
     idle_rounds=0
   else
-    # harbor may be between trials briefly
     if [[ "$age" -ge "$STALE_RESULT_MIN" ]]; then
       idle_rounds=$((idle_rounds + 1))
       say "no harbor+gpu, stale results ${age}m (idle_rounds=$idle_rounds)"
@@ -238,9 +357,8 @@ while true; do
     fi
   fi
 
-  # 7) harbor running but results stale AND gpu idle for long — could be hung agent install
-  if harbor_alive && [[ "$age" -ge 25 ]] && ! gpu_busy; then
-    say "WARN harbor alive but no results ${age}m and GPU idle — leave unless storm"
+  if harbor_alive && [[ "$age" -ge 40 ]] && ! gpu_busy; then
+    say "WARN harbor alive but no results ${age}m and GPU idle — possible hung install"
   fi
 
   sleep "$INTERVAL"

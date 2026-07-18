@@ -165,7 +165,6 @@ status "launching matrix (Harbor first, then DeepSWE resume)"
   --harbor-retry-error EnvironmentStartTimeoutError \
   --harbor-retry-error VerifierTimeoutError \
   --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
-  --docker-prune-between \
   --min-free-gb "$MIN_FREE_GB" \
   ${AGENT_IDS:+--agent $AGENT_IDS}
 

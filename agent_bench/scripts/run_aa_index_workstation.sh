@@ -172,10 +172,12 @@ run_matrix() {
     --harbor-retry-error EnvironmentStartTimeoutError \
     --harbor-retry-error VerifierTimeoutError \
     --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
-    --docker-prune-between \
     --min-free-gb "$MIN_FREE_GB" \
     ${AGENT_IDS:+--agent $AGENT_IDS}
 }
+# NOTE: intentionally NO --docker-prune-between. prune -af deleted SWE-Atlas
+# images and caused tech×124. Disk pressure: delete old logs / unused datasets
+# via watch_aa_index_workstation.sh instead.
 
 cd "$ROOT"
 exec > >(tee -a "$LOG") 2>&1
