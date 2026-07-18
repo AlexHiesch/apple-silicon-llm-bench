@@ -56,6 +56,16 @@ echo "  start aa-watch"
 tmux new-session -d -s aa-watch -c "$REPO" -- bash -lc \
   "bash agent_bench/scripts/watch_aa_index_workstation.sh"
 
+# aa-guard (second-layer overnight guardian; never prune)
+if tmux has-session -t aa-guard 2>/dev/null; then
+  tmux kill-session -t aa-guard || true
+  sleep 1
+fi
+echo "  start aa-guard"
+chmod +x "$REPO/agent_bench/scripts/night_guardian.sh" 2>/dev/null || true
+tmux new-session -d -s aa-guard -c "$REPO" -- bash -lc \
+  "bash agent_bench/scripts/night_guardian.sh"
+
 # aa-ws if missing
 if ! tmux has-session -t aa-ws 2>/dev/null; then
   launcher=agent_bench/scripts/run_aa_index_workstation_tp2_128k.sh
@@ -65,6 +75,27 @@ if ! tmux has-session -t aa-ws 2>/dev/null; then
     "bash $launcher 2>&1 | tee -a $ROOT/overnight_ws_\$(date +%Y%m%d_%H%M%S).log"
 else
   echo "  aa-ws already running — leave it (no interrupt)"
+fi
+
+# aa-night ticker if missing
+if ! tmux has-session -t aa-night 2>/dev/null; then
+  echo "  start aa-night ticker"
+  tmux new-session -d -s aa-night -- bash -lc "
+    while true; do
+      {
+        echo \"==== \$(date -Iseconds) ====\"
+        tmux ls 2>/dev/null
+        klist -s && echo krb=OK || echo krb=DEAD
+        pgrep -x krenew >/dev/null && echo krenew=OK || echo krenew=DEAD
+        df -h / | tail -1
+        echo \"docker=\$(docker ps -q | wc -l) images_swe=\$(docker images ghcr.io/scaleapi/swe-atlas -q | wc -l)\"
+        nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv,noheader 2>/dev/null | head -2
+        tmux capture-pane -t aa-ws -p -S -12 2>/dev/null | tail -12
+        echo
+      } | tee -a $ROOT/NIGHT_TICKER.log
+      sleep 300
+    done
+  "
 fi
 
 echo "  sessions:"

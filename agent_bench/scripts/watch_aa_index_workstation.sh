@@ -106,47 +106,69 @@ count_zombies() {
 }
 
 prune_zombies() {
-  # Containers only — NEVER images.
+  # Stop stale Harbor trial containers only — NEVER docker prune / image delete.
   local n
   n=$(count_zombies)
   if [[ "${n:-0}" -lt 1 ]]; then return 0; fi
-  say "INTERVENE: stop ${n} stale containers (>3h)"
+  say "INTERVENE: stop ${n} stale containers (>3h) — no prune"
   docker ps --format '{{.ID}} {{.Names}} {{.Status}}' \
     | grep -v local-registry \
     | grep -E 'Up [3-9] hours|Up [0-9]+ days' \
     | while read -r id name status; do
         say "  stop $name ($status)"
         docker stop "$id" >/dev/null 2>&1 || true
+        docker rm "$id" >/dev/null 2>&1 || true
       done
-  docker container prune -f >/dev/null 2>&1 || true
 }
 
 disk_hygiene() {
-  # Free space without touching tagged docker images / SWE-Atlas datasets.
+  # Free space WITHOUT any docker prune (keeps SWE-Atlas + TB images).
+  # Soft: old logs / smoke / failed trees. Hard: known large unused dirs.
   local free
   free=$(free_gib)
   [[ -z "$free" ]] && return 0
   if [[ "$free" -ge "$MIN_FREE_GB_SOFT" ]]; then
     return 0
   fi
-  say "INTERVENE: disk soft pressure free=${free}GiB — clean logs/junk (not images)"
-  # old overnight / resume logs > 3 days
-  find "$ROOT" -maxdepth 2 -type f \( -name 'overnight_*.log' -o -name '*.resume_*.log' -o -name 'aa_watch_*.log' \) \
-    -mtime +3 -delete 2>/dev/null || true
-  find "$REPO/results/agent_bench" -maxdepth 1 -type f -name 'plan_*.json' -mtime +7 -delete 2>/dev/null || true
-  # docker: dangling images + build cache only
-  docker image prune -f >/dev/null 2>&1 || true
-  docker builder prune -f >/dev/null 2>&1 || true
-  docker container prune -f >/dev/null 2>&1 || true
+  say "INTERVENE: disk soft pressure free=${free}GiB — clean logs/junk (NO docker prune)"
+  find "$ROOT" -maxdepth 2 -type f \( -name 'overnight_*.log' -o -name '*.resume_*.log' -o -name 'aa_watch_*.log' -o -name 'NIGHT_*.log' \) \
+    -mtime +2 -delete 2>/dev/null || true
+  find "$REPO/results/agent_bench" -maxdepth 1 -type f -name 'plan_*.json' -mtime +3 -delete 2>/dev/null || true
+  # Stopped trial containers (by name pattern) — explicit rm, not prune
+  docker ps -aq --filter status=exited 2>/dev/null | while read -r id; do
+    local name
+    name=$(docker inspect -f '{{.Name}}' "$id" 2>/dev/null | sed 's#^/##')
+    case "$name" in
+      local-registry|*"registry"*) continue ;;
+    esac
+    say "  rm exited container $name"
+    docker rm "$id" >/dev/null 2>&1 || true
+  done
+  # failed/broken/smoke/stuck trees
+  find "$ROOT" -maxdepth 3 -type d \( -name '_broken_*' -o -name '_failed_*' -o -name '_partial_*' -o -name '_smoke*' -o -name '_stuck_*' \) \
+    2>/dev/null | head -40 | while read -r d; do
+      say "  rm -rf $d"
+      rm -rf "$d" 2>/dev/null || true
+    done
   free=$(free_gib)
   say "  free after soft clean: ${free}GiB"
   if [[ "$free" -lt "$MIN_FREE_GB_HARD" ]]; then
-    say "WARN: HARD disk pressure ${free}GiB — archive oldest _broken_lock / _failed_* trees"
-    find "$ROOT" -maxdepth 3 -type d \( -name '_broken_lock_*' -o -name '_failed_*' -o -name '_partial_*' \) \
-      -mtime +2 2>/dev/null | head -20 | while read -r d; do
-        say "  rm -rf $d"
-        rm -rf "$d" 2>/dev/null || true
-      done
+    say "WARN: HARD disk pressure ${free}GiB — remove large unused non-bench dirs"
+    # Safe-ish emergency candidates (not model weights in active serving path)
+    for d in \
+      "$HOME/finetune-output/orgchart-thinkingcap" \
+      "$HOME/sglang-bench/.venv" \
+      "$HOME/litellm-v191-test/.venv" \
+      "$HOME/llama-build" \
+      "$HOME/finetune-venv"
+    do
+      [[ -e "$d" ]] || continue
+      say "  EMERGENCY rm -rf $d ($(du -sh "$d" 2>/dev/null | awk '{print $1}'))"
+      rm -rf "$d" 2>/dev/null || true
+      free=$(free_gib)
+      [[ "$free" -ge "$MIN_FREE_GB_HARD" ]] && break
+    done
+    say "  free after hard clean: ${free}GiB"
   fi
 }
 
