@@ -51,13 +51,18 @@ def _data_free_gib() -> float | None:
 
 
 def _docker_prune() -> None:
-    print("  (disk) docker system prune -af --volumes …", flush=True)
-    subprocess.run(
-        ["docker", "system", "prune", "-af", "--volumes"],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    # Never use `prune -a`: that deletes unused *tagged* images, including the
+    # prefetched ghcr.io/scaleapi/swe-atlas:* set. SWE-Atlas then fails every
+    # trial with RuntimeError (ghcr pull / Service Unavailable) and the matrix
+    # thrash-resumes tech×124 forever.
+    print("  (disk) docker container/network/dangling prune (keep tagged images) …", flush=True)
+    for cmd in (
+        ["docker", "container", "prune", "-f"],
+        ["docker", "network", "prune", "-f"],
+        ["docker", "image", "prune", "-f"],  # dangling only
+        ["docker", "builder", "prune", "-f"],
+    ):
+        subprocess.run(cmd, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     free = _data_free_gib()
     if free is not None:
         print(f"  (disk) free after prune: {free:.1f} GiB", flush=True)
@@ -266,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--docker-prune-between",
         action="store_true",
-        help="docker system prune -af between agent×suite jobs (disk hygiene)",
+        help="docker container/network/dangling prune between jobs (keeps tagged images)",
     )
     parser.add_argument(
         "--suite-major",

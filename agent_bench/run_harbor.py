@@ -98,6 +98,80 @@ def load_map() -> dict:
         return yaml.safe_load(f) or {}
 
 
+def harbor_model_arg(model: str, harbor_agent: str | None = None) -> str:
+    """Normalize ``-m`` for Harbor agents + LiteLLM ThinkingCap.
+
+    Many Harbor agents require ``provider/model`` (opencode, hermes, mimo, …)
+    and raise ValueError otherwise. Claude Code strips a provider prefix before
+    calling the API, so ``openai/thinkingcap`` still sends bare ``thinkingcap``
+    to LiteLLM (whose key allowlist rejects unknown model ids).
+    """
+    if "/" in model and not model.startswith("t-prazak/"):
+        return model
+    if os.environ.get("HARBOR_MODEL_AS_IS") == "1":
+        return model
+    bare = model
+    if model.startswith("t-prazak/"):
+        bare = model.split("/", 1)[-1]
+        # MLX ids → LiteLLM alias used on the workstation
+        if "ThinkingCap" in bare or "thinkingcap" in bare.lower():
+            bare = "thinkingcap"
+    if bare in {"thinkingcap", "ThinkingCap"}:
+        bare = "thinkingcap"
+        # Prefer openai/* so OpenAI-compatible agents wire OPENAI_BASE_URL.
+        return f"openai/{bare}"
+    if "/" not in bare:
+        return f"openai/{bare}"
+    return bare
+
+
+def ensure_swe_atlas_images(ds_path: Path) -> dict:
+    """Prefetch missing SWE-Atlas docker images; return presence stats."""
+    if not ds_path.is_dir():
+        return {"present": 0, "missing": 0, "images": []}
+    images: list[str] = []
+    for toml in ds_path.glob("*/task.toml"):
+        for line in toml.read_text(errors="ignore").splitlines():
+            line = line.strip()
+            if line.startswith("docker_image"):
+                # docker_image = "ghcr.io/..."
+                if '"' in line:
+                    images.append(line.split('"', 2)[1])
+                break
+    images = sorted(set(images))
+    missing: list[str] = []
+    for img in images:
+        chk = subprocess.run(
+            ["docker", "image", "inspect", img],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if chk.returncode != 0:
+            missing.append(img)
+    for img in missing:
+        print(f"  (images) pulling {img}", flush=True)
+        subprocess.run(["docker", "pull", img], check=False)
+    still = [
+        img
+        for img in images
+        if subprocess.run(
+            ["docker", "image", "inspect", img],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        != 0
+    ]
+    present = len(images) - len(still)
+    print(
+        f"  (images) swe-atlas docker images present={present}/{len(images)} "
+        f"missing={len(still)}",
+        flush=True,
+    )
+    return {"present": present, "missing": len(still), "images": images, "still": still}
+
+
 def harbor_agent_name(agent_id: str) -> str | None:
     mapped = load_map().get("harbor", {}).get(agent_id)
     return mapped or None
@@ -533,6 +607,39 @@ def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
     return len(paths)
 
 
+def patch_job_model_names(job_path: Path, model_arg: str) -> int:
+    """Rewrite bare ``thinkingcap`` Harbor ``agents[].model_name`` in config+lock.
+
+    Agent *env* ``LLM_MODEL`` / ``MODEL`` stay bare (LiteLLM allowlist). Only the
+    Harbor ``-m`` / ``model_name`` field needs ``openai/thinkingcap`` so agents
+    that require ``provider/model`` do not raise ValueError on resume.
+    """
+    job_path = Path(job_path)
+    n = 0
+    for name in ("config.json", "lock.json"):
+        path = job_path / name
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        changed = False
+        for agent in data.get("agents") or []:
+            if not isinstance(agent, dict):
+                continue
+            cur = agent.get("model_name")
+            if cur in {"thinkingcap", "ThinkingCap"} and cur != model_arg:
+                agent["model_name"] = model_arg
+                changed = True
+                n += 1
+        if changed:
+            path.write_text(json.dumps(data, indent=2) + "\n")
+    return n
+
+
 def set_job_n_concurrent(job_path: Path, n_concurrent: int) -> int | None:
     """Bump Harbor job concurrency before resume.
 
@@ -577,6 +684,18 @@ def resume_job(
     job_name = job_path.name
     out = job_path.parent
     reclaimed = reclaim_root_owned_trial_dirs(job_path)
+    # SWE-Atlas / slash-model agents: fix bare thinkingcap before Harbor re-runs.
+    model_patches = patch_job_model_names(
+        job_path, harbor_model_arg("thinkingcap")
+    )
+    if model_patches:
+        print(
+            f"  (resume) patched model_name → openai/thinkingcap "
+            f"({model_patches} agent entries)",
+            flush=True,
+        )
+    if "swe-atlas" in str(job_path):
+        ensure_swe_atlas_images(SUITE_DATASETS["swe-atlas-qna"]["local"])
     conc_prev = None
     if n_concurrent is not None:
         conc_prev = set_job_n_concurrent(job_path, n_concurrent)
@@ -781,14 +900,10 @@ def run_suite(
                 return result
     job_name = f"{suite_id}__{agent_id}__{time.strftime('%Y%m%d_%H%M%S')}"
 
-    # Harbor -m is often provider/model. LiteLLM aliases (thinkingcap) must stay
-    # bare — openai/thinkingcap is rejected (403 key not allowed to access model).
-    if "/" in model and not model.startswith("t-prazak/"):
-        model_arg = model
-    elif model in {"thinkingcap", "ThinkingCap"} or os.environ.get("HARBOR_MODEL_AS_IS") == "1":
-        model_arg = model
-    else:
-        model_arg = f"openai/{model}"
+    model_arg = harbor_model_arg(model, harbor_agent)
+    if suite_id == "swe-atlas-qna":
+        conf = SUITE_DATASETS["swe-atlas-qna"]
+        ensure_swe_atlas_images(Path(conf["local"]))
 
     cmd = [
         harbor, "run",

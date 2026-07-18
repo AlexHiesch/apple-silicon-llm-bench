@@ -28,6 +28,7 @@ TECH_EXCEPTION_TYPES = frozenset({
     "EnvironmentStartTimeoutError",
     "VerifierTimeoutError",
     "RuntimeError",  # Harbor wraps docker/compose infra failures as RuntimeError
+    "ValueError",  # e.g. Harbor agent "Model name must be in the format provider/model_name"
 })
 
 # Message snippets that mean infra/API — even if exception type is odd.
@@ -53,6 +54,10 @@ TECH_MESSAGE_MARKERS = (
     "Docker compose command failed",
     "unknown flag: --project-name",
     "docker compose",
+    "Service Unavailable",
+    "failed to resolve reference",
+    "ghcr.io",
+    "provider/model_name",
 )
 
 
