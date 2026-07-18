@@ -154,6 +154,16 @@ status "launching matrix (Harbor first, then DeepSWE resume)"
   --harbor-retry-error UnknownApiError \
   --harbor-retry-error AgentTimeoutError \
   --harbor-retry-error CancelledError \
+  --harbor-retry-error NetworkConnectionError \
+  --harbor-retry-error NonZeroAgentExitCodeError \
+  --harbor-retry-error ContextWindowExceededError \
+  --harbor-retry-error RateLimitError \
+  --harbor-retry-error ApiRateLimitError \
+  --harbor-retry-error TimeoutError \
+  --harbor-retry-error RuntimeError \
+  --harbor-retry-error AgentSetupTimeoutError \
+  --harbor-retry-error EnvironmentStartTimeoutError \
+  --harbor-retry-error VerifierTimeoutError \
   --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
   --docker-prune-between \
   --min-free-gb "$MIN_FREE_GB" \

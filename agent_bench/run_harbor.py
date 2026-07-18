@@ -234,8 +234,11 @@ def job_is_technical_junk(job: Path) -> bool:
         "NonZeroAgentExitCodeError",
         "RuntimeError",
         "AgentSetupTimeoutError",
+        "EnvironmentStartTimeoutError",
+        "VerifierTimeoutError",
         "TimeoutError",
         "RateLimitError",
+        "ApiRateLimitError",
         "ContextWindowExceededError",
     }
     total = 0

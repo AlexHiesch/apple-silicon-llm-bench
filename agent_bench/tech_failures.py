@@ -22,7 +22,11 @@ TECH_EXCEPTION_TYPES = frozenset({
     "NonZeroAgentExitCodeError",
     "ContextWindowExceededError",
     "RateLimitError",
+    "ApiRateLimitError",  # Harbor's installed-agent classification (≠ RateLimitError)
     "TimeoutError",
+    "AgentSetupTimeoutError",
+    "EnvironmentStartTimeoutError",
+    "VerifierTimeoutError",
     "RuntimeError",  # Harbor wraps docker/compose infra failures as RuntimeError
 })
 

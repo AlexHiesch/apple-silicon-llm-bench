@@ -90,3 +90,13 @@ def test_job_has_exception_types(tmp_path: Path):
     assert run_harbor.job_is_complete(job) is True
     assert run_harbor.job_has_exception_types(job, ["RuntimeError"]) is True
     assert run_harbor.job_has_exception_types(job, ["AgentTimeoutError"]) is False
+
+
+def test_tech_exception_types_cover_harbor_rate_limit_aliases():
+    from agent_bench.tech_failures import TECH_EXCEPTION_TYPES
+
+    # Harbor installed agents raise ApiRateLimitError; keep both names retryable.
+    assert "RateLimitError" in TECH_EXCEPTION_TYPES
+    assert "ApiRateLimitError" in TECH_EXCEPTION_TYPES
+    assert "EnvironmentStartTimeoutError" in TECH_EXCEPTION_TYPES
+    assert "VerifierTimeoutError" in TECH_EXCEPTION_TYPES
