@@ -11,9 +11,15 @@
 | `cmtcdeu89976740` (x40) | `deploy/vllm-int4` TP=2 @ 128k, LiteLLM hostNetwork `:4000`, Harbor/`aa-ws` |
 | `cmtcdeu89976739` (x39) | `deploy/vllm-int4-x39` TP=2 @ 128k, idle GPUs → now serving |
 
-LiteLLM `thinkingcap` → simple-shuffle across:
-- `http://vllm-int4.llm-serving.svc:8000/v1` (x40)
-- `http://vllm-int4-x39.llm-serving.svc:8000/v1` (x39)
+LiteLLM `thinkingcap` → **least-busy** across:
+- `http://vllm-int4.llm-serving.svc:8000/v1` (x40, `model_info.id=thinkingcap-x40`)
+- `http://vllm-int4-x39.llm-serving.svc:8000/v1` (x39, `model_info.id=thinkingcap-x39`)
+
+Session stickiness: `session_affinity` (TTL 3h). Claude Code already sends
+`x-claude-code-session-id`; LiteLLM maps that into `metadata.session_id`, so
+follow-up turns of one trial stay on the same vLLM replica (prefix cache).
+Do **not** enable `deployment_affinity` — one shared API key would pin all
+trials to a single node.
 
 ## Runner knobs
 
@@ -29,12 +35,18 @@ Harbor `job resume` has **no** `-n` flag — concurrency lives in the job's
 to match `--n-concurrent` / `N_CONCURRENT` before each resume so dual-node
 bumps stick on existing jobs.
 
+LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
+`litellm-config.bench-dual-tp2.yaml`). Re-apply with
+`bash agent_bench/k8s/apply-litellm-dual-routing.sh`.
+
 ## Activate / deactivate
 
 ```bash
 # on x40
 cd ~/Projects/Work/llm-bench
 bash agent_bench/k8s/activate-dual-tp2-128k.sh
+bash agent_bench/k8s/apply-litellm-dual-routing.sh   # least-busy + session_affinity
+bash agent_bench/k8s/smoke-litellm-session-affinity.sh
 bash agent_bench/k8s/patch-grafana-dual-dashboard.sh
 
 # update runner env + restart aa-ws (results preserved via resume)

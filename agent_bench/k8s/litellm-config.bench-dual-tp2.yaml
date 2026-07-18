@@ -1,19 +1,37 @@
-# LiteLLM config fragment for dual TP2@128k backends (x40 + x39).
-# Applied via: kubectl -n llm-serving create cm litellm-config --from-file=config.yaml=... -o yaml --dry-run=client | kubectl apply -f -
+# LiteLLM config for dual TP2@128k backends (x40 + x39).
+# Applied via: bash agent_bench/k8s/apply-litellm-dual-routing.sh
+#
+# Routing intent for AA Index overnight:
+# - least-busy: prefer the replica with fewer in-flight requests (long agent turns)
+# - session_affinity: pin a Claude Code session to one replica so vLLM automatic
+#   prefix cache stays warm across turns (LiteLLM maps x-claude-code-session-id
+#   → metadata.session_id automatically; no Harbor env hack required)
+# - NOT deployment_affinity: we share one API key across all trials; key affinity
+#   would collapse all traffic onto a single node
 model_list:
   - model_name: thinkingcap
     litellm_params:
       model: openai/thinkingcap-qwen3.6-27b
       api_base: http://vllm-int4.llm-serving.svc.cluster.local:8000/v1
       api_key: sk-k8s-local-vllm
+    model_info:
+      id: thinkingcap-x40
   - model_name: thinkingcap
     litellm_params:
       model: openai/thinkingcap-qwen3.6-27b
       api_base: http://vllm-int4-x39.llm-serving.svc.cluster.local:8000/v1
       api_key: sk-k8s-local-vllm
+    model_info:
+      id: thinkingcap-x39
 
 router_settings:
-  routing_strategy: simple-shuffle
+  routing_strategy: least-busy
+  optional_pre_call_checks:
+    - session_affinity
+  deployment_affinity_ttl_seconds: 10800
+  model_group_affinity_config:
+    thinkingcap:
+      - session_affinity
 
 litellm_settings:
   request_timeout: 1800
