@@ -36,8 +36,20 @@ def test_patch_inserts_small_fast_and_settings():
     assert mod.MARKER_SETTINGS in out
     assert 'env["ANTHROPIC_SMALL_FAST_MODEL"]' in out
     assert "skipWebFetchPreflight" in out
+    assert "settings.json" in out
+    # Must not inject a shell `#` mid-&& chain (comments out printf).
+    assert "# llm-bench: skipWebFetchPreflight settings" not in out
     assert mod.OLD_ALIAS not in out
     assert mod.OLD_SETUP not in out
+
+
+def test_patch_repairs_broken_v1_comment():
+    mod = _load()
+    src = mod.BROKEN_SETUP
+    out = mod.patch_text(src)
+    assert out == mod.NEW_SETUP
+    assert "# llm-bench: skipWebFetchPreflight settings" not in out
+    assert "skipWebFetchPreflight" in out
 
 
 def test_patch_idempotent():
