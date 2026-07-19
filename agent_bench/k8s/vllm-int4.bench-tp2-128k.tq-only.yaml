@@ -1,0 +1,114 @@
+# TEMPORARY AA-index bench overlay — TP=2 @ 128k, TurboQuant KV, no MTP.
+# Use when isolating tool-call / format regressions from speculative decode.
+# Revert: bash agent_bench/k8s/switch-thinkingcap-serving.sh mtp-eager
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-int4
+  namespace: llm-serving
+  labels:
+    app: vllm-int4
+    llm-bench-mode: temporary-tp2-128k
+  annotations:
+    llm-bench/mode: "temporary-aa-index-tp2-128k-tq-only"
+    llm-bench/revert: "bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  progressDeadlineSeconds: 1800
+  selector:
+    matchLabels:
+      app: vllm-int4
+  template:
+    metadata:
+      labels:
+        app: vllm-int4
+        llm-bench-mode: temporary-tp2-128k
+    spec:
+      runtimeClassName: nvidia
+      enableServiceLinks: false
+      nodeSelector:
+        kubernetes.io/hostname: cmtcdeu89976740
+      containers:
+        - name: vllm
+          image: docker.io/vllm/vllm-openai:v0.24.0
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+          args:
+            - --model
+            - $(MODEL_PATH)
+            - --served-model-name
+            - $(SERVED_MODEL_NAME)
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+            - --trust-remote-code
+            - --dtype
+            - bfloat16
+            - --tensor-parallel-size
+            - "2"
+            - --max-model-len
+            - "131072"
+            - --gpu-memory-utilization
+            - "0.92"
+            - --max-num-seqs
+            - "8"
+            - --max-num-batched-tokens
+            - "4096"
+            # TQ-only: no MTP → cudagraph OK (no enforce-eager needed)
+            - --enable-auto-tool-choice
+            - --tool-call-parser
+            - qwen3_xml
+            - --reasoning-parser
+            - qwen3
+            - --enable-prefix-caching
+            - --no-disable-hybrid-kv-cache-manager
+            - --kv-cache-dtype
+            - turboquant_4bit_nc
+          env:
+            - name: PYTHONHASHSEED
+              value: "0"
+            - name: VLLM_WORKER_MULTIPROC_METHOD
+              value: spawn
+          envFrom:
+            - configMapRef:
+                name: vllm-int4-config
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: "16"
+              memory: 96Gi
+              nvidia.com/gpu: "2"
+            limits:
+              cpu: "28"
+              memory: 180Gi
+              nvidia.com/gpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          startupProbe:
+            httpGet:
+              path: /v1/models
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 180
+          volumeMounts:
+            - mountPath: /models
+              name: model-cache
+              readOnly: true
+      volumes:
+        - name: model-cache
+          hostPath:
+            path: /opt/models
+            type: Directory

@@ -79,6 +79,20 @@ LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 - Resume reuses per-trial `agent_timeout_multiplier` from the job lock (already
   1.5 on the active job); the env knob applies to **new** `harbor run` jobs.
 
+## Overnight serving A/B (AFK)
+
+Autonomous loop on x40 (`tmux aa-ab`):
+
+```bash
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+bash agent_bench/scripts/overnight_ab_serving.sh
+# log: results/agent_bench/aa_index/OVERNIGHT_AB.log
+```
+
+Sequence: tool-smoke on live MTP → switch **tq-only** → **baseline** → pick INT4 winner → optional **BF16** (rsync to x39, 64k first) → guard loop marking short content_fails for Harbor retry.
+
+Helpers: `switch-thinkingcap-serving.sh {mtp-eager|tq-only|baseline}`, `smoke_tool_calls.py`, `apply-thinkingcap-bf16.sh`.
+
 ## Activate / deactivate
 
 ```bash

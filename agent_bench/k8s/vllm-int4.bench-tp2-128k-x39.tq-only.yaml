@@ -1,0 +1,141 @@
+# TEMPORARY: second TP=2 @ 128k replica on cmtcdeu89976739 (x39).
+# Separate app label so Service vllm-int4 (x40) is not double-weighted.
+# Activate: bash agent_bench/k8s/activate-dual-tp2-128k.sh
+# Remove:   kubectl -n llm-serving delete deploy/vllm-int4-x39 svc/vllm-int4-x39
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-int4-x39
+  namespace: llm-serving
+  labels:
+    app: vllm-int4-x39
+    llm-bench-mode: temporary-tp2-128k-dual
+    llm-bench-node: x39
+  annotations:
+    llm-bench/mode: "temporary-aa-index-tp2-128k-dual"
+    llm-bench/revert: "kubectl -n llm-serving delete deploy/vllm-int4-x39 svc/vllm-int4-x39"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  progressDeadlineSeconds: 1800
+  selector:
+    matchLabels:
+      app: vllm-int4-x39
+      llm-bench-node: x39
+  template:
+    metadata:
+      labels:
+        app: vllm-int4-x39
+        llm-bench-mode: temporary-tp2-128k-dual
+        llm-bench-node: x39
+        # Alias for dashboards that group on "vllm family"
+        vllm_family: thinkingcap-int4
+    spec:
+      runtimeClassName: nvidia
+      enableServiceLinks: false
+      nodeSelector:
+        kubernetes.io/hostname: cmtcdeu89976739
+      containers:
+        - name: vllm
+          image: docker.io/vllm/vllm-openai:v0.24.0
+          imagePullPolicy: IfNotPresent
+          command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+          args:
+            - --model
+            - $(MODEL_PATH)
+            - --served-model-name
+            - $(SERVED_MODEL_NAME)
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+            - --trust-remote-code
+            - --dtype
+            - bfloat16
+            - --tensor-parallel-size
+            - "2"
+            - --max-model-len
+            - "131072"
+            - --gpu-memory-utilization
+            - "0.92"
+            - --max-num-seqs
+            - "8"
+            # MTP shrinks default batched tokens to 2048; TQ+Mamba align needs
+            # attention block_size ~3088 → must be >= that (josefprusa: 4096).
+            - --max-num-batched-tokens
+            - "4096"
+            - --enable-auto-tool-choice
+            - --tool-call-parser
+            - qwen3_xml
+            - --reasoning-parser
+            - qwen3
+            - --enable-prefix-caching
+            - --no-disable-hybrid-kv-cache-manager
+            # KV 4-bit (josefprusa long-context recipe) — more headroom at 128k/TP2
+            - --kv-cache-dtype
+            - turboquant_4bit_nc
+            # TQ-only: no MTP, no enforce-eager (cudagraph OK without MTP)
+          env:
+            - name: PYTHONHASHSEED
+              value: "0"
+            - name: VLLM_WORKER_MULTIPROC_METHOD
+              value: spawn
+          envFrom:
+            - configMapRef:
+                name: vllm-int4-config
+          ports:
+            - containerPort: 8000
+              name: http
+          resources:
+            requests:
+              cpu: "16"
+              memory: 96Gi
+              nvidia.com/gpu: "2"
+            limits:
+              cpu: "28"
+              memory: 180Gi
+              nvidia.com/gpu: "2"
+          readinessProbe:
+            httpGet:
+              path: /v1/models
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          startupProbe:
+            httpGet:
+              path: /v1/models
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 180
+          volumeMounts:
+            - mountPath: /models
+              name: model-cache
+              readOnly: true
+      volumes:
+        - name: model-cache
+          hostPath:
+            path: /opt/models
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-int4-x39
+  namespace: llm-serving
+  labels:
+    app: vllm-int4-x39
+    llm-bench-node: x39
+spec:
+  type: ClusterIP
+  selector:
+    app: vllm-int4-x39
+    llm-bench-node: x39
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
