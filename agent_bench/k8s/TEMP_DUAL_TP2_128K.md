@@ -31,18 +31,29 @@ trials to a single node.
 | `AGENT_TIMEOUT_MULT` | `1.5` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
 
-### MTP + TurboQuant (tried 2026-07-19, reverted)
+### MTP + TurboQuant
 
-Tried josefprusa recipe (`mtp` n=1 + `turboquant_4bit_nc` + `enable_thinking` chat kwargs).
-First boot needed `--max-num-batched-tokens 4096` (MTP default 2048 &lt; TQ/Mamba block ~3088).
-After enable, short/agent-facing smokes looked unhealthy during the bounce; **rolled back** to this baseline via `revert-thinkingcap-mtp.sh`. Baseline re-verified (`max_tokens≥256` → content `PONG`; Harbor trials advancing again).
+**On** (josefprusa INT4 recipe), via `enable-thinkingcap-mtp.sh`:
+- `--kv-cache-dtype turboquant_4bit_nc`
+- `--speculative-config '{"method":"mtp","num_speculative_tokens":1}'`
+- `--max-num-batched-tokens 4096` (required: MTP default 2048 &lt; TQ/Mamba block ~3088)
+- `--enforce-eager` — **required on vLLM 0.24**: TQ×MTP with FULL cudagraph produces degenerate token loops (`empty, empty…`, empty tool args). Upstream: [vllm#40831](https://github.com/vllm-project/vllm/issues/40831), [vllm#40880](https://github.com/vllm-project/vllm/issues/40880). TQ alone and MTP alone are fine; only the combo + cudagraph breaks. Fix lands in newer vLLM; until then eager keeps both features correct (some decode TPS cost).
 
-Scripts:
-- `enable-thinkingcap-mtp.sh` — opt-in re-enable (x39→x40)
-- `revert-thinkingcap-mtp.sh` — back to baseline
-- `check-thinkingcap-serving.sh` — smoke + auto-revert if TQ flags present and content broken
+Isolation (x39 A/B, after Ready + ≥90s warmup, `max_tokens≥512`):
 
-**Still skipped:** FP8 weights, DFlash (≠ TurboQuant).
+| Config | thinking PONG | tools |
+|--------|---------------|-------|
+| baseline | OK | OK |
+| TQ only | OK | OK |
+| MTP only | OK | OK |
+| TQ+MTP (cudagraph) | FAIL loops | FAIL |
+| TQ+MTP + `--enforce-eager` | OK | OK |
+
+Enable script waits for Ready + **warmup** (default 180s — GPU load is not the same as Ready), then smokes with `max_tokens=512`. Short budgets with thinking-on can look like “empty content” even on baseline. On smoke failure → auto-revert.
+
+**DFlash** still skipped (≠ TurboQuant; custom vLLM).
+
+Scripts: `enable-thinkingcap-mtp.sh`, `revert-thinkingcap-mtp.sh`, `check-thinkingcap-serving.sh`
 
 Harbor `job resume` has **no** `-n` flag. Resume rebuilds the lock from
 `config.json` (Harbor default `n_concurrent_trials=4`) and errors if that

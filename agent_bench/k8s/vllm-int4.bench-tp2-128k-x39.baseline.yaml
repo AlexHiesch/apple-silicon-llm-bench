@@ -1,34 +1,40 @@
-# TEMPORARY AA-index bench overlay — TP=2, max_model_len=131072, no Mooncake.
-# Revert: bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh
+# TEMPORARY: second TP=2 @ 128k replica on cmtcdeu89976739 (x39).
+# Separate app label so Service vllm-int4 (x40) is not double-weighted.
+# Activate: bash agent_bench/k8s/activate-dual-tp2-128k.sh
+# Remove:   kubectl -n llm-serving delete deploy/vllm-int4-x39 svc/vllm-int4-x39
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vllm-int4
+  name: vllm-int4-x39
   namespace: llm-serving
   labels:
-    app: vllm-int4
-    llm-bench-mode: temporary-tp2-128k
+    app: vllm-int4-x39
+    llm-bench-mode: temporary-tp2-128k-dual
+    llm-bench-node: x39
   annotations:
-    llm-bench/mode: "temporary-aa-index-tp2-128k"
-    llm-bench/revert: "bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh"
+    llm-bench/mode: "temporary-aa-index-tp2-128k-dual"
+    llm-bench/revert: "kubectl -n llm-serving delete deploy/vllm-int4-x39 svc/vllm-int4-x39"
 spec:
   replicas: 1
   strategy:
     type: Recreate
-  progressDeadlineSeconds: 1800
   selector:
     matchLabels:
-      app: vllm-int4
+      app: vllm-int4-x39
+      llm-bench-node: x39
   template:
     metadata:
       labels:
-        app: vllm-int4
-        llm-bench-mode: temporary-tp2-128k
+        app: vllm-int4-x39
+        llm-bench-mode: temporary-tp2-128k-dual
+        llm-bench-node: x39
+        # Alias for dashboards that group on "vllm family"
+        vllm_family: thinkingcap-int4
     spec:
       runtimeClassName: nvidia
       enableServiceLinks: false
       nodeSelector:
-        kubernetes.io/hostname: cmtcdeu89976740
+        kubernetes.io/hostname: cmtcdeu89976739
       containers:
         - name: vllm
           image: docker.io/vllm/vllm-openai:v0.24.0
@@ -54,13 +60,6 @@ spec:
             - "0.92"
             - --max-num-seqs
             - "8"
-            # MTP shrinks default batched tokens to 2048; TQ+Mamba align needs
-            # attention block_size ~3088 → must be >= that (josefprusa: 4096).
-            - --max-num-batched-tokens
-            - "4096"
-            # vLLM 0.24: TQ×MTP + FULL cudagraph → degenerate loops
-            # (vllm#40831/#40880). enforce-eager keeps TQ+MTP correct.
-            - --enforce-eager
             - --enable-auto-tool-choice
             - --tool-call-parser
             - qwen3_xml
@@ -68,13 +67,6 @@ spec:
             - qwen3
             - --enable-prefix-caching
             - --no-disable-hybrid-kv-cache-manager
-            # KV 4-bit (josefprusa long-context recipe) — more headroom at 128k/TP2
-            - --kv-cache-dtype
-            - turboquant_4bit_nc
-            # INT4 ThinkingCap keeps MTP heads in BF16 — enable self-spec decode
-            # (josefprusa card: method=mtp, num_speculative_tokens=1).
-            - --speculative-config
-            - '{"method":"mtp","num_speculative_tokens":1}'
           env:
             - name: PYTHONHASHSEED
               value: "0"
@@ -120,3 +112,21 @@ spec:
           hostPath:
             path: /opt/models
             type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-int4-x39
+  namespace: llm-serving
+  labels:
+    app: vllm-int4-x39
+    llm-bench-node: x39
+spec:
+  type: ClusterIP
+  selector:
+    app: vllm-int4-x39
+    llm-bench-node: x39
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
