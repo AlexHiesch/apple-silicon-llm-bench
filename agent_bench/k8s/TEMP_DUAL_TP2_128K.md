@@ -30,6 +30,11 @@ trials to a single node.
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` |
 | `AGENT_TIMEOUT_MULT` | `1.5` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
+| MTP (self-spec) | **on** — `--speculative-config '{"method":"mtp","num_speculative_tokens":1}'` (INT4 card keeps MTP heads in BF16) |
+| TurboQuant KV | **on** — `--kv-cache-dtype turboquant_4bit_nc` (josefprusa long-context recipe) |
+| Chat template | `enable_thinking` + `preserve_thinking` via `--default-chat-template-kwargs` |
+
+**Not enabled (on purpose):** official FP8 ThinkingCap weights (Ampere ≠ Blackwell 5–7× numbers; INT4 already small); DFlash (needs custom vLLM, fights KV-quant / 128k — incompatible with TurboQuant).
 
 Harbor `job resume` has **no** `-n` flag. Resume rebuilds the lock from
 `config.json` (Harbor default `n_concurrent_trials=4`) and errors if that
@@ -59,6 +64,7 @@ LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 # on x40
 cd ~/Projects/Work/llm-bench
 bash agent_bench/k8s/activate-dual-tp2-128k.sh
+bash agent_bench/k8s/enable-thinkingcap-mtp.sh       # MTP + TurboQuant on INT4 (x39 then x40)
 bash agent_bench/k8s/apply-litellm-dual-routing.sh   # least-busy + session_affinity
 bash agent_bench/k8s/smoke-litellm-session-affinity.sh
 bash agent_bench/k8s/patch-grafana-dual-dashboard.sh
