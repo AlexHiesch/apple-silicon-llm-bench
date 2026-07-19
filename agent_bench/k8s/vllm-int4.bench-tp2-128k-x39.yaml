@@ -18,7 +18,6 @@ spec:
   replicas: 1
   strategy:
     type: Recreate
-  progressDeadlineSeconds: 1200
   selector:
     matchLabels:
       app: vllm-int4-x39
@@ -61,10 +60,6 @@ spec:
             - "0.92"
             - --max-num-seqs
             - "8"
-            # MTP shrinks default batched tokens to 2048; TQ+Mamba align needs
-            # attention block_size ~3088 → must be >= that (josefprusa: 4096).
-            - --max-num-batched-tokens
-            - "4096"
             - --enable-auto-tool-choice
             - --tool-call-parser
             - qwen3_xml
@@ -72,15 +67,6 @@ spec:
             - qwen3
             - --enable-prefix-caching
             - --no-disable-hybrid-kv-cache-manager
-            # KV 4-bit (josefprusa long-context recipe) — more headroom at 128k/TP2
-            - --kv-cache-dtype
-            - turboquant_4bit_nc
-            # INT4 ThinkingCap keeps MTP heads in BF16 — enable self-spec decode
-            # (josefprusa card: method=mtp, num_speculative_tokens=1).
-            - --speculative-config
-            - '{"method":"mtp","num_speculative_tokens":1}'
-            - --default-chat-template-kwargs
-            - '{"enable_thinking":true,"preserve_thinking":true}'
           env:
             - name: PYTHONHASHSEED
               value: "0"

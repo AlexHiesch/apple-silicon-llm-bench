@@ -30,11 +30,19 @@ trials to a single node.
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` |
 | `AGENT_TIMEOUT_MULT` | `1.5` |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
-| MTP (self-spec) | **on** — `--speculative-config '{"method":"mtp","num_speculative_tokens":1}'` (INT4 card keeps MTP heads in BF16) |
-| TurboQuant KV | **on** — `--kv-cache-dtype turboquant_4bit_nc` (josefprusa long-context recipe) |
-| Chat template | `enable_thinking` + `preserve_thinking` via `--default-chat-template-kwargs` |
 
-**Not enabled (on purpose):** official FP8 ThinkingCap weights (Ampere ≠ Blackwell 5–7× numbers; INT4 already small); DFlash (needs custom vLLM, fights KV-quant / 128k — incompatible with TurboQuant).
+### MTP + TurboQuant (tried 2026-07-19, reverted)
+
+Tried josefprusa recipe (`mtp` n=1 + `turboquant_4bit_nc` + `enable_thinking` chat kwargs).
+First boot needed `--max-num-batched-tokens 4096` (MTP default 2048 &lt; TQ/Mamba block ~3088).
+After enable, short/agent-facing smokes looked unhealthy during the bounce; **rolled back** to this baseline via `revert-thinkingcap-mtp.sh`. Baseline re-verified (`max_tokens≥256` → content `PONG`; Harbor trials advancing again).
+
+Scripts:
+- `enable-thinkingcap-mtp.sh` — opt-in re-enable (x39→x40)
+- `revert-thinkingcap-mtp.sh` — back to baseline
+- `check-thinkingcap-serving.sh` — smoke + auto-revert if TQ flags present and content broken
+
+**Still skipped:** FP8 weights, DFlash (≠ TurboQuant).
 
 Harbor `job resume` has **no** `-n` flag. Resume rebuilds the lock from
 `config.json` (Harbor default `n_concurrent_trials=4`) and errors if that
@@ -64,10 +72,11 @@ LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 # on x40
 cd ~/Projects/Work/llm-bench
 bash agent_bench/k8s/activate-dual-tp2-128k.sh
-bash agent_bench/k8s/enable-thinkingcap-mtp.sh       # MTP + TurboQuant on INT4 (x39 then x40)
+# optional later: bash agent_bench/k8s/enable-thinkingcap-mtp.sh  # MTP+TQ (validate with check-thinkingcap-serving.sh)
 bash agent_bench/k8s/apply-litellm-dual-routing.sh   # least-busy + session_affinity
 bash agent_bench/k8s/smoke-litellm-session-affinity.sh
 bash agent_bench/k8s/patch-grafana-dual-dashboard.sh
+bash agent_bench/k8s/check-thinkingcap-serving.sh    # smoke; auto-revert if broken
 
 # update runner env + restart aa-ws (results preserved via resume)
 cat > results/agent_bench/aa_index/BENCH_TP2_128K.env <<'EOF'
