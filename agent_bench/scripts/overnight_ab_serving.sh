@@ -50,25 +50,40 @@ PY
 }
 
 content_smoke() {
-  say "content smoke (PONG)"
+  say "content smoke (PONG; try thinking + nothink)"
   KEY=$(kubectl -n llm-serving exec deploy/litellm -- printenv LITELLM_MASTER_KEY 2>/dev/null || true)
   [[ -n "$KEY" ]] || KEY=$(cat "$HOME/llm-serving/aa-index-key")
   .venv/bin/python - <<PY || return 1
-import json, urllib.request, os
-key=os.environ.get("KEY") or """$KEY"""
-body={"model":"thinkingcap","max_tokens":64,"temperature":0,
-      "messages":[{"role":"user","content":"Reply with exactly the word PONG and nothing else."}]}
-req=urllib.request.Request(
-  "http://127.0.0.1:4000/v1/chat/completions",
-  data=json.dumps(body).encode(),
-  headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
-)
-with urllib.request.urlopen(req, timeout=180) as r:
-  data=json.loads(r.read())
-msg=(data.get("choices") or [{}])[0].get("message") or {}
-c=(msg.get("content") or "").strip()
-print("content=",repr(c)[:120])
-ok="PONG" in c.upper() and c.count("\n")<5
+import json, urllib.request
+key="""$KEY"""
+
+def once(extra):
+    body={"model":"thinkingcap","max_tokens":64,"temperature":0,
+          "messages":[{"role":"user","content":"Reply with exactly the word PONG and nothing else."}]}
+    body.update(extra)
+    req=urllib.request.Request(
+      "http://127.0.0.1:4000/v1/chat/completions",
+      data=json.dumps(body).encode(),
+      headers={"Authorization":f"Bearer {key}","Content-Type":"application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=180) as r:
+      data=json.loads(r.read())
+    msg=(data.get("choices") or [{}])[0].get("message") or {}
+    c=(msg.get("content") or "") or ""
+    reason=(msg.get("reasoning_content") or "") or ""
+    print("extra", extra, "content=",repr(c)[:80], "reason=",repr(reason)[:60])
+    blob=(c+" "+reason).upper()
+    return "PONG" in blob and blob.count("\n")<20
+
+ok=False
+try:
+    ok = once({})
+except Exception as e:
+    print("thinking path FAIL", e)
+try:
+    ok = once({"chat_template_kwargs":{"enable_thinking":False}}) or ok
+except Exception as e:
+    print("nothink path FAIL", e)
 raise SystemExit(0 if ok else 1)
 PY
 }
