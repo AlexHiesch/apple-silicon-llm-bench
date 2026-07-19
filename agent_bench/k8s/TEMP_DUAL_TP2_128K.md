@@ -1,7 +1,9 @@
 # Temporary dual-node AA Index serving (TP=2 @ 128k × 2)
 
 **Status:** temporary — x40 + x39 each run one TP=2 @ 128k replica.  
-**Runner:** stays on x40 (x39 has no Docker; limited sudo).  
+**Runner:** still on x40 for now. x39 has Docker 29.3 installed (2026-07-19) but
+`/var/run/docker.sock` is still `root:root` (needs `SocketGroup=docker` applied) —
+Harbor trials on x39 blocked until that one sudo fix.  
 **Results:** Harbor job dirs on x40 are kept; matrix uses `--resume-harbor` + tech retry-until-content.
 
 ## Topology
@@ -112,18 +114,30 @@ bash ~/llm-serving/k8s/revert-vllm-prod-tp1.sh
 - Also: HPLLM GPU/DCGM (`node_short=x40|x39`), vLLM/Mooncake, Overview
 - Prometheus: `:30090` — job `vllm-int4` scrapes both pods with `node_short` + `bench_node`
 
-## Why not Harbor trials on x39 / k3s (without Docker)
+## Harbor trials on x39 (Docker now installed)
 
-Harbor 0.18 env types include `docker`, `gke`, `openshift`, `ack`, cloud
-sandboxes (`e2b`, `modal`, …) — **no generic Kubernetes / k3s backend**.
+Docker **29.3.1** is on x39 (`hiescha` ∈ group `docker`). Unit already has
+`SocketGroup=docker`, but the live socket was left as `root:root` 0660 →
+`permission denied` for non-root.
 
-| Option | Blocker on this cluster |
-|--------|-------------------------|
-| `--env docker` on x39 | No Docker package; limited sudo (no `apt install docker`) |
-| `--env gke` | GCP auth + GKE API; still runs tasks via **DinD** in pods |
-| `--env openshift` | Needs `oc` + privileged SCC, not plain k3s |
-| `--env ack` | Alibaba OpenKruise SandboxClaim CRDs |
+**One-shot for a sudo colleague:**
 
-So x39 stays **inference-only**. Trial sandboxes stay on x40 Docker; LiteLLM
-spreads decode across both vLLM replicas. A future upstream generic k8s env
-(or installing Docker on x39) would be required to move Harbor trials off x40.
+```bash
+# on cmtcdeu89976739
+sudo chgrp docker /var/run/docker.sock
+sudo chmod 660 /var/run/docker.sock
+# durable: restart socket so systemd recreates with SocketGroup=docker
+sudo systemctl restart docker.socket docker.service
+# verify as hiescha (new SSH login if needed):
+docker ps
+```
+
+Also confirm `/etc/group` lists `hiescha` under `docker` (`getent group docker`).
+`id` already shows gid 986; empty member list in `getent` is a smell.
+
+After sock works: install Harbor (`uv tool install harbor`), sync `llm-bench`,
+point trials at LiteLLM on x40 (`host.docker.internal` / x40 IP + NO_PROXY),
+then optionally split matrix runners (x40 + x39) — GPUs on x39 stay on
+`vllm-int4-x39` (inference); Harbor only needs CPU/disk for sandboxes.
+
+k3s still has **no** generic Harbor env — Docker remains the path.
