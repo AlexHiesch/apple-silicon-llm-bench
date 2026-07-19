@@ -14,9 +14,10 @@ if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090
   source "$ENV_FILE"
 fi
-# Dual-node default is 4 (~2 per TP2 replica). N=8 saturated GPUs and spiked
-# AgentTimeouts; keep 4 unless A/B shows clean/h gains.
-export N_CONCURRENT="${N_CONCURRENT:-4}"
+# Dual-node: N=4 (~2/replica) was OK until TQ+MTP+enforce-eager slowed decode
+# and tech timeouts piled up (api_retry). N=2 for tech-retry / overnight stability.
+# N=8 historically = timeout storm.
+export N_CONCURRENT="${N_CONCURRENT:-2}"
 # 16k out leaves ~112k input under 128k context (32k out overflowed at ~98k input).
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
 # 1.5x is the floor that kept all observed TB passes under the agent cap

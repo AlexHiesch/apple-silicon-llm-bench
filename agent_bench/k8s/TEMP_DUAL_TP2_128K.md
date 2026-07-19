@@ -27,7 +27,7 @@ trials to a single node.
 
 | Knob | Value |
 |------|-------|
-| `N_CONCURRENT` | `4` (~2 per node; N=8 caused timeout storm) |
+| `N_CONCURRENT` | `2` (was 4; lowered under TQ+MTP+eager after tech/api_retry pile-up; N=8 = timeout storm) |
 | vLLM `--max-num-seqs` | `8` (headroom above N=4) |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` |
 | `AGENT_TIMEOUT_MULT` | `1.5` |
