@@ -707,6 +707,19 @@ def observed_agent_durations_sec(out: Path) -> dict[str, float]:
     return out_d
 
 
+def parse_force_retry_tasks(raw: str | None = None) -> set[str]:
+    """Comma/space-separated task names that must not be credited as done."""
+    text = (raw if raw is not None else os.environ.get("AGENT_FORCE_RETRY_TASKS", "")).strip()
+    if not text:
+        return set()
+    names: set[str] = set()
+    for part in text.replace(",", " ").split():
+        name = part.strip()
+        if name:
+            names.add(name)
+    return names
+
+
 def tb_full_ordered_include_names(
     out: Path,
     dataset_root: Path,
@@ -714,17 +727,28 @@ def tb_full_ordered_include_names(
     skip_official_done: bool = True,
     max_agent_timeout_multiplier: float = 1.0,
     credit_any_clean: bool = True,
+    force_retry: set[str] | None = None,
 ) -> list[str]:
     """TB tasks short-first; skip already-clean (pass/content_fail) when asked.
 
     ``credit_any_clean`` (default True): skip any historical clean trial
     regardless of agent_timeout_multiplier — use when local mult is raised
     above TB-official 1.0 and prior passes should not be re-run.
+
+    ``force_retry`` / ``AGENT_FORCE_RETRY_TASKS``: always include these names
+    even if a prior content_fail/pass would otherwise credit them as done
+    (near-cap content_fails worth another attempt at a higher mult).
     """
     observed = observed_agent_durations_sec(out)
     ordered = tasks_sorted_by_duration(dataset_root, observed_sec=observed)
+    retry = set(force_retry or ()) | parse_force_retry_tasks()
     if not skip_official_done:
-        return ordered
+        if not retry:
+            return ordered
+        # Still honour force_retry order: retry names first, then the rest.
+        head = [t for t in ordered if t in retry]
+        tail = [t for t in ordered if t not in retry]
+        return head + tail
     if credit_any_clean:
         done = set(discover_clean_task_names(out))
     else:
@@ -733,6 +757,7 @@ def tb_full_ordered_include_names(
                 out, max_agent_timeout_multiplier=max_agent_timeout_multiplier
             )
         )
+    done -= retry
     return [t for t in ordered if t not in done]
 
 def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
@@ -1016,6 +1041,7 @@ def run_suite(
     tb_full_ordered: bool = False,
     tb_skip_official_done: bool = True,
     tb_force_fresh: bool = False,
+    tb_include_only: list[str] | None = None,
 ) -> dict:
     harbor_agent = harbor_agent_name(agent_id)
     if not harbor_agent:
@@ -1048,7 +1074,15 @@ def run_suite(
 
     dataset_root: Path | None = None
     tb_includes: list[str] = []
-    if tb_full_ordered and suite_id in ("terminal-bench-v2", "terminal-bench-v2-1"):
+    only = [n.strip() for n in (tb_include_only or []) if n and n.strip()]
+    if only:
+        tb_includes = only
+        print(
+            f"  (fresh) TB include-only: {len(tb_includes)} tasks "
+            f"({', '.join(tb_includes)})",
+            flush=True,
+        )
+    elif tb_full_ordered and suite_id in ("terminal-bench-v2", "terminal-bench-v2-1"):
         dataset_root = Path(SUITE_DATASETS[suite_id]["local"])
         tb_includes = tb_full_ordered_include_names(
             out,
@@ -1320,7 +1354,17 @@ if __name__ == "__main__":
         action="store_true",
         help="With --tb-full-ordered, include tasks already official-clean",
     )
+    p.add_argument(
+        "--tb-include-only",
+        default="",
+        help="Comma-separated TB task names; run only these (ignores credit skip)",
+    )
     args = p.parse_args()
+    include_only = [
+        n.strip()
+        for n in args.tb_include_only.replace(",", " ").split()
+        if n.strip()
+    ] or None
     print(json.dumps(run_suite(
         agent_id=args.agent,
         suite_id=args.suite,
@@ -1330,7 +1374,8 @@ if __name__ == "__main__":
         resume=args.resume,
         filter_error_types=args.filter_error_type or None,
         agent_timeout_multiplier=args.agent_timeout_multiplier,
-        tb_full_ordered=args.tb_full_ordered,
+        tb_full_ordered=args.tb_full_ordered or bool(include_only),
         tb_skip_official_done=not args.tb_redo_official_done,
-        tb_force_fresh=args.tb_force_fresh,
+        tb_force_fresh=args.tb_force_fresh or bool(include_only),
+        tb_include_only=include_only,
     ), indent=2))

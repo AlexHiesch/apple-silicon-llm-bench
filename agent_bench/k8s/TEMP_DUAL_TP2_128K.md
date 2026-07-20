@@ -73,6 +73,12 @@ LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 - ``AgentTimeoutError`` stays **tech** → ``resume_until_content`` retries.
 - Patch live jobs with ``run_harbor.set_job_agent_timeout_multiplier`` when
   changing the env knob (resume copies from job config/lock).
+- Prior **pass** under a tighter mult stays credited (no re-run at 2.5×).
+- Most **content_fails** finish early with a wrong answer — more time rarely helps.
+  Near-cap exceptions (wall ≈ base×mult): requeue with
+  ``bash agent_bench/scripts/start_near_cap_retries.sh``
+  (marks + include-only job; default ``query-optimize`` + 3 soft near-cap tasks).
+  Or set ``AGENT_FORCE_RETRY_TASKS=name1,name2`` so full-89 credit does not skip them.
 
 ## Overnight serving A/B (AFK)
 
