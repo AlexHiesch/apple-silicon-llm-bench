@@ -8,6 +8,16 @@ STAMP=$(date +%Y%m%d_%H%M%S)
 export PYTHONPATH="$REPO${PYTHONPATH:+:$PYTHONPATH}"
 export PATH="$HOME/aa-index-runner-home/.local/bin:${PATH:-/usr/bin:/bin}"
 
+# Workstation gateway (same as run_aa_index_workstation.sh)
+export OPENAI_API_KEY="${OPENAI_API_KEY:-$(cat "$HOME/llm-serving/aa-index-key" 2>/dev/null || true)}"
+export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-$OPENAI_API_KEY}"
+export OPENAI_BASE_URL="${OPENAI_BASE_URL:-http://127.0.0.1:4000/v1}"
+export OPENAI_API_BASE="$OPENAI_BASE_URL"
+export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://127.0.0.1:4000}"
+export HARBOR_OPENAI_BASE="${HARBOR_OPENAI_BASE:-http://host.docker.internal:4000/v1}"
+export HARBOR_ANTHROPIC_BASE="${HARBOR_ANTHROPIC_BASE:-http://host.docker.internal:4000}"
+export LLM_MODEL="${LLM_MODEL:-thinkingcap}"
+
 cd "$REPO"
 
 # Stop in-flight harbor/matrix briefly.
