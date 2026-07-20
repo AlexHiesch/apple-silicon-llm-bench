@@ -20,8 +20,8 @@ fi
 export N_CONCURRENT="${N_CONCURRENT:-2}"
 # 16k out leaves ~112k input under 128k context (32k out overflowed at ~98k input).
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
-# Official Harbor / Terminal Bench default (no --agent-timeout-multiplier).
-export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.0}"
+# Local 27B needs headroom vs TB official 1.0; 2.5x kills AgentTimeout pile-up.
+export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-2.5}"
 export TB_FULL_89="${TB_FULL_89:-0}"
 echo "TEMP MODE: N_CONCURRENT=$N_CONCURRENT CLAUDE_CODE_MAX_OUTPUT_TOKENS=$CLAUDE_CODE_MAX_OUTPUT_TOKENS timeout_mult=$AGENT_TIMEOUT_MULT tb_full_89=$TB_FULL_89"
 exec bash "$ROOT/agent_bench/scripts/run_aa_index_workstation.sh"

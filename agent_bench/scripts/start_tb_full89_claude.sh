@@ -41,7 +41,7 @@ done
 
 export TB_FULL_89=1
 export TB_FORCE_FRESH=1
-export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.0}"
+export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-2.5}"
 
 echo "=== task order (first 20) ==="
 .venv/bin/python - <<'PY'
