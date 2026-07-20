@@ -20,9 +20,7 @@ fi
 export N_CONCURRENT="${N_CONCURRENT:-2}"
 # 16k out leaves ~112k input under 128k context (32k out overflowed at ~98k input).
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS="${CLAUDE_CODE_MAX_OUTPUT_TOKENS:-16384}"
-# 1.5x is the floor that kept all observed TB passes under the agent cap
-# (1.25x would have AgentTimeout'd 2 real passes). AgentTimeoutError stays
-# tech → resume_until_content; never scored as content_fail.
-export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.5}"
+# Official Harbor / Terminal Bench default (no --agent-timeout-multiplier).
+export AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.0}"
 echo "TEMP MODE: N_CONCURRENT=$N_CONCURRENT CLAUDE_CODE_MAX_OUTPUT_TOKENS=$CLAUDE_CODE_MAX_OUTPUT_TOKENS timeout_mult=$AGENT_TIMEOUT_MULT"
 exec bash "$ROOT/agent_bench/scripts/run_aa_index_workstation.sh"

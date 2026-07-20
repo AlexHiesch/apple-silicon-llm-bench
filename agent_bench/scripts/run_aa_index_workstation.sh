@@ -17,7 +17,7 @@
 #   LLM_MODEL                 default thinkingcap
 #   N_ATTEMPTS                default 1
 #   N_CONCURRENT              default 2
-#   AGENT_TIMEOUT_MULT        default 1.5
+#   AGENT_TIMEOUT_MULT        default 1.0 (official Harbor / TB)
 #   CLAUDE_CODE_MAX_OUTPUT_TOKENS  default 8192  (fits dual-replica 65k)
 #   MAX_TECH_ROUNDS           default 12
 set -uo pipefail
@@ -85,7 +85,7 @@ unset AWS_BEARER_TOKEN_BEDROCK ANTHROPIC_BEDROCK_BASE_URL AWS_PROFILE || true
 
 N_ATTEMPTS="${N_ATTEMPTS:-1}"
 N_CONCURRENT="${N_CONCURRENT:-2}"
-AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.5}"
+AGENT_TIMEOUT_MULT="${AGENT_TIMEOUT_MULT:-1.0}"
 MIN_FREE_GB="${MIN_FREE_GB:-20}"
 MAX_TECH_ROUNDS="${MAX_TECH_ROUNDS:-12}"
 

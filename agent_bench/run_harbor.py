@@ -667,6 +667,63 @@ def patch_job_model_names(job_path: Path, model_arg: str) -> int:
     return n
 
 
+def _patch_agent_timeout_multiplier_obj(data: object, mult: float) -> int:
+    """Recursively set ``agent_timeout_multiplier`` in nested Harbor JSON."""
+    n = 0
+    if isinstance(data, dict):
+        if "agent_timeout_multiplier" in data:
+            old = data.get("agent_timeout_multiplier")
+            if old != mult:
+                data["agent_timeout_multiplier"] = mult
+                n += 1
+        for v in data.values():
+            n += _patch_agent_timeout_multiplier_obj(v, mult)
+    elif isinstance(data, list):
+        for item in data:
+            n += _patch_agent_timeout_multiplier_obj(item, mult)
+    return n
+
+
+def set_job_agent_timeout_multiplier(job_path: Path, mult: float) -> float | None:
+    """Align job + lock + per-trial configs with Harbor's timeout multiplier.
+
+    Harbor ``job resume`` copies multiplier from job config/lock into new
+    trials; stale 1.5x entries would keep giving extra agent time after the
+    runner env is reset to the official 1.0.
+    """
+    job_path = Path(job_path)
+    prev: float | None = None
+    for name in ("config.json", "lock.json"):
+        path = job_path / name
+        if not path.is_file():
+            continue
+        try:
+            data = json.loads(path.read_text())
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(data, dict):
+            continue
+        old = data.get("agent_timeout_multiplier")
+        if prev is None and isinstance(old, (int, float)):
+            prev = float(old)
+        _patch_agent_timeout_multiplier_obj(data, mult)
+        path.write_text(json.dumps(data, indent=2) + "\n")
+    for trial in job_path.iterdir():
+        if not trial.is_dir() or trial.name.startswith("_"):
+            continue
+        for name in ("config.json", "lock.json"):
+            path = trial / name
+            if not path.is_file():
+                continue
+            try:
+                data = json.loads(path.read_text())
+            except json.JSONDecodeError:
+                continue
+            _patch_agent_timeout_multiplier_obj(data, mult)
+            path.write_text(json.dumps(data, indent=2) + "\n")
+    return prev
+
+
 def set_job_n_concurrent(job_path: Path, n_concurrent: int) -> int | None:
     """Bump Harbor job concurrency before resume.
 

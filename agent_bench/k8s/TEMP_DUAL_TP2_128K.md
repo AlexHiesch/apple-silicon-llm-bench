@@ -30,7 +30,7 @@ trials to a single node.
 | `N_CONCURRENT` | `2` (was 4; lowered under TQ+MTP+eager after tech/api_retry pile-up; N=8 = timeout storm) |
 | vLLM `--max-num-seqs` | `8` (headroom above N=4) |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `16384` |
-| `AGENT_TIMEOUT_MULT` | `1.5` |
+| `AGENT_TIMEOUT_MULT` | `1.0` (official Harbor / TB; was temporary `1.5`) |
 | Mooncake | off (GPU prefix cache already ~95% hits; KV usage low) |
 
 ### MTP + TurboQuant
@@ -66,18 +66,16 @@ LiteLLM routing for this mode: `least-busy` + `session_affinity` (see
 `litellm-config.bench-dual-tp2.yaml`). Re-apply with
 `bash agent_bench/k8s/apply-litellm-dual-routing.sh`.
 
-### Timeout rationale (no false content fails)
+### Timeout rationale
 
-- `AgentTimeoutError` is in `TECH_EXCEPTION_TYPES` → scored **tech**, retried by
-  `resume_until_content`. A tighter multiplier can never turn a timeout into a
-  `content_fail`.
-- Empirically on TB/claude-code (job `…20260717_154234`): **1.5x** left all
-  observed passes under the agent cap; **1.25x** would have timed out 2 real
-  passes (`largest-eigenval`, `extract-elf`) as tech retries.
-- Env `2.0` was wasteful: stuck tasks already die at `base×1.5` (e.g. caffe
-  1200→1800s). Align runner + docs on **1.5**.
-- Resume reuses per-trial `agent_timeout_multiplier` from the job lock (already
-  1.5 on the active job); the env knob applies to **new** `harbor run` jobs.
+- Official benchmark: Harbor default / TB leaderboard use
+  ``agent_timeout_multiplier=1.0`` (no ``--agent-timeout-multiplier``).
+- Temporary ``1.5`` gave extra agent wall time; passes with
+  ``agent_duration > task [agent] timeout_sec`` are invalid at 1.0 and are
+  re-queued via ``agent_bench/scripts/requeue_inflated_timeout_trials.py``.
+- ``AgentTimeoutError`` stays **tech** → ``resume_until_content`` retries.
+- Resume copies multiplier from job ``config.json`` / ``lock.json``; patch with
+  ``run_harbor.set_job_agent_timeout_multiplier`` when changing the env knob.
 
 ## Overnight serving A/B (AFK)
 
@@ -109,7 +107,7 @@ bash agent_bench/k8s/check-thinkingcap-serving.sh    # smoke; auto-revert if bro
 cat > results/agent_bench/aa_index/BENCH_TP2_128K.env <<'EOF'
 export N_CONCURRENT=4
 export CLAUDE_CODE_MAX_OUTPUT_TOKENS=16384
-export AGENT_TIMEOUT_MULT=1.5
+export AGENT_TIMEOUT_MULT=1.0
 EOF
 tmux kill-session -t aa-ws 2>/dev/null || true
 tmux new-session -d -s aa-ws -c ~/Projects/Work/llm-bench -- \
