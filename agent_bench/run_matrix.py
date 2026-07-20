@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import time
@@ -173,6 +174,8 @@ def execute_run(
     resume_harbor: bool = False,
     harbor_filter_errors: list[str] | None = None,
     agent_timeout_multiplier: float = 1.0,
+    tb_full_ordered: bool = False,
+    tb_force_fresh: bool = False,
 ) -> dict:
     suite = run["suite"]
     agent_id = run["agent_id"]
@@ -203,6 +206,8 @@ def execute_run(
             resume=resume_harbor,
             filter_error_types=harbor_filter_errors,
             agent_timeout_multiplier=agent_timeout_multiplier,
+            tb_full_ordered=tb_full_ordered,
+            tb_force_fresh=tb_force_fresh,
         )
     return {
         "status": "skipped",
@@ -284,6 +289,16 @@ def main(argv: list[str] | None = None) -> int:
         default=0,
         help="Abort if Data volume free space drops below this many GiB (0=off)",
     )
+    parser.add_argument(
+        "--tb-full-89",
+        action="store_true",
+        help="Terminal Bench: all tasks short-first (--include-task-name order)",
+    )
+    parser.add_argument(
+        "--tb-force-fresh",
+        action="store_true",
+        help="With --tb-full-89, start a new ordered job (ignore partial resume)",
+    )
     args = parser.parse_args(argv)
 
     if args.list:
@@ -353,6 +368,14 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.agent_timeout_multiplier != 1.0:
         print(f"Harbor agent timeout multiplier: {args.agent_timeout_multiplier}x")
+    tb_full_ordered = args.tb_full_89 or os.environ.get("TB_FULL_89", "").strip() in (
+        "1", "true", "yes",
+    )
+    tb_force_fresh = args.tb_force_fresh or os.environ.get("TB_FORCE_FRESH", "").strip() in (
+        "1", "true", "yes",
+    )
+    if tb_full_ordered:
+        print("Terminal Bench: full dataset, short-first task order")
     if args.min_free_gb:
         print(f"Disk guard: abort below {args.min_free_gb} GiB free")
 
@@ -393,6 +416,8 @@ def main(argv: list[str] | None = None) -> int:
                 resume_harbor=args.resume_harbor,
                 harbor_filter_errors=harbor_retry_errors or None,
                 agent_timeout_multiplier=args.agent_timeout_multiplier,
+                tb_full_ordered=tb_full_ordered,
+                tb_force_fresh=tb_force_fresh,
             )
         except Exception as e:
             result = {

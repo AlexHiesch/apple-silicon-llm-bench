@@ -172,6 +172,8 @@ run_matrix() {
     --harbor-retry-error EnvironmentStartTimeoutError \
     --harbor-retry-error VerifierTimeoutError \
     --agent-timeout-multiplier "$AGENT_TIMEOUT_MULT" \
+    ${TB_FULL_89:+--tb-full-89} \
+    ${TB_FORCE_FRESH:+--tb-force-fresh} \
     --min-free-gb "$MIN_FREE_GB" \
     ${AGENT_IDS:+--agent $AGENT_IDS}
 }

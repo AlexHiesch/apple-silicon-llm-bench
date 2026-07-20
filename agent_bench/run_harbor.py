@@ -12,6 +12,7 @@ from pathlib import Path
 import yaml
 
 from agent_bench.tech_failures import TECH_EXCEPTION_TYPES
+from agent_bench.tb_task_order import tasks_sorted_by_duration
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
@@ -579,6 +580,107 @@ def discover_clean_task_names(out: Path) -> list[str]:
                 names.add(task)
     return sorted(names)
 
+
+def trial_agent_timeout_multiplier(result: dict) -> float:
+    cfg = result.get("config") or {}
+    mult = cfg.get("agent_timeout_multiplier")
+    if mult is None:
+        return 1.0
+    return float(mult)
+
+
+def discover_official_clean_task_names(
+    out: Path,
+    *,
+    max_agent_timeout_multiplier: float = 1.0,
+) -> list[str]:
+    """Clean-finished tasks at or below the official agent timeout multiplier."""
+    names: set[str] = set()
+    if not out.is_dir():
+        return []
+    for job in out.iterdir():
+        if not job.is_dir():
+            continue
+        for trial in job.iterdir():
+            if not trial.is_dir():
+                continue
+            rj = trial / "result.json"
+            if not rj.is_file():
+                continue
+            try:
+                r = json.loads(rj.read_text())
+            except Exception:
+                continue
+            ei = r.get("exception_info") or {}
+            exc = ei.get("exception_type") if isinstance(ei, dict) else ei
+            if exc:
+                continue
+            if trial_agent_timeout_multiplier(r) > max_agent_timeout_multiplier + 1e-9:
+                continue
+            task = r.get("task_name") or trial.name.split("__")[0]
+            if task:
+                names.add(task)
+    return sorted(names)
+
+
+def observed_agent_durations_sec(out: Path) -> dict[str, float]:
+    """Median agent wall time per task from prior trials (for ordering)."""
+    from datetime import datetime
+
+    def parse_ts(s: str | None) -> datetime | None:
+        if not s:
+            return None
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+
+    buckets: dict[str, list[float]] = {}
+    if not out.is_dir():
+        return {}
+    for job in out.iterdir():
+        if not job.is_dir():
+            continue
+        for trial in job.iterdir():
+            if not trial.is_dir():
+                continue
+            rj = trial / "result.json"
+            if not rj.is_file():
+                continue
+            try:
+                r = json.loads(rj.read_text())
+            except Exception:
+                continue
+            ae = r.get("agent_execution") or {}
+            a = parse_ts(ae.get("started_at"))
+            b = parse_ts(ae.get("finished_at"))
+            if not a or not b:
+                continue
+            task = r.get("task_name") or trial.name.split("__")[0]
+            buckets.setdefault(task, []).append((b - a).total_seconds())
+    out_d: dict[str, float] = {}
+    for task, vals in buckets.items():
+        vals.sort()
+        out_d[task] = vals[len(vals) // 2]
+    return out_d
+
+
+def tb_full_ordered_include_names(
+    out: Path,
+    dataset_root: Path,
+    *,
+    skip_official_done: bool = True,
+    max_agent_timeout_multiplier: float = 1.0,
+) -> list[str]:
+    """All TB tasks, short-first; optionally skip official clean results."""
+    observed = observed_agent_durations_sec(out)
+    ordered = tasks_sorted_by_duration(dataset_root, observed_sec=observed)
+    if not skip_official_done:
+        return ordered
+    done = set(
+        discover_official_clean_task_names(
+            out, max_agent_timeout_multiplier=max_agent_timeout_multiplier
+        )
+    )
+    return [t for t in ordered if t not in done]
+
 def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
     """chown root-owned crash leftovers so Harbor can rmtree incomplete trials.
 
@@ -825,6 +927,26 @@ def resume_job(
     return result
 
 
+def find_latest_tb_full_job(out: Path) -> Path | None:
+    jobs = [
+        p for p in out.iterdir()
+        if p.is_dir()
+        and (p / "config.json").is_file()
+        and not p.name.startswith("_")
+    ]
+    full = []
+    for job in jobs:
+        try:
+            cfg = json.loads((job / "config.json").read_text())
+        except Exception:
+            continue
+        if cfg.get("tb_full_ordered"):
+            full.append(job)
+    if not full:
+        return None
+    return max(full, key=lambda p: p.stat().st_mtime)
+
+
 def run_suite(
     *,
     agent_id: str,
@@ -837,6 +959,9 @@ def run_suite(
     resume: bool = False,
     filter_error_types: list[str] | None = None,
     agent_timeout_multiplier: float = 1.0,
+    tb_full_ordered: bool = False,
+    tb_skip_official_done: bool = True,
+    tb_force_fresh: bool = False,
 ) -> dict:
     harbor_agent = harbor_agent_name(agent_id)
     if not harbor_agent:
@@ -867,7 +992,48 @@ def run_suite(
     out = jobs_dir or (RESULTS / "aa_index" / suite_id / agent_id)
     out.mkdir(parents=True, exist_ok=True)
 
-    if resume:
+    dataset_root: Path | None = None
+    tb_includes: list[str] = []
+    if tb_full_ordered and suite_id in ("terminal-bench-v2", "terminal-bench-v2-1"):
+        dataset_root = Path(SUITE_DATASETS[suite_id]["local"])
+        tb_includes = tb_full_ordered_include_names(
+            out,
+            dataset_root,
+            skip_official_done=tb_skip_official_done,
+            max_agent_timeout_multiplier=agent_timeout_multiplier,
+        )
+        if not tb_includes and tb_skip_official_done:
+            return {
+                "status": "ok",
+                "mode": "already_complete",
+                "agent_id": agent_id,
+                "suite": suite_id,
+                "reason": "all tasks official-clean",
+                "jobs_dir": str(out),
+                "elapsed_s": 0,
+            }
+
+    if resume and tb_full_ordered and not tb_force_fresh:
+        full_job = find_latest_tb_full_job(out)
+        if full_job and not job_is_complete(full_job):
+            print(f"  (resume) TB full-89 job {full_job.name}", flush=True)
+            types = list(filter_error_types or sorted(TECH_EXCEPTION_TYPES))
+            result = resume_until_content(
+                full_job,
+                filter_error_types=types,
+                n_concurrent=n_concurrent,
+            )
+            result.update({
+                "agent_id": agent_id,
+                "harbor_agent": harbor_agent,
+                "suite": suite_id,
+                "dataset": ds_label,
+                "n_attempts": n_attempts,
+                "tb_full_ordered": True,
+            })
+            return result
+
+    if resume and not tb_force_fresh:
         # Default: every known tech exception is retryable. Content-only jobs
         # (pass / content_fail) are the only ones we treat as done.
         filter_error_types = list(filter_error_types or sorted(TECH_EXCEPTION_TYPES))
@@ -1009,12 +1175,21 @@ def run_suite(
         cmd.extend(["--extra-docker-compose", str(HOST_GATEWAY_COMPOSE)])
     if agent_timeout_multiplier and agent_timeout_multiplier != 1.0:
         cmd.extend(["--agent-timeout-multiplier", str(agent_timeout_multiplier)])
-    # Skip already-clean intel-usable tasks from prior partial jobs.
-    clean = discover_clean_task_names(out)
-    if clean:
-        print(f"  (fresh) excluding {len(clean)} clean tasks from prior runs", flush=True)
-        for name in clean:
-            cmd.extend(["--exclude-task-name", name])
+    if tb_includes:
+        print(
+            f"  (fresh) TB full ordered: {len(tb_includes)} tasks "
+            f"(short-first, official-done skipped={tb_skip_official_done})",
+            flush=True,
+        )
+        for name in tb_includes:
+            cmd.extend(["--include-task-name", name])
+    elif not tb_full_ordered:
+        # Legacy partial jobs: skip already-clean tasks from prior partial runs.
+        clean = discover_clean_task_names(out)
+        if clean:
+            print(f"  (fresh) excluding {len(clean)} clean tasks from prior runs", flush=True)
+            for name in clean:
+                cmd.extend(["--exclude-task-name", name])
     if yes:
         cmd.append("-y")
 
@@ -1044,8 +1219,19 @@ def run_suite(
         "jobs_dir": str(out),
         "log": str(log_path),
         "cmd": cmd,
+        "tb_full_ordered": bool(tb_includes),
+        "tb_include_count": len(tb_includes),
     }
     (out / f"{job_name}.result.json").write_text(json.dumps(result, indent=2))
+    if tb_includes and proc.returncode == 0:
+        cfg_path = out / job_name / "config.json"
+        if cfg_path.is_file():
+            try:
+                cfg = json.loads(cfg_path.read_text())
+                cfg["tb_full_ordered"] = True
+                cfg_path.write_text(json.dumps(cfg, indent=2) + "\n")
+            except Exception:
+                pass
     return result
 
 
@@ -1065,6 +1251,21 @@ if __name__ == "__main__":
         default=[],
         help="On resume, drop+retry trials with this exception (repeatable)",
     )
+    p.add_argument(
+        "--tb-full-ordered",
+        action="store_true",
+        help="Terminal Bench: run tasks short-first via --include-task-name",
+    )
+    p.add_argument(
+        "--tb-force-fresh",
+        action="store_true",
+        help="With --tb-full-ordered, start a new job instead of resuming partial",
+    )
+    p.add_argument(
+        "--tb-redo-official-done",
+        action="store_true",
+        help="With --tb-full-ordered, include tasks already official-clean",
+    )
     args = p.parse_args()
     print(json.dumps(run_suite(
         agent_id=args.agent,
@@ -1075,4 +1276,7 @@ if __name__ == "__main__":
         resume=args.resume,
         filter_error_types=args.filter_error_type or None,
         agent_timeout_multiplier=args.agent_timeout_multiplier,
+        tb_full_ordered=args.tb_full_ordered,
+        tb_skip_official_done=not args.tb_redo_official_done,
+        tb_force_fresh=args.tb_force_fresh,
     ), indent=2))
