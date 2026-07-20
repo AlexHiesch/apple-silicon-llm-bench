@@ -549,11 +549,23 @@ def find_resumable_job(out: Path) -> Path | None:
     return None
 
 
+def _trial_reward(result: dict) -> float | None:
+    vr = result.get("verifier_result") or {}
+    if isinstance(vr, dict):
+        rw = (vr.get("rewards") or {}).get("reward")
+        if isinstance(rw, (int, float)):
+            return float(rw)
+    return None
+
+
 def discover_clean_task_names(out: Path) -> list[str]:
     """Task names with a finished clean trial under this agent×suite dir.
 
-    Includes archived `_partial*` / `_broken*` dirs so we can start a fresh
-    Harbor job without redoing intel-usable results after a lock mismatch.
+    Includes archived `_partial*` / `_broken*` / `_archived*` dirs so we can
+    start a fresh Harbor job without redoing intel-usable results.
+
+    Trials with verifier reward==1 that were later stamped AgentTimeoutError
+    (timeout-multiplier requeue) still count as clean passes.
     """
     names: set[str] = set()
     if not out.is_dir():
@@ -573,12 +585,45 @@ def discover_clean_task_names(out: Path) -> list[str]:
                 continue
             ei = r.get("exception_info") or {}
             exc = ei.get("exception_type") if isinstance(ei, dict) else ei
+            reward = _trial_reward(r)
             if exc:
-                continue
+                if not (reward == 1.0 and exc == "AgentTimeoutError"):
+                    continue
             task = r.get("task_name") or trial.name.split("__")[0]
             if task:
                 names.add(task)
     return sorted(names)
+
+
+def restore_timeout_marked_passes(out: Path) -> int:
+    """Clear AgentTimeoutError stamps on reward==1 trials (requeue artifact)."""
+    n = 0
+    if not out.is_dir():
+        return 0
+    for job in out.iterdir():
+        if not job.is_dir():
+            continue
+        for trial in job.iterdir():
+            if not trial.is_dir():
+                continue
+            rj = trial / "result.json"
+            if not rj.is_file():
+                continue
+            try:
+                r = json.loads(rj.read_text())
+            except Exception:
+                continue
+            ei = r.get("exception_info") or {}
+            if not isinstance(ei, dict):
+                continue
+            if ei.get("exception_type") != "AgentTimeoutError":
+                continue
+            if _trial_reward(r) != 1.0:
+                continue
+            r["exception_info"] = None
+            rj.write_text(json.dumps(r, indent=2) + "\n")
+            n += 1
+    return n
 
 
 def trial_agent_timeout_multiplier(result: dict) -> float:
@@ -668,17 +713,26 @@ def tb_full_ordered_include_names(
     *,
     skip_official_done: bool = True,
     max_agent_timeout_multiplier: float = 1.0,
+    credit_any_clean: bool = True,
 ) -> list[str]:
-    """All TB tasks, short-first; optionally skip official clean results."""
+    """TB tasks short-first; skip already-clean (pass/content_fail) when asked.
+
+    ``credit_any_clean`` (default True): skip any historical clean trial
+    regardless of agent_timeout_multiplier — use when local mult is raised
+    above TB-official 1.0 and prior passes should not be re-run.
+    """
     observed = observed_agent_durations_sec(out)
     ordered = tasks_sorted_by_duration(dataset_root, observed_sec=observed)
     if not skip_official_done:
         return ordered
-    done = set(
-        discover_official_clean_task_names(
-            out, max_agent_timeout_multiplier=max_agent_timeout_multiplier
+    if credit_any_clean:
+        done = set(discover_clean_task_names(out))
+    else:
+        done = set(
+            discover_official_clean_task_names(
+                out, max_agent_timeout_multiplier=max_agent_timeout_multiplier
+            )
         )
-    )
     return [t for t in ordered if t not in done]
 
 def reclaim_root_owned_trial_dirs(job_path: Path) -> int:
