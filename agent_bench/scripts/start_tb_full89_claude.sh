@@ -6,6 +6,7 @@ REPO="${REPO:-$HOME/Projects/Work/llm-bench}"
 OUT="$REPO/results/agent_bench/aa_index/terminal-bench-v2/claude-code"
 STAMP=$(date +%Y%m%d_%H%M%S)
 export PYTHONPATH="$REPO${PYTHONPATH:+:$PYTHONPATH}"
+export PATH="$HOME/aa-index-runner-home/.local/bin:${PATH:-/usr/bin:/bin}"
 
 cd "$REPO"
 

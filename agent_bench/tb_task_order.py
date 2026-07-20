@@ -64,14 +64,15 @@ def tasks_sorted_by_duration(
     *,
     observed_sec: dict[str, float] | None = None,
 ) -> list[str]:
-    """Short / easy tasks first (expert estimate, then difficulty, then name)."""
-    observed_sec = observed_sec or {}
+    """Short / easy tasks first (expert estimate, then difficulty, then name).
+
+    ``observed_sec`` is ignored for ordering — partial tech retries must not
+    float hard tasks to the front.
+    """
+    _ = observed_sec
     rows: list[tuple[float, int, str, str]] = []
     for name in list_tb_tasks(dataset_root):
         key, diff, expert, junior = task_duration_minutes(dataset_root / name)
-        obs = observed_sec.get(name)
-        if obs is not None:
-            key = min(key, obs / 60.0)
         rows.append((key, _DIFF_RANK.get(diff, 3), name, diff))
     rows.sort(key=lambda r: (r[0], r[1], r[2]))
     return [r[2] for r in rows]
