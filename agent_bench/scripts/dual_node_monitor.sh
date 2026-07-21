@@ -25,7 +25,7 @@ while true; do
 
   PY="$ROOT/.venv/bin/python"
   [[ -x "$PY" ]] || PY=python3
-  summary=$("$PY" "$ROOT/agent_bench/scripts/dual_node_merge_tb.py" --print 2>/dev/null || echo "merge failed")
+  summary=$(PYTHONPATH="$ROOT" "$PY" "$ROOT/agent_bench/scripts/dual_node_merge_tb.py" --print 2>/dev/null || echo "merge failed")
   log "MERGE $summary"
 
   # health checks
