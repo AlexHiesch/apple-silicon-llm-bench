@@ -9,6 +9,10 @@
 # This wrapper only sets runner knobs; it does not change k8s.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+if [[ -f "$ROOT/results/agent_bench/aa_index/DUAL_NODE_MODE" ]]; then
+  echo "DUAL_NODE_MODE active — aa-ws matrix disabled"
+  exit 0
+fi
 ENV_FILE="${AA_BENCH_ENV:-$ROOT/results/agent_bench/aa_index/BENCH_TP2_128K.env}"
 if [[ -f "$ENV_FILE" ]]; then
   # shellcheck disable=SC1090

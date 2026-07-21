@@ -16,6 +16,11 @@ MIN_FREE_GB_HARD="${MIN_FREE_GB_HARD:-15}"
 mkdir -p "$ROOT"
 exec >>"$LOG" 2>&1
 
+if [[ -f "$ROOT/DUAL_NODE_MODE" ]]; then
+  echo "[$(date -Iseconds)] DUAL_NODE_MODE — aa-watch idle exit"
+  exit 0
+fi
+
 ts() { date -Iseconds; }
 say() { echo "[$(ts)] $*"; }
 

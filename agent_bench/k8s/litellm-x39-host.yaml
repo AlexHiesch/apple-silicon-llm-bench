@@ -1,0 +1,92 @@
+# LiteLLM gateway on x39 hostNetwork :4000 — local vLLM only.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config-x39
+  namespace: llm-serving
+data:
+  config.yaml: |
+    model_list:
+      - model_name: thinkingcap
+        litellm_params:
+          model: openai/thinkingcap-qwen3.6-27b
+          api_base: http://vllm-int4-x39.llm-serving.svc.cluster.local:8000/v1
+          api_key: sk-k8s-local-vllm
+        model_info:
+          id: thinkingcap-x39
+    litellm_settings:
+      request_timeout: 1800
+      set_verbose: false
+      json_logs: true
+      drop_params: true
+      require_auth_for_metrics_endpoint: false
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+      database_url: os.environ/DATABASE_URL
+      disable_error_logs: true
+      allow_requests_on_db_unavailable: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm-x39
+  namespace: llm-serving
+  labels:
+    app: litellm-x39
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: litellm-x39
+  template:
+    metadata:
+      labels:
+        app: litellm-x39
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: cmtcdeu89976739
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      containers:
+        - name: litellm
+          image: docker.litellm.ai/berriai/litellm:latest
+          imagePullPolicy: IfNotPresent
+          args: ["--config", "/app/config.yaml", "--host", "0.0.0.0", "--port", "4000"]
+          env:
+            - name: LITELLM_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-secrets
+                  key: LITELLM_MASTER_KEY
+            - name: LITELLM_SALT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-secrets
+                  key: LITELLM_SALT_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-secrets
+                  key: DATABASE_URL
+          ports:
+            - containerPort: 4000
+              name: http
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: litellm-config-x39

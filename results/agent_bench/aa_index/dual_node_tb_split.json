@@ -1,0 +1,22 @@
+{
+  "x40": [
+    "caffe-cifar-10",
+    "train-fasttext",
+    "path-tracing-reverse",
+    "polyglot-rust-c",
+    "make-doom-for-mips",
+    "gpt2-codegolf",
+    "query-optimize"
+  ],
+  "x39": [
+    "dna-assembly",
+    "feal-linear-cryptanalysis",
+    "large-scale-text-editing",
+    "adaptive-rejection-sampler",
+    "torch-pipeline-parallelism",
+    "regex-chess",
+    "write-compressor"
+  ],
+  "created": "2026-07-21",
+  "note": "Each node uses local LiteLLM :4000 → local vLLM only (no 1GbE inference hairpin)."
+}

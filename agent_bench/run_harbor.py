@@ -1359,12 +1359,22 @@ if __name__ == "__main__":
         default="",
         help="Comma-separated TB task names; run only these (ignores credit skip)",
     )
+    p.add_argument(
+        "--jobs-dir",
+        default="",
+        help="Override Harbor jobs output directory",
+    )
     args = p.parse_args()
     include_only = [
         n.strip()
         for n in args.tb_include_only.replace(",", " ").split()
         if n.strip()
     ] or None
+    jobs_dir = Path(args.jobs_dir) if args.jobs_dir else None
+    if jobs_dir is None:
+        env_jd = os.environ.get("AA_JOBS_DIR", "").strip()
+        if env_jd:
+            jobs_dir = Path(env_jd)
     print(json.dumps(run_suite(
         agent_id=args.agent,
         suite_id=args.suite,
@@ -1376,6 +1386,7 @@ if __name__ == "__main__":
         agent_timeout_multiplier=args.agent_timeout_multiplier,
         tb_full_ordered=args.tb_full_ordered or bool(include_only),
         tb_skip_official_done=not args.tb_redo_official_done,
-        tb_force_fresh=args.tb_force_fresh or bool(include_only),
+        tb_force_fresh=args.tb_force_fresh,
         tb_include_only=include_only,
+        jobs_dir=jobs_dir,
     ), indent=2))
