@@ -31,17 +31,17 @@ while (( ROUND < MAX_ROUNDS )); do
     tech=$("$PY" -c "
 import json
 from pathlib import Path
-from agent_bench.tech_failures import classify_result
+from agent_bench.tech_failures import is_retryable_tech
 out = Path('$OUT')
 n = 0
 if out.is_dir():
     for j in out.iterdir():
-        if not j.is_dir(): continue
+        if not j.is_dir() or j.name.startswith('_'): continue
         for t in j.iterdir():
             rj = t / 'result.json'
             if not rj.is_file(): continue
             r = json.loads(rj.read_text())
-            if classify_result(r) == 'tech':
+            if is_retryable_tech(r):
                 n += 1
 print(n)
 " 2>/dev/null || echo 1)

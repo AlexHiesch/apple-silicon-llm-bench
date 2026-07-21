@@ -59,13 +59,19 @@ echo "=== dual_node_tb_runner $NODE tasks=$TASKS mult=$AGENT_TIMEOUT_MULT n=$N_C
 PY="${ROOT}/.venv/bin/python"
 [[ -x "$PY" ]] || PY=python3
 
+# Transient infra/API only. AgentTimeoutError / TimeoutError = full wall-clock
+# budget burned (often 40–75 min of real agent work) — re-queueing those just
+# repeats the same slow failure. Opt in with AGENT_RETRY_TIMEOUTS=1.
 TECH=(
-  UnknownApiError AgentTimeoutError CancelledError NetworkConnectionError
+  UnknownApiError CancelledError NetworkConnectionError
   NonZeroAgentExitCodeError ContextWindowExceededError RateLimitError
-  ApiRateLimitError TimeoutError RuntimeError ValueError
+  ApiRateLimitError RuntimeError ValueError
   AgentSetupTimeoutError EnvironmentStartTimeoutError VerifierTimeoutError
   ApiUsageLimitError
 )
+if [[ "${AGENT_RETRY_TIMEOUTS:-0}" == "1" ]]; then
+  TECH+=(AgentTimeoutError TimeoutError)
+fi
 
 if [[ "$NODE" == "x39" ]]; then
   OUT="$ROOT/results/agent_bench/aa_index/terminal-bench-v2/claude-code-x39"

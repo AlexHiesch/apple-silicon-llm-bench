@@ -9,7 +9,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from agent_bench.run_harbor import discover_clean_task_names, tb_full_ordered_include_names, SUITE_DATASETS
-from agent_bench.tech_failures import classify_result, TECH_EXCEPTION_TYPES
+from agent_bench.tech_failures import (
+    classify_result,
+    is_retryable_tech,
+    EXHAUSTED_TIMEOUT_TYPES,
+    TECH_EXCEPTION_TYPES,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_X40 = ROOT / "results/agent_bench/aa_index/terminal-bench-v2/claude-code-x40"
@@ -138,14 +143,21 @@ def main() -> None:
     args.json_out.write_text(json.dumps(rep, indent=2) + "\n")
     if args.print:
         c = rep["counts"]
+        open_tasks = rep["open_tasks"]
+        exhausted = [
+            t for t in open_tasks
+            if (rep["merged"][t].get("exc") or "") in EXHAUSTED_TIMEOUT_TYPES
+        ]
+        retryable = [t for t in open_tasks if t not in exhausted]
         print(
             f"pass={c.get('pass',0)} content_fail={c.get('content_fail',0)} "
             f"tech={c.get('tech',0)} never={c.get('never',0)} other={c.get('other',0)} "
-            f"open={len(rep['open_tasks'])}"
+            f"open={len(open_tasks)} (retryable={len(retryable)} exhausted_timeout={len(exhausted)})"
         )
-        for t in rep["open_tasks"]:
+        for t in open_tasks:
             m = rep["merged"][t]
-            print(f"  {t}: {m['class']} ({m.get('node','?')} exc={m.get('exc','—')})")
+            tag = "no-auto-retry" if (m.get("exc") or "") in EXHAUSTED_TIMEOUT_TYPES else "retryable"
+            print(f"  {t}: {m['class']} [{tag}] ({m.get('node','?')} exc={m.get('exc','—')})")
 
 
 if __name__ == "__main__":

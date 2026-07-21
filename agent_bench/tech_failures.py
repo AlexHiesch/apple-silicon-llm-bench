@@ -31,6 +31,20 @@ TECH_EXCEPTION_TYPES = frozenset({
     "ValueError",  # e.g. Harbor agent "Model name must be in the format provider/model_name"
 })
 
+# Wall-clock agent budget exhausted after a full attempt (often 2.5× TB
+# timeout). Re-running these usually burns another 40–75 min for the same
+# slow 27B trajectory — not a transient infra glitch. Dual-node runners
+# exclude these from Harbor --filter-error-type unless AGENT_RETRY_TIMEOUTS=1.
+EXHAUSTED_TIMEOUT_TYPES = frozenset({
+    "AgentTimeoutError",
+    "TimeoutError",
+})
+
+# Infra / API / setup failures worth automatic Harbor resume.
+RETRYABLE_TECH_TYPES = frozenset(
+    TECH_EXCEPTION_TYPES - EXHAUSTED_TIMEOUT_TYPES
+)
+
 # Message snippets that mean infra/API — even if exception type is odd.
 TECH_MESSAGE_MARKERS = (
     "not allowed to access model",
@@ -108,6 +122,17 @@ def classify_result(result: dict) -> str:
     if rew in (0, 0.0, False):
         return "content_fail"
     return "other"
+
+
+def is_retryable_tech(result: dict) -> bool:
+    """True if this tech failure should be auto-retried by Harbor resume."""
+    if classify_result(result) != "tech":
+        return False
+    ei = result.get("exception_info") or {}
+    et = ei.get("exception_type") if isinstance(ei, dict) else str(ei or "")
+    if et in EXHAUSTED_TIMEOUT_TYPES:
+        return False
+    return et in RETRYABLE_TECH_TYPES or et not in TECH_EXCEPTION_TYPES
 
 
 def scan_aa_index(root: Path | None = None) -> dict:
