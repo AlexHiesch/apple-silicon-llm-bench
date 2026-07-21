@@ -44,16 +44,6 @@ export HARBOR_HTTP_PROXY="${HARBOR_HTTP_PROXY:-http://host.docker.internal:3128}
 export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,host.docker.internal,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net}"
 
 if [[ "$NODE" == "x39" ]]; then
-  # x39 has no local squid; use x40 corp proxy for docker pulls.
-  X40_PROXY="${X40_PROXY:-http://cmtcdeu89976740.rd.corpintra.net:3128}"
-  export HTTP_PROXY="$X40_PROXY"
-  export HTTPS_PROXY="$X40_PROXY"
-  export http_proxy="$HTTP_PROXY"
-  export https_proxy="$HTTPS_PROXY"
-  export HARBOR_HTTP_PROXY="${HARBOR_HTTP_PROXY:-$X40_PROXY}"
-fi
-
-if [[ "$NODE" == "x39" ]]; then
   JOBS_SUB="claude-code-x39"
 else
   JOBS_SUB="claude-code"
