@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,short,1,454.1,14.2,50.7,503,23,35.91,15.2,339,161,995.3,26754.7,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,short,2,493.9,14.1,46.6,503,23,36.07,15.2,339,161,995.3,26754.7,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,short,3,488.2,12.8,47.1,503,23,39.84,15.2,339,161,995.3,26754.7,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,long,1,586.8,13.6,233.5,589,137,43.96,15.2,589,0,1358.7,26767.1,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,long,2,549.5,14.6,249.3,589,137,40.78,15.2,589,0,1358.7,26767.1,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,long,3,526.6,14.5,260.2,589,137,41.05,15.2,589,0,1358.7,26767.1,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,code,1,557.0,16.4,1348.3,674,751,41.69,15.2,674,0,4401.3,26819.7,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,code,2,568.5,16.3,1320.9,674,751,41.95,15.2,674,0,4401.3,26819.7,0.0,b10330,,
+MG_LC_UDQ6,Muse-Glimmer-30B llama.cpp UD-Q6_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q6_K_XL,default,code,3,592.5,16.0,1267.4,674,751,42.63,15.2,674,0,4401.3,26819.7,0.0,b10330,,

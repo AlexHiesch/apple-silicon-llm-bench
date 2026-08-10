@@ -1,0 +1,10 @@
+test_id,test_name,model,backend,fmt,quant,kv_cache,prompt_type,run_num,ttft_ms,decode_tps,prefill_tps,completion_tokens,prompt_tokens,total_time_s,model_load_s,thinking_tokens,visible_tokens,cold_ttft_ms,peak_mem_mb,peak_cpu_pct,backend_version,tool_call_valid,quality_pass
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-32k,1,339.5,16.6,96169.7,622,32645,37.71,5.2,622,0,213906.9,17436.3,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-32k,2,306.5,16.7,106495.7,622,32645,37.4,5.2,622,0,213906.9,17436.3,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-32k,3,329.8,17.6,98995.8,622,32645,35.58,5.2,622,0,213906.9,17436.3,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-64k,1,379.6,15.7,172971.8,614,65654,39.52,5.2,614,0,238227.6,17546.4,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-64k,2,376.2,16.3,174500.5,614,65654,38.07,5.2,614,0,238227.6,17547.7,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-64k,3,377.3,16.9,174004.2,614,65654,36.64,5.2,614,0,238227.6,17548.0,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-128k,1,544.9,15.3,240719.0,598,131176,39.66,5.2,598,0,605296.9,17678.7,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-128k,2,536.8,15.6,244346.8,598,131176,38.76,5.2,598,0,605296.9,17679.2,0.0,b10330,,
+MG_CTX_1,Muse-Glimmer-30B llama.cpp UD-Q4_K_XL,Muse-Glimmer-30B,llama-server,GGUF,UD-Q4_K_XL,default,context-128k,3,549.4,15.8,238764.0,598,131176,38.45,5.2,598,0,605296.9,17679.4,0.0,b10330,,
