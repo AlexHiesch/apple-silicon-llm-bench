@@ -1,0 +1,139 @@
+# AA Coding Agent Index controller on the Z8 (Mac-off).
+#
+# Inference: k3s llm-serving (LiteLLM → vllm-int4 ×2 + mooncake-master)
+# Harness:   this Deployment OR host tmux — both use node Docker via docker.sock
+#
+# IMPORTANT (corp workstation):
+# - Internet only via http://localhost:3128 (already on Docker daemon + env below)
+# - No sudo / no apt / no kinit in the startup path (tickets expire overnight)
+# - Pre-bootstrap tools into hostPath ~/aa-index-runner-home BEFORE apply:
+#     bash agent_bench/scripts/bootstrap_aa_index_host.sh
+#
+# Apply:
+#   kubectl apply -f agent_bench/k8s/aa-index-runner.yaml
+#   kubectl -n llm-experiments logs -f deploy/aa-index-runner
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: llm-experiments
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aa-index-runner-env
+  namespace: llm-experiments
+data:
+  LLM_MODEL: thinkingcap
+  N_ATTEMPTS: "1"
+  N_CONCURRENT: "2"
+  AGENT_TIMEOUT_MULT: "2.5"
+  CLAUDE_CODE_MAX_OUTPUT_TOKENS: "8192"
+  MAX_TECH_ROUNDS: "12"
+  MIN_FREE_GB: "20"
+  HOST_GATEWAY: http://127.0.0.1:4000
+  DOCKER_GATEWAY: http://host.docker.internal:4000
+  HPLLM_KEY_FILE: /keys/mvp-test-key
+  HTTP_PROXY: http://localhost:3128
+  HTTPS_PROXY: http://localhost:3128
+  http_proxy: http://localhost:3128
+  https_proxy: http://localhost:3128
+  NO_PROXY: localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net,cmtcdeu89976740.rd.corpintra.net
+  no_proxy: localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net,cmtcdeu89976740.rd.corpintra.net
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aa-index-runner
+  namespace: llm-experiments
+  labels:
+    app: aa-index-runner
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: aa-index-runner
+  template:
+    metadata:
+      labels:
+        app: aa-index-runner
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      enableServiceLinks: false
+      restartPolicy: Always
+      containers:
+        - name: runner
+          # Tools live on hostPath; image is only a glibc userspace. No apt at runtime.
+          image: python:3.12-bookworm
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: aa-index-runner-env
+          env:
+            - name: HOME
+              value: /home/runner
+            - name: PATH
+              value: /home/runner/.local/bin:/usr/local/bin:/usr/bin:/bin
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: dockersock
+              mountPath: /var/run/docker.sock
+            - name: docker-cli
+              mountPath: /usr/bin/docker
+              readOnly: true
+            - name: repo
+              mountPath: /work/llm-bench
+            - name: keys
+              mountPath: /keys
+              readOnly: true
+            - name: runner-home
+              mountPath: /home/runner
+          command:
+            - bash
+            - -lc
+            - |
+              set -euo pipefail
+              export PATH="/home/runner/.local/bin:$PATH"
+              export HTTP_PROXY="${HTTP_PROXY:-http://localhost:3128}"
+              export HTTPS_PROXY="${HTTPS_PROXY:-http://localhost:3128}"
+              export http_proxy="$HTTP_PROXY" https_proxy="$HTTPS_PROXY"
+              export NO_PROXY="${NO_PROXY:-localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local,.corpintra.net}"
+              export no_proxy="$NO_PROXY"
+              command -v docker >/dev/null
+              command -v harbor >/dev/null || { echo "FATAL: harbor missing in /home/runner/.local — run bootstrap_aa_index_host.sh on the node"; exit 1; }
+              docker info >/dev/null
+              cd /work/llm-bench
+              [[ -x .venv/bin/python ]] || { echo "FATAL: .venv missing — run bootstrap_aa_index_host.sh"; exit 1; }
+              exec bash agent_bench/scripts/run_aa_index_workstation.sh
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "8"
+              memory: 16Gi
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: docker-cli
+          hostPath:
+            path: /usr/bin/docker
+            type: File
+        - name: repo
+          hostPath:
+            path: /home/hiescha/Projects/Work/llm-bench
+            type: Directory
+        - name: keys
+          hostPath:
+            path: /home/hiescha/litellm-portal/state
+            type: Directory
+        - name: runner-home
+          hostPath:
+            path: /home/hiescha/aa-index-runner-home
+            type: DirectoryOrCreate

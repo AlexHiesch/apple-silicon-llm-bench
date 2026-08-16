@@ -1,0 +1,112 @@
+# Clean agent-bench harness layout.
+#
+# Architecture:
+#   - ThinkingCap MLX stays on the HOST (Apple Silicon / Metal). Linux containers
+#     cannot run MLX usefully; real agent runs reach the host via
+#     host.docker.internal:8080.
+#   - Profile `smoke` brings up a mock OpenAI-compatible LLM inside Compose so
+#     Docker networking / sandbox images can be tested without loading 27B weights.
+#
+# Real host model:
+#   python -m mlx_lm.server --model t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit --port 8080
+#   docker compose -f agent_bench/docker-compose.yml --profile host run --rm sandbox
+#
+# Docker-only smoke (mock LLM, no GPU):
+#   docker compose -f agent_bench/docker-compose.yml --profile smoke up --build --abort-on-container-exit
+
+services:
+  mock-llm:
+    profiles: ["smoke"]
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ./scripts/mock_llm_server.py:/app/mock_llm_server.py:ro
+    command: ["python", "/app/mock_llm_server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/v1/models')"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  # Talks to real host ThinkingCap (mlx_lm.server on :8080). Not part of smoke.
+  sandbox:
+    profiles: ["host"]
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    environment:
+      OPENAI_BASE_URL: http://host.docker.internal:8091/v1
+      OPENAI_API_KEY: local
+      ANTHROPIC_BASE_URL: http://host.docker.internal:8080
+      ANTHROPIC_API_KEY: local
+      LLM_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+      AGENT_BENCH_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+      RESULTS_DIR: /results
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /workspace
+    volumes:
+      - ../results/agent_bench:/results
+    command: ["/usr/local/bin/smoke_model.sh"]
+
+  # Agent CLI micro-smokes in Linux — does not touch host-native CLIs / GUI
+  cli-smoke:
+    profiles: ["cli"]
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    environment:
+      OPENAI_BASE_URL: http://host.docker.internal:8091/v1
+      OPENAI_API_KEY: local
+      ANTHROPIC_BASE_URL: http://host.docker.internal:8080
+      ANTHROPIC_API_KEY: local
+      LLM_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+      RESULTS_DIR: /results
+      AGENT_WALL_SEC: "300"
+      CI: "1"
+      DISPLAY: ""
+      HEADLESS: "1"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /workspaces
+    volumes:
+      - ../results/agent_bench:/results
+      - ./fixtures:/fixtures:ro
+      # Always use host script so OpenCode --dir fixes apply without rebuild
+      - ./scripts/docker_cli_smoke.sh:/usr/local/bin/docker_cli_smoke.sh:ro
+    # ENTRYPOINT is docker_cli_smoke.sh
+
+  sandbox-smoke:
+    profiles: ["smoke"]
+    build:
+      context: .
+      dockerfile: Dockerfile.sandbox
+    environment:
+      OPENAI_BASE_URL: http://mock-llm:8080/v1
+      OPENAI_API_KEY: local
+      LLM_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+      RESULTS_DIR: /results
+    depends_on:
+      mock-llm:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - ../results/agent_bench:/results
+    command: ["/usr/local/bin/smoke_model.sh"]
+
+  workspace:
+    image: ubuntu:24.04
+    profiles: ["workspace"]
+    environment:
+      OPENAI_BASE_URL: http://host.docker.internal:8080/v1
+      OPENAI_API_KEY: local
+      LLM_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /workspace
+    volumes:
+      - agent_bench_ws:/workspace
+    command: ["bash", "-lc", "echo clean workspace ready; sleep infinity"]
+
+volumes:
+  agent_bench_ws:

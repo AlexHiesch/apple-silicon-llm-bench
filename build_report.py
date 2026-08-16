@@ -63,6 +63,7 @@ MODEL_MAP = {
     "NMC":              "NorthMiniCode-1.0",
     "GPT-OSS-20B":      "GPT-OSS-20B",
     "GOSS":             "GPT-OSS-20B",
+    "ThinkingCap-27B":  "ThinkingCap-Qwen3.6-27B",
 }
 
 def extract_model(test_name):
@@ -176,6 +177,7 @@ MODEL_META = {
     "Laguna-XS.2":           {"elo": None, "aa": None,  "released": "2026-05-07", "provider": "Poolside"},
     "NorthMiniCode-1.0":     {"elo": None, "aa": 27.6, "released": "2026-06-09", "provider": "Arctic"},
     "GPT-OSS-20B":           {"elo": None, "aa": None,  "released": "2025-06-10", "provider": "OpenAI"},
+    "ThinkingCap-Qwen3.6-27B": {"elo": None, "aa": None, "released": "2026-07-06", "provider": "Bottlecap AI"},
 }
 
 def _parse_bench_date(source_filename):

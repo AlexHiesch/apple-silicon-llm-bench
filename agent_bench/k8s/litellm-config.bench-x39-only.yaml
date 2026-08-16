@@ -1,0 +1,23 @@
+# LiteLLM: x39 Harbor only → vllm-int4-x39 on x39 (local inference, no 1GbE hairpin).
+model_list:
+  - model_name: thinkingcap
+    litellm_params:
+      model: openai/thinkingcap-qwen3.6-27b
+      api_base: http://vllm-int4-x39.llm-serving.svc.cluster.local:8000/v1
+      api_key: sk-k8s-local-vllm
+    model_info:
+      id: thinkingcap-x39
+
+litellm_settings:
+  request_timeout: 1800
+  set_verbose: false
+  json_logs: true
+  drop_params: true
+  callbacks: ["prometheus"]
+  require_auth_for_metrics_endpoint: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  disable_error_logs: true
+  allow_requests_on_db_unavailable: true

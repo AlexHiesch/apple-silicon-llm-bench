@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "local/thinkingcap",
+  "provider": {
+    "local": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "ThinkingCap local",
+      "options": {
+        "baseURL": "http://127.0.0.1:8091/v1",
+        "apiKey": "local"
+      },
+      "models": {
+        "thinkingcap": {
+          "name": "ThinkingCap-Qwen3.6-27B-MLX-4bit",
+          "limit": { "context": 131072, "output": 8192 }
+        }
+      }
+    }
+  },
+  "mcp": {},
+  "permission": {
+    "external_directory": "deny"
+  }
+}

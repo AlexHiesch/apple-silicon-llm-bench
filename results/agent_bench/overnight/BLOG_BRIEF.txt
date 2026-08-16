@@ -1,0 +1,41 @@
+ThinkingCap overnight run — blog briefing
+==========================================
+
+Model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit (MLX 4bit)
+Stack: Kevlar :8080 (Anthropic) + OpenAI shim :8091 + caffeinate
+tmux: thinkingcap-kevlar | thinkingcap-shim | overnight-tc
+
+Where to look tomorrow
+----------------------
+STATUS:     results/agent_bench/overnight/STATUS.txt
+Live log:   results/agent_bench/overnight/overnight_*.log  (latest stamp)
+Steps:      results/agent_bench/overnight/steps.jsonl
+Summary:    results/agent_bench/overnight/summary.json   (written when finished)
+Per-step:   results/agent_bench/overnight/logs/*.log
+Artifacts:  results/agent_bench/overnight/workspaces/*/hello_tc.py
+
+Already proven before sleep
+---------------------------
+- Anthropic + OpenAI smoke OK against local ThinkingCap
+- Claude Code --bare wrote hello_tc.py successfully (~8–16s)
+- Without --bare, Claude MCP schemas ≈40k tokens → multi-minute prefill + hang
+
+Blog angle
+----------
+First documented Apple Silicon matrix of agent CLIs driven by ThinkingCap
+(Bottlecap/ThinkingCap fine-tune of Qwen3.6-27B) entirely offline via Kevlar,
+with an OpenAI compatibility shim so coding agents that only speak
+chat/completions can share the same loaded weights.
+
+Honest caveats to include
+-------------------------
+- Some CLIs force large tool/MCP catalogs → slow/expensive prefills on 27B
+- opencode returned opaque Unexpected server error in first passes
+- cursor-cli may need Cursor login
+- pier/harbor may need install + Docker
+- Single local GPU/ANE path = serial inference (one agent at a time)
+
+Do not kill
+-----------
+tmux sessions thinkingcap-kevlar / thinkingcap-shim / overnight-tc
+Mac must stay awake (caffeinate already wraps the run)

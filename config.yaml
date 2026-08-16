@@ -3510,3 +3510,87 @@ tests:
   #
   # To re-run only these two tests:
   #   python3 benchmark.py --test F_TQ4_1 F_TQ35_1 --skip-unavailable --no-think --report-html
+
+  # ══════════════════════════════════════════════════════════════════════════════
+  # Group TC — ThinkingCap-Qwen3.6-27B (Bottlecap AI, Dense, Token-Efficient Thinking)
+  # Architecture: Qwen3_5ForConditionalGeneration (same as Qwen3.6-27B, Group P)
+  #   Finetune of Qwen/Qwen3.6-27B focused on efficient thinking — reduced
+  #   token usage in reasoning chains while maintaining quality.
+  # Parameters: 27.36B
+  # Native context: 262,144 tokens (inherited from Qwen3.6-27B)
+  # Memory budget: identical to Group P (~16 GB weights 4bit)
+  #   Hybrid DeltaNet/attention → low KV cost (~64 KB/token)
+  # HuggingFace: bottlecapai/ThinkingCap-Qwen3.6-27B (released 2026-07-06)
+  # MLX 4bit (downloaded): t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  #   cache: ~/.cache/huggingface/hub/models--t-prazak--ThinkingCap-Qwen3.6-27B-MLX-4bit
+  # GGUF: bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF (Q4_K_M, Q8_0, f16)
+  # ══════════════════════════════════════════════════════════════════════════════
+
+  - id: TC_Q4_1
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: mlx-lm
+    model_id: "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: TC_Q4_2
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: vllm-mlx
+    model_id: "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+
+  - id: TC_Q4_3
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: omlx
+    model_id: "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: ssd-paged
+
+  - id: TC_LC_Q4KM
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: default
+
+  - id: TC_CTX_1
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: mlx-lm
+    model_id: "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: default
+    prompts: [context-32k, context-64k]
+
+  - id: TC_THINK_1
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: mlx-lm
+    model_id: "t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit"
+    fmt: MLX
+    quant: 4bit
+    kv_cache: think
+    no_think: false
+    max_tokens: 2048
+
+  - id: TC_THINK_2
+    model: "ThinkingCap-27B"
+    group: "TC — ThinkingCap-Qwen3.6-27B"
+    backend: llama-server
+    model_id: "~/.cache/llmfit/models/ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf"
+    fmt: GGUF
+    quant: Q4_K_M
+    kv_cache: think
+    no_think: false
+    max_tokens: 2048
+    extra_args: ["--reasoning-format", "deepseek"]

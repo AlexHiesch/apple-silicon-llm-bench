@@ -1,0 +1,574 @@
+# Coding-agent CLI registry for agent_bench.
+# default_model: ThinkingCap-Qwen3.6-27B-MLX-4bit (models.yaml).
+#
+# matrix field per agent:
+#   include — curated ThinkingCap shortlist (Jul 2026)
+#   skip    — explicitly out (Roo EOL, Ito, …)
+#   out     — registered but not on the shortlist
+#
+# Filter: python -m agent_bench.run_matrix --list --matrix
+#      or: agents where matrix == include
+
+default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+default_base_url: http://localhost:8080/v1
+agents:
+- id: claude-code
+  group: frontier-lab
+  vendor: anthropic
+  binary: claude
+  pier_agent: claude-code
+  harness_tier: A
+  bench_enabled: true
+  headless: claude -p
+  model_routing: anthropic_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: npm i -g @anthropic-ai/claude-code
+  notes: Route through localhost:8080 (Kevlar/LiteLLM) so Claude Code hits ThinkingCap
+  matrix: include
+- id: codex
+  group: frontier-lab
+  vendor: openai
+  binary: codex
+  pier_agent: codex
+  harness_tier: A
+  bench_enabled: true
+  headless: codex -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: npm i -g @openai/codex
+  matrix: include
+- id: cursor-cli
+  group: frontier-lab
+  vendor: cursor
+  binary: cursor-agent
+  pier_agent: cursor-cli
+  harness_tier: A
+  bench_enabled: true
+  headless: cursor-agent -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: curl https://cursor.com/install | bash
+  matrix: include
+- id: opencode
+  group: frontier-lab
+  vendor: anomaly
+  binary: opencode
+  pier_agent: opencode
+  harness_tier: A
+  bench_enabled: true
+  headless: opencode
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: npm i -g opencode
+  matrix: include
+- id: grok-build
+  group: frontier-lab
+  vendor: xai
+  binary: grok
+  harness_tier: B
+  bench_enabled: true
+  headless: grok -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  # TB leaderboard "Grok CLI" / Superagent: npm package talks OpenAI-compatible.
+  # Host smoke OK (GROK_BASE_URL + GROK_API_KEY → ThinkingCap). Harbor wrapper TBD.
+  prereqs: []
+  install: npm i -g @vibe-kit/grok-cli
+  notes: "Host smoke 2026-07-18 PASS vs LiteLLM thinkingcap; keep out of matrix until Harbor agent exists"
+  matrix: out
+- id: little-coder
+  group: oss
+  vendor: community
+  binary: little-coder
+  harness_tier: B
+  bench_enabled: true
+  headless: little-coder -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g little-coder
+  notes: "pi-based; host smoke 2026-07-18 PASS vs ThinkingCap; Harbor wrapper TBD"
+  matrix: out
+- id: antigravity
+  group: frontier-lab
+  vendor: google
+  binary: agy
+  harness_tier: B
+  bench_enabled: true
+  headless: TBD
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs:
+  - GOOGLE_AI_API_KEY
+  matrix: include
+- id: copilot-cli
+  group: frontier-lab
+  vendor: github
+  binary: copilot
+  harness_tier: B
+  bench_enabled: true
+  headless: copilot -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs:
+  - GITHUB_COPILOT_TOKEN
+  install: npm i -g @github/copilot
+  matrix: out
+- id: mimo-code
+  group: frontier-lab
+  vendor: xiaomi
+  binary: mimo
+  harness_tier: B
+  bench_enabled: true
+  headless: TBD
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  matrix: include
+- id: amazon-q
+  group: frontier-lab
+  vendor: aws
+  binary: q
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  matrix: out
+- id: poolside
+  group: frontier-lab
+  vendor: poolside
+  binary: pool
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  matrix: include
+- id: qwen-code
+  group: frontier-lab
+  vendor: alibaba
+  binary: qwen
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  matrix: out
+- id: kimi-cli
+  group: frontier-lab
+  vendor: moonshot
+  binary: kimi
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  matrix: out
+- id: gemini-cli
+  group: frontier-lab
+  vendor: google
+  binary: gemini
+  pier_agent: gemini-cli
+  harness_tier: A
+  bench_enabled: false
+  deprecated: 2026-06-18; use antigravity
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: hermes-agent
+  group: openrouter-trendy
+  binary: hermes
+  openrouter_rank: 1
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  matrix: include
+- id: kilocode
+  group: openrouter-trendy
+  binary: kilocode
+  openrouter_rank: 2
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g @kilocode/cli
+  matrix: include
+- id: cline
+  group: openrouter-trendy
+  binary: cline
+  openrouter_rank: 5
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g cline
+  matrix: include
+- id: openhands
+  group: openrouter-trendy
+  binary: openhands
+  openrouter_rank: 17
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: include
+- id: codebuff
+  group: openrouter-trendy
+  binary: codebuff
+  openrouter_rank: 18
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: crush
+  group: openrouter-trendy
+  binary: crush
+  openrouter_rank: 27
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: aider
+  group: openrouter-trendy
+  binary: aider
+  openrouter_rank: 49
+  harness_tier: C
+  bench_enabled: true
+  headless: aider --message
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: pip install aider-chat
+  matrix: include
+- id: or-code
+  group: openrouter-trendy
+  binary: or-code
+  harness_tier: B
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs:
+  - OPENROUTER_API_KEY
+  install: npm i -g @edofendy/or-code
+  matrix: out
+- id: openrouter-cli
+  group: openrouter-trendy
+  binary: orc
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g openrouter-cli-v2
+  matrix: out
+- id: orcli
+  group: openrouter-trendy
+  binary: orcli
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: slate-agent
+  group: openrouter-trendy
+  binary: slate
+  openrouter_rank: 35
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: goose
+  group: oss
+  binary: goose
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: include
+- id: continue
+  group: oss
+  binary: cn
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g @continuedev/cli
+  matrix: out
+- id: pi
+  group: oss
+  binary: pi
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: include
+- id: forge
+  group: oss
+  binary: forge
+  harness_tier: C
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: letta-code
+  group: oss
+  binary: letta
+  harness_tier: A
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  notes: Native Letta Context-Bench harness
+  matrix: out
+- id: amp
+  group: oss
+  binary: amp
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  install: npm i -g @sourcegraph/amp
+  matrix: out
+- id: plandex
+  group: oss
+  binary: plandex
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  matrix: out
+- id: mini-swe-agent
+  group: control
+  binary: null
+  pier_agent: mini-swe-agent
+  harness_tier: A
+  bench_enabled: true
+  model_routing: pier_mini_swe_agent
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  notes: Harbor/Pier control harness for fair model comparison — always ThinkingCap
+  matrix: include
+- id: terminus-2
+  group: control
+  vendor: laude
+  binary: null
+  harness_tier: A
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  notes: Harbor-native Terminus 2 scaffold (TB leaderboard control); api_base via --ak
+  matrix: include
+- id: warp
+  group: oss
+  binary: warp
+  harness_tier: D
+  bench_enabled: false
+  skip_reason: meta-terminal; spawns other CLIs
+  matrix: out
+- id: maestro
+  group: oss
+  binary: maestro
+  harness_tier: D
+  bench_enabled: false
+  skip_reason: meta-harness orchestrator, not a single agent
+  matrix: out
+- id: windsurf
+  group: registry-only
+  bench_enabled: false
+  skip_reason: IDE-only; no standalone terminal agent
+  matrix: out
+- id: devin
+  group: registry-only
+  bench_enabled: false
+  skip_reason: cloud-only proprietary API
+  matrix: out
+- id: jules
+  group: registry-only
+  bench_enabled: false
+  skip_reason: Google cloud agent, no local CLI
+  matrix: out
+- id: augment
+  group: registry-only
+  bench_enabled: false
+  skip_reason: IDE Context Engine; limited headless CLI
+  matrix: out
+- id: roo-code
+  group: registry-only
+  bench_enabled: false
+  skip_reason: EOL / archived May 2026; community fork is Zoo Code (IDE) — not in primary matrix
+  matrix: skip
+  notes: Use Zoo Code (zoocode) only if you need Roo-lineage; not in primary matrix
+- id: opensquilla
+  group: matrix-newcomers
+  vendor: opensquilla
+  binary: opensquilla
+  harness_tier: C
+  bench_enabled: true
+  headless: opensquilla agent -m
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: uv tool install --python 3.12 "opensquilla[recommended] @ https://github.com/opensquilla/opensquilla/releases/download/v0.5.0rc4/opensquilla-0.5.0rc4-py3-none-any.whl"
+  notes: Token-efficient microkernel agent; OpenAI-compatible providers (local ThinkingCap via shim)
+  matrix: include
+- id: oh-my-pi
+  group: matrix-newcomers
+  vendor: oh-my-pi
+  binary: omp
+  harness_tier: C
+  bench_enabled: true
+  headless: omp -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: bun install -g @oh-my-pi/pi-coding-agent
+  notes: Pi fork (coding-first); binary omp
+  matrix: include
+- id: command-code
+  group: matrix-newcomers
+  vendor: command-code
+  binary: cmd
+  harness_tier: C
+  bench_enabled: true
+  headless: cmd -p
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: npm i -g command-code
+  notes: Taste-learning coding agent; aliases cmd / command-code
+  matrix: include
+- id: peezy
+  group: matrix-newcomers
+  vendor: p0systems
+  binary: peezy
+  harness_tier: C
+  bench_enabled: true
+  headless: peezy --print
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: npm i -g @p0systems/peezy
+  notes: Terminal coding agent; OpenAI-compatible providers + Peezy gateway
+  matrix: include
+- id: openclaw
+  group: matrix-newcomers
+  vendor: openclaw
+  binary: openclaw
+  harness_tier: C
+  bench_enabled: true
+  headless: openclaw agent --local -m
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: npm i -g openclaw@latest
+  notes: Personal AI assistant / gateway; agent turns via openclaw agent
+  matrix: include
+- id: lemonade
+  group: matrix-platforms
+  vendor: lemonade-sdk
+  binary: lemonade
+  harness_tier: D
+  bench_enabled: true
+  headless: lemonade launch
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: see https://lemonade-server.ai/
+  notes: Local AI server that launches coding agents (claude/codex/opencode/pi) against its endpoint —
+    platform, not a single agent harness
+  harness_kind: platform
+  matrix: include
+- id: gdevelop
+  group: matrix-platforms
+  vendor: gdevelop
+  binary: gdevelop
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  notes: Game engine + AI assist path; smoke TBD (IDE-heavy)
+  harness_kind: editor
+  matrix: include
+- id: zed
+  group: matrix-platforms
+  vendor: zed
+  binary: zed
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  install: brew install --cask zed
+  notes: Zed editor agent; OpenAI-compatible local models — IDE-oriented smoke
+  harness_kind: editor
+  matrix: include
+- id: portkey
+  group: matrix-platforms
+  vendor: portkey
+  binary: portkey
+  harness_tier: D
+  bench_enabled: true
+  model_routing: openai_compatible
+  default_model: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+  prereqs: []
+  notes: LLM gateway / router in front of ThinkingCap — compare agents THROUGH Portkey, not as a coding
+    agent itself
+  harness_kind: gateway
+  matrix: include
+- id: ito
+  group: registry-only
+  bench_enabled: false
+  skip_reason: explicitly skipped for ThinkingCap matrix
+  matrix: skip
+- id: zoocode
+  group: registry-only
+  vendor: zoo-code
+  binary: null
+  bench_enabled: false
+  skip_reason: Roo Code community fork (VS Code / CLI); watch-only — Roo itself is EOL/skipped
+  notes: https://www.zoocode.dev/ — prefer only if chasing Roo-lineage; not primary matrix
+  matrix: out
+thinkingcap_matrix:
+  description: Curated agents for ThinkingCap-Qwen3.6-27B-MLX-4bit comparison (user shortlist Jul 2026)
+  include:
+  - aider
+  - antigravity
+  - claude-code
+  - cline
+  - codex
+  - command-code
+  - cursor-cli
+  - gdevelop
+  - goose
+  - hermes-agent
+  - kilocode
+  - lemonade
+  - mimo-code
+  - mini-swe-agent
+  - oh-my-pi
+  - openclaw
+  - opencode
+  - openhands
+  - opensquilla
+  - peezy
+  - pi
+  - poolside
+  - portkey
+  - terminus-2
+  - zed
+  skip:
+  - ito
+  - roo-code
+  notes:
+  - Roo Code EOL → skip; Zoo Code is the community fork (watch-only, not primary).
+  - Ito explicitly skipped.
+  - Lemonade / GDevelop / Zed / Portkey are platforms/editors/gateways — included for breadth, smoke differs.
+  - 'Smoke-green on ThinkingCap: aider, antigravity, claude-code, cline, codex, command-code, cursor-cli,
+    goose, hermes-agent, kilocode, mimo-code, oh-my-pi, openclaw, opencode, openhands, opensquilla, peezy, pi.'
+  - terminus-2 and mini-swe-agent are Harbor-ready TB leaderboard controls (matrix include).
+  - grok-build / letta-code stay matrix:out until smoke-proven.

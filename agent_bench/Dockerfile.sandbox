@@ -1,0 +1,11 @@
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY scripts/smoke_model.sh /usr/local/bin/smoke_model.sh
+RUN chmod +x /usr/local/bin/smoke_model.sh
+
+WORKDIR /workspace
+CMD ["/usr/local/bin/smoke_model.sh"]

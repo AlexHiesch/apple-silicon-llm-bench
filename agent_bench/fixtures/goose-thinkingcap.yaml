@@ -1,0 +1,15 @@
+GOOSE_PROVIDER: openai
+GOOSE_MODEL: t-prazak/ThinkingCap-Qwen3.6-27B-MLX-4bit
+GOOSE_MODE: auto
+OPENAI_API_KEY: local
+OPENAI_HOST: http://127.0.0.1:8091/v1
+OPENAI_BASE_PATH: chat/completions
+OPENAI_TIMEOUT: "600"
+extensions:
+  developer:
+    enabled: true
+    name: developer
+    type: builtin
+    timeout: 300
+    bundled: true
+    description: Write and edit files

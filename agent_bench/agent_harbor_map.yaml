@@ -1,0 +1,56 @@
+# Map agent_clis.yaml IDs → Harbor / Pier --agent names.
+# Missing entry ⇒ suite skipped for that agent on that harness.
+harbor:
+  aider: aider
+  antigravity: antigravity-cli
+  claude-code: claude-code
+  cline: cline-cli
+  codex: codex
+  command-code: null  # not in Harbor registry yet
+  cursor-cli: cursor-cli
+  goose: goose
+  hermes-agent: hermes
+  kilocode: null
+  mimo-code: mimo
+  mini-swe-agent: mini-swe-agent
+  oh-my-pi: null
+  openclaw: openclaw
+  opencode: opencode
+  openhands: openhands
+  opensquilla: null
+  peezy: null
+  pi: pi
+  poolside: null
+  lemonade: null
+  gdevelop: null
+  zed: null
+  portkey: null
+  terminus-2: terminus-2
+
+# Pier supports a smaller agent set; null ⇒ skip DeepSWE for that CLI.
+pier:
+  aider: null
+  antigravity: null
+  claude-code: claude-code
+  cline: null
+  codex: codex
+  command-code: null
+  cursor-cli: cursor-cli
+  goose: null
+  hermes-agent: null
+  kilocode: null
+  mimo-code: null
+  mini-swe-agent: mini-swe-agent
+  oh-my-pi: null
+  openclaw: null
+  opencode: opencode
+  openhands: null
+  opensquilla: null
+  peezy: null
+  pi: null
+  poolside: null
+  lemonade: null
+  gdevelop: null
+  zed: null
+  portkey: null
+  terminus-2: null
